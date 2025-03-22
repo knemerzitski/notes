@@ -1,10 +1,10 @@
 import mitt, { Emitter } from 'mitt';
 
-import { ServerRecordsFacadeEvents } from '../../types';
-import { ServerRecordsFacade } from '../../types';
+import { Maybe } from '../../../../utils/src/types';
+
 import { RevisionChangeset, RevisionRecord } from '../../records/record';
 import { RevisionRecords } from '../../records/revision-records';
-import { Maybe } from '../../../../utils/src/types';
+import { ServerRecordsFacadeEvents, ServerRecordsFacade } from '../../types';
 
 export interface LocalServerRecordsParams<TRecord extends RevisionRecord> {
   records: RevisionRecords<TRecord>;

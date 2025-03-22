@@ -1,7 +1,7 @@
+import { debug } from 'debug';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { createLogger } from './logging';
-import { debug } from 'debug';
 
 beforeAll(() => {
   debug.enable('*');

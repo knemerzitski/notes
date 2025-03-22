@@ -17,7 +17,10 @@ import {
   expectGraphQLResponseError,
 } from '../../../../__tests__/helpers/graphql/response';
 import { dropAndCreateSearchIndexes } from '../../../../__tests__/helpers/mongodb/indexes';
-import { resetDatabase , mongoCollectionStats } from '../../../../__tests__/helpers/mongodb/instance';
+import {
+  resetDatabase,
+  mongoCollectionStats,
+} from '../../../../__tests__/helpers/mongodb/instance';
 import { fakeNotePopulateQueue } from '../../../../__tests__/helpers/mongodb/populate/note';
 import {
   populateNotes,

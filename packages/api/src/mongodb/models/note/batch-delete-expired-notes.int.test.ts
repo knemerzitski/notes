@@ -5,7 +5,8 @@ import {
   mongoClient,
   mongoCollections,
   resetDatabase,
- mongoCollectionStats } from '../../../__tests__/helpers/mongodb/instance';
+  mongoCollectionStats,
+} from '../../../__tests__/helpers/mongodb/instance';
 import { fakeNotePopulateQueue } from '../../../__tests__/helpers/mongodb/populate/note';
 import {
   TestNoteCategory,

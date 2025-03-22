@@ -113,7 +113,6 @@ function createNotesAndAddToList(
 }
 
 function getCacheNoteIds(categoryName: string): string[] {
-   
   const data: any = cache.readQuery({
     query: gql(`
       query($userId: ObjectID!) {
@@ -155,7 +154,7 @@ describe('same category', () => {
         },
         anchorPosition: ListAnchorPosition.AFTER,
       },
-      cache,
+      cache
     );
 
     expect(getCacheNoteIds('default')).toStrictEqual(['2', '3', '1', '4']);

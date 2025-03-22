@@ -23,7 +23,6 @@ const ClearNotesConnectionCategoryButton_Query = gql(`
   }
 `);
 
-
 export const ClearNotesConnectionCategoryButton = forwardRef<
   HTMLButtonElement,
   ButtonProps & {

@@ -54,7 +54,8 @@ const CUSTOM_TYPE_POLICIES_CONTEXT_INITIALIZERS = {
   note: noteContext,
 };
 
-export type CustomTypePoliciesContextInitializer = typeof CUSTOM_TYPE_POLICIES_CONTEXT_INITIALIZERS;
+export type CustomTypePoliciesContextInitializer =
+  typeof CUSTOM_TYPE_POLICIES_CONTEXT_INITIALIZERS;
 
 export type CustomTypePoliciesContext = {
   [Key in keyof CustomTypePoliciesContextInitializer]: ReturnType<

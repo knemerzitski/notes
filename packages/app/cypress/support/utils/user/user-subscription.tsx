@@ -1,14 +1,15 @@
 import { render } from '@testing-library/react';
 
-import { GraphQLServiceProvider } from '../../../../src/graphql/components/GraphQLServiceProvider';
-import { CurrentUserIdProvider } from '../../../../src/user/components/CurrentUserIdProvider';
-
-import { GraphQLService } from '../../../../src/graphql/types';
-import { SignedInUserEventsSubscription } from '../../../../src/user/components/SignedInUserEventsSubscription';
 import {
   AsyncEventQueue,
   ListenerEvent,
 } from '../../../../../utils/src/async-event-queue';
+
+import { GraphQLServiceProvider } from '../../../../src/graphql/components/GraphQLServiceProvider';
+import { GraphQLService } from '../../../../src/graphql/types';
+import { CurrentUserIdProvider } from '../../../../src/user/components/CurrentUserIdProvider';
+
+import { SignedInUserEventsSubscription } from '../../../../src/user/components/SignedInUserEventsSubscription';
 
 type Event = ListenerEvent<
   Parameters<typeof SignedInUserEventsSubscription>[0]['listener']

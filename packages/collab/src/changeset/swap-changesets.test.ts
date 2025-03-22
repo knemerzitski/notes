@@ -27,7 +27,7 @@ function* generateRawStrips(head: string, insertPool: string[]): Generator<unkno
   // get all permutations of strings
 
   const insertStrings = new Set<string>();
-   
+
   for (let i = 0; i < insertPool.length; i++) {
     for (const str of [...permutator(insertPool.slice(0, i + 1))].map((strList) =>
       strList.join('')

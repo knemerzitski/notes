@@ -6,10 +6,7 @@ export function userSerializationKey_fieldDisplayName(userId: User['id']) {
   return `User:${userId}:displayName`;
 }
 
-export function noteSerializationKey_fieldText(
-  noteId: Note['id'],
-  userId: User['id']
-) {
+export function noteSerializationKey_fieldText(noteId: Note['id'], userId: User['id']) {
   return `Note:${noteId}:${userId}:insertText`;
 }
 

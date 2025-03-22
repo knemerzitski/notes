@@ -1,4 +1,5 @@
 import { gql } from '../../__generated__';
+
 import { CollabContentInput } from './CollabContentInput';
 import { CollabService } from './CollabService';
 import { CollabServiceInfo } from './CollabServiceInfo';

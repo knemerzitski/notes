@@ -21,6 +21,5 @@ export interface KeyViewText {
 }
 
 export interface JsonTextEvents {
-  error: unknown
+  error: unknown;
 }
-

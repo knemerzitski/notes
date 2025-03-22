@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import { Changeset } from '../changeset';
 
-import { BaseComposableRecord, ComposableRecordsFacade } from './composable-records-facade';
+import {
+  BaseComposableRecord,
+  ComposableRecordsFacade,
+} from './composable-records-facade';
 import { TextMemoRecords } from './text-memo-records';
 
 function cs(value: unknown): Changeset {
@@ -18,13 +21,19 @@ function rs(values: unknown[]): BaseComposableRecord[] {
   return values.map(r);
 }
 
-function expectRecords(actual: TextMemoRecords<BaseComposableRecord>, expected: unknown[]) {
+function expectRecords(
+  actual: TextMemoRecords<BaseComposableRecord>,
+  expected: unknown[]
+) {
   const a = actual.items.map((i) => i.changeset.toString());
   const b = expected.map((i) => cs(i).toString());
   expect(a).toStrictEqual(b);
 }
 
-function expectTailText(actual: TextMemoRecords<BaseComposableRecord>, expected: unknown[]) {
+function expectTailText(
+  actual: TextMemoRecords<BaseComposableRecord>,
+  expected: unknown[]
+) {
   expect(actual.tailText.toString()).toStrictEqual(cs(expected).toString());
 }
 

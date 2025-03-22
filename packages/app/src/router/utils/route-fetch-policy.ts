@@ -1,9 +1,9 @@
 import { ApolloCache, FetchPolicy } from '@apollo/client';
 
+import { User } from '../../__generated__/graphql';
 import { isLocalOnlyUser } from '../../user/models/signed-in-user/is-local-only';
 
 import { FetchedRoutes } from '../context/fetched-routes';
-import { User } from '../../__generated__/graphql';
 
 export function routeFetchPolicy(
   userId: User['id'],

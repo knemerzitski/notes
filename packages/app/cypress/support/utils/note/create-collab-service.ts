@@ -1,14 +1,12 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Note, NoteTextFieldName } from '../../../../src/__generated__/graphql';
-import { SimpleText } from '../../../../../collab/src/types';
-import { GraphQLService } from '../../../../src/graphql/types';
 import { gql } from '@apollo/client';
-import { NoteTextFieldEditor } from '../../../../src/note/types';
+
 import { CollabService } from '../../../../../collab/src/client/collab-service';
+import { SimpleText } from '../../../../../collab/src/types';
+
+import { Note, NoteTextFieldName } from '../../../../src/__generated__/graphql';
+import { GraphQLService } from '../../../../src/graphql/types';
+
+import { NoteTextFieldEditor } from '../../../../src/note/types';
 
 const Test_CreateCollabService_Query = gql(`
   query Test_CreateCollabService_Query($by: NoteByInput!) {

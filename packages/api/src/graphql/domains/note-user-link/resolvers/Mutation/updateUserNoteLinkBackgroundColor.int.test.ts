@@ -22,7 +22,8 @@ import {
 import {
   mongoCollections,
   resetDatabase,
- mongoCollectionStats } from '../../../../../__tests__/helpers/mongodb/instance';
+  mongoCollectionStats,
+} from '../../../../../__tests__/helpers/mongodb/instance';
 import { fakeNotePopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/note';
 import { userAddNote } from '../../../../../__tests__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/populate/populate-queue';

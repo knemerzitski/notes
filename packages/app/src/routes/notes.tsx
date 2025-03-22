@@ -2,8 +2,8 @@ import { createFileRoute } from '@tanstack/react-router';
 
 import { gql } from '../__generated__';
 import { NotesMain } from '../note/components/NotesMain';
-import { loaderUserFetchLogic } from '../router/utils/loader-user-fetch-logic';
 import { useIsRouteLoaded } from '../router/hooks/useIsRouteLoaded';
+import { loaderUserFetchLogic } from '../router/utils/loader-user-fetch-logic';
 import { IsLoadingProvider } from '../utils/context/is-loading';
 
 const RouteNotes_Query = gql(`

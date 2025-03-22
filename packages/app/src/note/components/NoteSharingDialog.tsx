@@ -14,12 +14,13 @@ import { forwardRef } from 'react';
 import { gql } from '../../__generated__';
 import { TopCornerCloseButton } from '../../utils/components/TopCornerCloseButton';
 
+import { useNoteId } from '../context/note-id';
+
 import { SharingCopyLinkButton } from './SharingCopyLinkButton';
 import { SharingLinkQRCode } from './SharingLinkQRCode';
 import { SharingLinkTextField } from './SharingLinkTextField';
 import { SharingStatusTypography } from './SharingStatusTypography';
 import { ToggleSharingSwitch } from './ToggleSharingSwitch';
-import { useNoteId } from '../context/note-id';
 
 const _NoteSharingDialog_NoteFragment = gql(`
   fragment NoteSharingDialog_NoteFragment on Note {

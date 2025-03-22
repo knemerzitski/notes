@@ -33,7 +33,5 @@ it('removes operation', () => {
   );
   removeUserOperations(userId, ['someOpId'], cache);
 
-  expect(
-    cache.extract()[`LocalUser:${userId}`]?.operations
-  ).toMatchInlineSnapshot(`{}`);
+  expect(cache.extract()[`LocalUser:${userId}`]?.operations).toMatchInlineSnapshot(`{}`);
 });

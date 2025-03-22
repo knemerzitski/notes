@@ -8,7 +8,8 @@ import { Changeset } from '../../../../../collab/src/changeset';
 import {
   resetDatabase,
   mongoCollections,
- mongoCollectionStats } from '../../../__tests__/helpers/mongodb/instance';
+  mongoCollectionStats,
+} from '../../../__tests__/helpers/mongodb/instance';
 import {
   populateUserAddNote,
   populateNotes,

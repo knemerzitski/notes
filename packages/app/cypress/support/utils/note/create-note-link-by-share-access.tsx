@@ -1,14 +1,13 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { renderHook } from '@testing-library/react';
 
 import { ReactNode } from 'react';
 
-import { GraphQLServiceProvider } from '../../../../src/graphql/components/GraphQLServiceProvider';
 import { getFragmentData } from '../../../../src/__generated__';
 import { CreateNoteLinkByShareAccessPayloadFragmentDoc } from '../../../../src/__generated__/graphql';
+import { GraphQLServiceProvider } from '../../../../src/graphql/components/GraphQLServiceProvider';
 import { GraphQLService } from '../../../../src/graphql/types';
-import { UserIdProvider } from '../../../../src/user/context/user-id';
 import { useCreateNoteLinkByShareAccess } from '../../../../src/note/hooks/useCreateNoteLinkByShareAccess';
+import { UserIdProvider } from '../../../../src/user/context/user-id';
 
 export async function createNoteLinkByShareAccess({
   graphQLService,

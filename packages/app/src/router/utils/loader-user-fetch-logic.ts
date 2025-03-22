@@ -1,5 +1,6 @@
 import { RouterContext } from '../../router';
 import { getCurrentUserId } from '../../user/models/signed-in-user/get-current';
+
 import { routeFetchPolicy } from './route-fetch-policy';
 
 export function loaderUserFetchLogic(ctx: {

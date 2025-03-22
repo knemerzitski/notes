@@ -1,10 +1,10 @@
 import { InputProps } from '@mui/material';
 
+import { gql } from '../../__generated__';
 import { NoteTextFieldName } from '../../__generated__/graphql';
 
 import { CollabInput, CollabInputProps } from './CollabInput';
 import { ContentInput } from './ContentInput';
-import { gql } from '../../__generated__';
 
 const _CollabContentInput_NoteFragment = gql(`
   fragment CollabContentInput_NoteFragment on Note {

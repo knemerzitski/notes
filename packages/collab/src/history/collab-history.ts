@@ -19,27 +19,32 @@ import { ReadonlyDeep, Maybe } from '../../../utils/src/types';
 import { Changeset, ChangesetStruct } from '../changeset';
 import { OptionalChangesetStruct } from '../changeset/struct';
 import { CollabClient } from '../client/collab-client';
+import { CollabServiceEvents } from '../client/collab-service';
 import {
   OptionalSelectionRange,
   SelectionRange,
   SelectionRangeStruct,
 } from '../client/selection-range';
+import { UserRecords } from '../client/user-records';
 import { ComposableRecordsFacade } from '../records/composable-records-facade';
 import { RevisionChangeset, SubmittedRevisionRecord } from '../records/record';
 import { TextMemoRecords } from '../records/text-memo-records';
-import { SimpleTextOperationOptions, SelectionChangeset, LimitedEmitter } from '../types';
+import {
+  SimpleTextOperationOptions,
+  SelectionChangeset,
+  LimitedEmitter,
+  ServerRecordsFacade,
+} from '../types';
 
-import { externalChangeModification } from './mod-external-change';
-import { unshiftRecordsModification } from './mod-unshift-records';
-import { CollabServiceEvents } from '../client/collab-service';
 import {
   getOrChangeset,
   getOrRevision,
   OrRevisionChangeset,
 } from '../utils/revision-changeset';
-import { UserRecords } from '../client/user-records';
-import { ServerRecordsFacade } from '../types';
+
+import { externalChangeModification } from './mod-external-change';
 import { permanentChangeModification } from './mod-permanent-change';
+import { unshiftRecordsModification } from './mod-unshift-records';
 
 export interface CollabHistoryEvents {
   appliedTypingOperation: ReadonlyDeep<

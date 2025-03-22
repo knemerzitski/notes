@@ -2,13 +2,13 @@ import { renderHook } from '@testing-library/react';
 
 import { ReactNode } from 'react';
 
-import { GraphQLServiceProvider } from '../../../../src/graphql/components/GraphQLServiceProvider';
-import { CurrentUserIdProvider } from '../../../../src/user/components/CurrentUserIdProvider';
-
-import { useUpdateNoteInsertRecord } from '../../../../src/note/hooks/useUpdateNoteInsertRecord';
 import { CollabService } from '../../../../../collab/src/client/collab-service';
+
+import { GraphQLServiceProvider } from '../../../../src/graphql/components/GraphQLServiceProvider';
 import { GraphQLService } from '../../../../src/graphql/types';
 import { NoteIdProvider } from '../../../../src/note/context/note-id';
+import { useUpdateNoteInsertRecord } from '../../../../src/note/hooks/useUpdateNoteInsertRecord';
+import { CurrentUserIdProvider } from '../../../../src/user/components/CurrentUserIdProvider';
 
 export async function submitChanges({
   noteId,

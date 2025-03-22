@@ -2,8 +2,9 @@ import { Box, BoxProps, css, styled } from '@mui/material';
 
 import { forwardRef } from 'react';
 
-import { CollabInputs } from './CollabInputs';
 import { gql } from '../../__generated__';
+
+import { CollabInputs } from './CollabInputs';
 
 const _CollabInputsColumn_NoteFragment = gql(`
   fragment CollabInputsColumn_NoteFragment on Note {

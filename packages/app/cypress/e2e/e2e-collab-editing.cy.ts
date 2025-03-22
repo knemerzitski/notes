@@ -1,10 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { SelectionRange } from '../../../collab/src/client/selection-range';
+
 import { GraphQLService } from '../../src/graphql/types';
 import { createGraphQLService } from '../support/utils/graphql/create-graphql-service';
 import { createCollabService } from '../support/utils/note/create-collab-service';

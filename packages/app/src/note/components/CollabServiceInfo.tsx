@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
-import { useCollabService } from '../hooks/useCollabService';
 import { css, styled } from '@mui/material';
+import { useEffect, useState } from 'react';
+
+import { useCollabService } from '../hooks/useCollabService';
 
 export function CollabServiceInfo() {
   const collabService = useCollabService(true);

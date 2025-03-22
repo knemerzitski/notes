@@ -2,7 +2,10 @@ import { useApolloClient } from '@apollo/client';
 
 import { useEffect } from 'react';
 
+import { Listener } from '../../../../utils/src/async-event-queue';
+
 import { gql } from '../../__generated__';
+import { OpenNoteSubscriptionSubscriptionSubscription } from '../../__generated__/graphql';
 import { useGetMutationUpdaterFn } from '../../graphql/context/get-mutation-updater-fn';
 import { apolloClientSubscribe } from '../../graphql/utils/apollo-client-subscribe';
 import { useUserId } from '../../user/context/user-id';
@@ -10,8 +13,6 @@ import { useNoteId } from '../context/note-id';
 import { useIsLocalOnlyNote } from '../hooks/useIsLocalOnlyNote';
 import { setOpenedNoteActive } from '../models/opened-note/set-active';
 import { getUserNoteLinkId } from '../utils/id';
-import { Listener } from '../../../../utils/src/async-event-queue';
-import { OpenNoteSubscriptionSubscriptionSubscription } from '../../__generated__/graphql';
 
 export const openNoteSubscriptionOperationName = 'OpenNoteSubscription_Subscription';
 

@@ -6,11 +6,11 @@ import { expect, it } from 'vitest';
 
 import { CollabService } from '../../../../../collab/src/client/collab-service';
 
+import { NoteTextFieldName } from '../../../__generated__/graphql';
 import { createGraphQLService } from '../../../graphql/create/service';
 import { createDefaultGraphQLServiceParams } from '../../../graphql-service';
 
 import { NoteTextFieldEditor } from '../../utils/external-state';
-import { NoteTextFieldName } from '../../../__generated__/graphql';
 
 it('writes NoteExternalState to cache on first read and allows modifications', () => {
   const params = createDefaultGraphQLServiceParams();

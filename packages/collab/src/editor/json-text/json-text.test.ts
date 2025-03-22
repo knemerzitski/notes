@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import mitt from 'mitt';
 import { afterEach, assert, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Changeset, InsertStrip, RetainStrip } from '../../changeset';
 import { CollabService } from '../../client/collab-service';
 
 import { defineCreateJsonTextFromService } from './create-service-json-text';
-import mitt from 'mitt';
 import { JsonTextEvents } from './types';
 
 function setServiceText(service: CollabService, value: string) {

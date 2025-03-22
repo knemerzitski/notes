@@ -20,7 +20,6 @@ export function createScheduledHandler(options?: CreateScheduledHandlerOptions):
   let mongoDB: MongoDBContext<MongoDBCollections> | undefined;
 
   return async (event: unknown, context) => {
-    
     const logger = options?.override?.logger ?? createLogger('scheduled-handler');
     try {
       logger.info('started', {

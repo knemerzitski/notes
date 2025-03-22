@@ -32,7 +32,6 @@ export function twoStripsParallelIterable(
      */
     sliceStrip?: (strip: Strip) => boolean;
   }
-   
 ): Iterable<ReturnValue, ReturnValue> {
   const getLength = options?.getLength ?? getDefaultStripLength;
   const sliceStrip = options?.sliceStrip ?? defaultSliceStrip;

@@ -6,7 +6,10 @@ import { ComposableRecordsFacade } from '../records/composable-records-facade';
 import { TextMemoRecords } from '../records/text-memo-records';
 
 import { ReadonlyHistoryRecord } from './collab-history';
-import { ExternalChangeModificationContext, externalChangeModification } from './mod-external-change';
+import {
+  ExternalChangeModificationContext,
+  externalChangeModification,
+} from './mod-external-change';
 
 function createRecord(rawChangeset: unknown): ReadonlyHistoryRecord {
   return {

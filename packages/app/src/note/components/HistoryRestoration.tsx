@@ -6,10 +6,10 @@ import { UserRecords } from '../../../../collab/src/client/user-records';
 
 import { gql } from '../../__generated__';
 import { useUserId } from '../../user/context/user-id';
+import { useLogger } from '../../utils/context/logger';
 import { useNoteId } from '../context/note-id';
 import { useCollabService } from '../hooks/useCollabService';
 import { CacheRecordsFacade } from '../utils/cache-records-facade';
-import { useLogger } from '../../utils/context/logger';
 
 const HistoryRestoration_Query = gql(`
   query HistoryRestoration_Query($userBy: UserByInput!, $noteBy: NoteByInput!, 
@@ -177,7 +177,15 @@ export function HistoryRestoration({
         collabService.userRecords = null;
       }
     };
-  }, [client, noteId, userId, collabService, fetchEntriesCount, triggerEntriesRemaining, logger]);
+  }, [
+    client,
+    noteId,
+    userId,
+    collabService,
+    fetchEntriesCount,
+    triggerEntriesRemaining,
+    logger,
+  ]);
 
   return null;
 }

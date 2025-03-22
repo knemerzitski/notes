@@ -5,7 +5,6 @@ import { RootRouteNoteModuleProvider } from './note/components/RootRouteNoteModu
 import { RootRouteRouterModuleProvider } from './router/components/RootRouteRouterModuleProvider';
 import { RootRouteUserModuleProvider } from './user/components/RootRouteUserModuleProvider';
 
-
 export function RootRoute({ children }: { children: ReactNode }) {
   return (
     <RootRouteUserModuleProvider>

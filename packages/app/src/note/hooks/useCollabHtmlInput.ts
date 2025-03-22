@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Options, useDebouncedCallback } from 'use-debounce';
 
-
 import { CollabService } from '../../../../collab/src/client/collab-service';
 import { SelectionRange } from '../../../../collab/src/client/selection-range';
 import { RevisionChangeset } from '../../../../collab/src/records/record';
@@ -194,7 +193,7 @@ export function useCollabHtmlInput(
       });
 
       editor.insert(insertValue, adjustedBeforeSelection, {
-        merge: isMergeChangesRef.current,
+        type: isMergeChangesRef.current ? 'merge' : undefined,
       });
       startDebouncedMerge();
     },
@@ -212,7 +211,7 @@ export function useCollabHtmlInput(
       });
 
       editor.delete(1, adjustedBeforeSelection, {
-        merge: isMergeChangesRef.current,
+        type: isMergeChangesRef.current ? 'merge' : undefined,
       });
       startDebouncedMerge();
     },

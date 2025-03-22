@@ -1,7 +1,8 @@
 import mitt, { Emitter } from 'mitt';
 
-import { CollabServiceRecord } from './collab-service';
 import { ServerRecordsFacade, ServerRecordsFacadeEvents } from '../types';
+
+import { CollabServiceRecord } from './collab-service';
 
 export interface UserRecordsEvents {
   recordsUpdated: {

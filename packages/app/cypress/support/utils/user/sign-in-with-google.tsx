@@ -1,10 +1,11 @@
 import { renderHook } from '@testing-library/react';
 import { ReactNode } from 'react';
+
+import { GraphQLServiceProvider } from '../../../../src/graphql/components/GraphQLServiceProvider';
 import { GraphQLService } from '../../../../src/graphql/types';
+import { CurrentUserIdProvider } from '../../../../src/user/components/CurrentUserIdProvider';
 import { useSignInWithGoogleMutation } from '../../../../src/user/hooks/useSignInWithGoogleMutation';
 import { getCurrentUserId } from '../../../../src/user/models/signed-in-user/get-current';
-import { GraphQLServiceProvider } from '../../../../src/graphql/components/GraphQLServiceProvider';
-import { CurrentUserIdProvider } from '../../../../src/user/components/CurrentUserIdProvider';
 
 export async function signInWithGoogle({
   graphQLService,

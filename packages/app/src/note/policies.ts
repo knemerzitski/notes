@@ -1,5 +1,6 @@
 import { PossibleTypesMap } from '@apollo/client';
 
+import { NoteTextFieldName } from '../__generated__/graphql';
 import {
   CreateTypePoliciesFn,
   CustomTypePoliciesInitContext,
@@ -41,7 +42,6 @@ import { User } from './policies/User';
 import { UserNoteLink } from './policies/UserNoteLink';
 import { UserNoteLinkConnection } from './policies/UserNoteLinkConnection';
 import { createNoteExternalStateContext } from './utils/external-state';
-import { NoteTextFieldName } from '../__generated__/graphql';
 
 export const noteContext = function (ctx: CustomTypePoliciesInitContext) {
   const externalState = createNoteExternalStateContext<NoteTextFieldName>(

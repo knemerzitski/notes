@@ -24,7 +24,6 @@ export function useIsNoteEditable() {
   const userId = useUserId();
   const noteId = useNoteId();
 
-   
   const { data } = useQuery(UseIsNoteEditable_Query, {
     variables: {
       userBy: {
@@ -41,6 +40,5 @@ export function useIsNoteEditable() {
     return false;
   }
 
-   
   return isNoteEditable(data.signedInUser.noteLink.categoryName);
 }

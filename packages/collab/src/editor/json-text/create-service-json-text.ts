@@ -1,5 +1,7 @@
 import { Emitter } from 'mitt';
+
 import { Logger } from '../../../../utils/src/logging';
+
 import { JsonText } from './json-text';
 import { spaceNewlineMapper } from './space-newline-mapper';
 import { StructJsonFormatter } from './struct-json-formatter';

@@ -1,23 +1,26 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import mapObject from 'map-obj';
+
+import mitt from 'mitt';
+
 import { CollabService } from '../../../collab/src/client/collab-service';
 import { SelectionRange } from '../../../collab/src/client/selection-range';
 import { SimpleText } from '../../../collab/src/types';
+
 import { NoteTextFieldName } from '../../src/__generated__/graphql';
 import { GraphQLService } from '../../src/graphql/types';
 import { createGraphQLService } from '../support/utils/graphql/create-graphql-service';
-import { signIn } from '../support/utils/user/sign-in';
-import { createNote } from '../support/utils/note/create-note';
-import { shareNote } from '../support/utils/note/share-note';
 import { persistCache } from '../support/utils/graphql/persist-cache';
+import { createCollabService } from '../support/utils/note/create-collab-service';
+import { createNote } from '../support/utils/note/create-note';
 import { createNoteLinkByShareAccess } from '../support/utils/note/create-note-link-by-share-access';
 import { openNoteSubscription } from '../support/utils/note/open-note-subscription';
-import { userSubscription } from '../support/utils/user/user-subscription';
-import { syncHeadText } from '../support/utils/note/sync-head-text';
-import { createCollabService } from '../support/utils/note/create-collab-service';
+import { shareNote } from '../support/utils/note/share-note';
 import { submitChanges } from '../support/utils/note/submit-changes';
+import { syncHeadText } from '../support/utils/note/sync-head-text';
 import { updateOpenNoteSelectionRange } from '../support/utils/note/update-open-note-selection-range';
-import mitt from 'mitt';
+import { signIn } from '../support/utils/user/sign-in';
+import { userSubscription } from '../support/utils/user/user-subscription';
 
 interface UserContext {
   userId: string;
@@ -170,13 +173,12 @@ class CyElementField implements FieldEditor {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let user1: UserContext & {
   editor: Record<NoteTextFieldName, FieldEditor>;
   bgEditor: Record<NoteTextFieldName, FieldEditor>;
   submitChanges: () => Promise<void>;
 };
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 let user2: UserContext & {
   editor: Record<NoteTextFieldName, FieldEditor>;
   submitChanges: () => Promise<void>;

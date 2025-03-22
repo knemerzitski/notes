@@ -1,15 +1,16 @@
 import { render } from '@testing-library/react';
 
-import { GraphQLServiceProvider } from '../../../../src/graphql/components/GraphQLServiceProvider';
-import { CurrentUserIdProvider } from '../../../../src/user/components/CurrentUserIdProvider';
-
-import { GraphQLService } from '../../../../src/graphql/types';
-import { NoteIdProvider } from '../../../../src/note/context/note-id';
-import { OpenNoteSubscription } from '../../../../src/note/components/OpenNoteSubscription';
 import {
   AsyncEventQueue,
   ListenerEvent,
 } from '../../../../../utils/src/async-event-queue';
+
+import { GraphQLServiceProvider } from '../../../../src/graphql/components/GraphQLServiceProvider';
+
+import { GraphQLService } from '../../../../src/graphql/types';
+import { OpenNoteSubscription } from '../../../../src/note/components/OpenNoteSubscription';
+import { NoteIdProvider } from '../../../../src/note/context/note-id';
+import { CurrentUserIdProvider } from '../../../../src/user/components/CurrentUserIdProvider';
 
 type Event = ListenerEvent<Parameters<typeof OpenNoteSubscription>[0]['listener']>;
 

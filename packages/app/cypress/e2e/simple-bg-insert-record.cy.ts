@@ -1,6 +1,7 @@
 import { CollabService } from '../../../collab/src/client/collab-service';
 import { SelectionRange } from '../../../collab/src/client/selection-range';
 import { SimpleText } from '../../../collab/src/types';
+
 import { Note, NoteTextFieldName } from '../../src/__generated__/graphql';
 import { GraphQLService } from '../../src/graphql/types';
 import { createGraphQLService } from '../support/utils/graphql/create-graphql-service';

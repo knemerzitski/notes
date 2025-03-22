@@ -2,14 +2,19 @@
 
 import { ObjectId } from 'mongodb';
 
+import { PickDeep } from '../../../../utils/src/types';
+
 import { CollectionName } from '../../mongodb/collection-names';
 import { MongoDBCollections } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
 
+import { QueryableNote } from '../../mongodb/loaders/note/descriptions/note';
 import { updateOpenNote } from '../../mongodb/models/note/update-open-note';
 
 import { SelectionRangeSchema } from '../../mongodb/schema/collab-record';
 import { DBOpenNoteSchema, OpenNoteSchema } from '../../mongodb/schema/open-note';
+
+import { MongoReadonlyDeep } from '../../mongodb/types';
 
 import {
   NoteCollabTextInvalidRevisionError,
@@ -17,9 +22,6 @@ import {
   NoteNotOpenedServiceError,
 } from './errors';
 import { findNoteUser } from './note';
-import { PickDeep } from '../../../../utils/src/types';
-import { QueryableNote } from '../../mongodb/loaders/note/descriptions/note';
-import { MongoReadonlyDeep } from '../../mongodb/types';
 
 export async function updateOpenNoteSelectionRange({
   mongoDB,
@@ -120,6 +122,12 @@ export async function updateOpenNoteSelectionRange({
     openNoteDuration,
     upsertOpenNote: true,
   });
+
+  if (typeof openNote === 'boolean') {
+    throw new Error(
+      'Unexpected openNote boolean. Above checks should make it impossible'
+    );
+  }
 
   return {
     type: 'success' as const,

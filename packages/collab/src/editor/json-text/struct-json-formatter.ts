@@ -1,8 +1,9 @@
+import { Emitter } from 'mitt';
 import { coerce, defaulted, Infer, InferRaw, string, type } from 'superstruct';
 
-import { JsonFormatter, JsonTextEvents, StringRecordStruct } from './types';
 import { Logger } from '../../../../utils/src/logging';
-import { Emitter } from 'mitt';
+
+import { JsonFormatter, JsonTextEvents, StringRecordStruct } from './types';
 
 export interface StructJsonMapper {
   preStringify(value: string): string;

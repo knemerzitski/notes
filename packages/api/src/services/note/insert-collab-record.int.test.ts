@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { faker } from '@faker-js/faker';
+import { ObjectId } from 'mongodb';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 
 import { Changeset } from '../../../../collab/src/changeset';
@@ -17,11 +18,11 @@ import { fakeUserPopulateQueue } from '../../__tests__/helpers/mongodb/populate/
 
 import { createMongoDBLoaders, MongoDBLoaders } from '../../mongodb/loaders';
 
-import { insertCollabRecord } from './insert-collab-record';
-import { DBUserSchema } from '../../mongodb/schema/user';
-import { DBNoteSchema } from '../../mongodb/schema/note';
 import { DBCollabRecordSchema } from '../../mongodb/schema/collab-record';
-import { ObjectId } from 'mongodb';
+import { DBNoteSchema } from '../../mongodb/schema/note';
+import { DBUserSchema } from '../../mongodb/schema/user';
+
+import { insertCollabRecord } from './insert-collab-record';
 
 let user: DBUserSchema;
 let note: DBNoteSchema;

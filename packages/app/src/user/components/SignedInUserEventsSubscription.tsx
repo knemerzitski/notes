@@ -2,13 +2,14 @@ import { useApolloClient } from '@apollo/client';
 
 import { useEffect } from 'react';
 
+import { Listener } from '../../../../utils/src/async-event-queue';
+
 import { gql } from '../../__generated__';
+import { SignedInUserEventsSubscriptionSubscriptionSubscription } from '../../__generated__/graphql';
 import { useGetMutationUpdaterFn } from '../../graphql/context/get-mutation-updater-fn';
 import { apolloClientSubscribe } from '../../graphql/utils/apollo-client-subscribe';
 import { useUserId } from '../context/user-id';
 import { useIsLocalOnlyUser } from '../hooks/useIsLocalOnlyUser';
-import { SignedInUserEventsSubscriptionSubscriptionSubscription } from '../../__generated__/graphql';
-import { Listener } from '../../../../utils/src/async-event-queue';
 
 const SignedInUserEventsSubscription_Subscription = gql(`
   subscription SignedInUserEventsSubscription_Subscription($input: SignedInUserEventsInput!) {

@@ -10,13 +10,14 @@ import {
 } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
 
+import { useDebouncedCallback } from 'use-debounce';
+
 import { CollabService } from '../../../../collab/src/client/collab-service';
 
-import { useCollabService } from '../hooks/useCollabService';
+import { useLogger } from '../../utils/context/logger';
 import { useShowError } from '../../utils/context/show-message';
 import { useIsOnline } from '../../utils/hooks/useIsOnline';
-import { useDebouncedCallback } from 'use-debounce';
-import { useLogger } from '../../utils/context/logger';
+import { useCollabService } from '../hooks/useCollabService';
 
 export function UndoButton(
   props: Omit<Parameters<typeof CollabServiceDefined>[0], 'service'>

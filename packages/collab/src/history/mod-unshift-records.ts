@@ -1,4 +1,5 @@
 import { Logger } from '../../../utils/src/logging';
+
 import { Changeset } from '../changeset';
 import { swapChangesets } from '../changeset/swap-changesets';
 import { SelectionRange } from '../client/selection-range';
@@ -101,7 +102,7 @@ export function unshiftRecordsModification(
       newRecords.unshift(newRecord);
     }
   }
-  
+
   if (currentSwapTransform) {
     newEntriesMemo.tailText = newEntriesMemo.tailText.compose(currentSwapTransform);
   }

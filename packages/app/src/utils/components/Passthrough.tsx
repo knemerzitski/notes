@@ -1,5 +1,5 @@
-import { ReactNode } from "react";
+import { ReactNode } from 'react';
 
-export function Passthrough({children}: {children: ReactNode}){
+export function Passthrough({ children }: { children: ReactNode }) {
   return children;
 }

@@ -1,6 +1,7 @@
 import { useNavigate, useRouter } from '@tanstack/react-router';
 import { useState, useCallback } from 'react';
 
+import { gql } from '../../__generated__';
 import { useGetCanGoBack } from '../../router/context/get-can-go-back';
 import { OnCloseProvider } from '../../utils/context/on-close';
 import { noteEditDialogId } from '../../utils/element-id';
@@ -9,7 +10,6 @@ import { useNoteId } from '../context/note-id';
 import { useOnNoteNotEditable } from '../hooks/useOnNoteNotEditable';
 
 import { NoteDialog } from './NoteDialog';
-import { gql } from '../../__generated__';
 
 const _RouteNoteDialog_NoteFragment = gql(`
   fragment RouteNoteDialog_NoteFragment on Note {

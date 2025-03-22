@@ -4,12 +4,13 @@ import { Changeset } from '../changeset';
 
 import { ComposableRecordsFacade } from '../records/composable-records-facade';
 
+import { TextMemoRecords } from '../records/text-memo-records';
+
 import { ReadonlyHistoryRecord } from './collab-history';
 import {
   permanentChangeModification,
   PermanentChangeModificationContext,
 } from './mod-permanent-change';
-import { TextMemoRecords } from '../records/text-memo-records';
 
 function createRecord(changeset: unknown): ReadonlyHistoryRecord {
   return {
@@ -84,7 +85,6 @@ describe('permanentChangeModification', () => {
     const safeRecords = new ComposableRecordsFacade(memoRecords);
 
     let serverTailTextTransformToRecordsTailText: Changeset | null =
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       populate.serverTailTransform
         ? Changeset.parseValue(populate.serverTailTransform)
         : null;

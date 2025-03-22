@@ -1,9 +1,17 @@
 import { ApolloCache } from '@apollo/client';
 import mitt, { Emitter } from 'mitt';
 
+import { Changeset } from '../../../../collab/src/changeset';
 import { CollabServiceRecord } from '../../../../collab/src/client/collab-service';
 
 import { RevisionChangeset } from '../../../../collab/src/records/record';
+
+import {
+  ServerRecordsFacade,
+  ServerRecordsFacadeEvents,
+} from '../../../../collab/src/types';
+
+import { Maybe } from '../../../../utils/src/types';
 
 import { getFragmentData, gql } from '../../__generated__';
 
@@ -16,12 +24,6 @@ import { identifyOrError } from '../../graphql/utils/identify';
 import { getCollabTextId } from './id';
 
 import { cacheRecordToCollabServiceRecord } from './map-record';
-import { Changeset } from '../../../../collab/src/changeset';
-import {
-  ServerRecordsFacade,
-  ServerRecordsFacadeEvents,
-} from '../../../../collab/src/types';
-import { Maybe } from '../../../../utils/src/types';
 
 const CacheRecordsFacadeTextAtRevision_CollabTextFragment = gql(`
   fragment CacheRecordsFacadeTextAtRevision_CollabTextFragment on CollabText {

@@ -4,8 +4,8 @@ import { RouterProvider } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
 
 import { createRouterContext, router } from '../../router';
-import { FetchedRoutesProvider, useFetchedRoutes } from '../context/fetched-routes';
 import { useUserId } from '../../user/context/user-id';
+import { FetchedRoutesProvider, useFetchedRoutes } from '../context/fetched-routes';
 
 export function AppRouterModuleProvider() {
   return (

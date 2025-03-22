@@ -5,7 +5,8 @@ import { beforeEach, it, expect } from 'vitest';
 import {
   resetDatabase,
   mongoCollections,
- mongoCollectionStats } from '../../../__tests__/helpers/mongodb/instance';
+  mongoCollectionStats,
+} from '../../../__tests__/helpers/mongodb/instance';
 import { DBUserSchema, UserSchema } from '../../schema/user';
 
 import { updateDisplayName } from './update-display-name';

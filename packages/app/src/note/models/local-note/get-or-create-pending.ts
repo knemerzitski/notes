@@ -1,6 +1,5 @@
 import { ApolloCache } from '@apollo/client';
 
-
 import { Changeset } from '../../../../../collab/src/changeset';
 
 import { gql } from '../../../__generated__';

@@ -6,8 +6,8 @@ import {
   MessageType,
 } from 'graphql-ws';
 
-import { isObjectLike } from '../../../../utils/src/type-guards/is-object-like';
 import { createDeferred, Deferred } from '../../../../utils/src/deferred';
+import { isObjectLike } from '../../../../utils/src/type-guards/is-object-like';
 
 export class WebSocketClient {
   readonly client;

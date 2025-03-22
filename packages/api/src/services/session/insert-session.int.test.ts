@@ -5,7 +5,8 @@ import { beforeEach, it, expect } from 'vitest';
 import {
   resetDatabase,
   mongoCollections,
- mongoCollectionStats } from '../../__tests__/helpers/mongodb/instance';
+  mongoCollectionStats,
+} from '../../__tests__/helpers/mongodb/instance';
 
 import { QueryableSessionLoader } from '../../mongodb/loaders/session/loader';
 

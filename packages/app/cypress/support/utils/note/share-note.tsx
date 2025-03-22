@@ -3,13 +3,13 @@ import { renderHook } from '@testing-library/react';
 
 import { ReactNode } from 'react';
 
-import { GraphQLServiceProvider } from '../../../../src/graphql/components/GraphQLServiceProvider';
 import { getFragmentData } from '../../../../src/__generated__';
 import { ShareNotePayloadFragmentDoc } from '../../../../src/__generated__/graphql';
+import { GraphQLServiceProvider } from '../../../../src/graphql/components/GraphQLServiceProvider';
 import { GraphQLService } from '../../../../src/graphql/types';
 import { useShareNote } from '../../../../src/note/hooks/useShareNote';
-import { getUserNoteLinkId } from '../../../../src/note/utils/id';
 import { getShareUrl } from '../../../../src/note/utils/get-share-url';
+import { getUserNoteLinkId } from '../../../../src/note/utils/id';
 import { UserIdProvider } from '../../../../src/user/context/user-id';
 
 export async function shareNote({

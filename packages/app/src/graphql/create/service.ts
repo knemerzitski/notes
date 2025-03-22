@@ -13,6 +13,7 @@ import { OperationTypeNode } from 'graphql';
 
 import { Logger } from '../../../../utils/src/logging';
 
+import { CustomTypePoliciesContextInitializer } from '../../graphql-service';
 import {
   CacheReadyCallbacks,
   CustomTypePoliciesInitContext,
@@ -34,7 +35,6 @@ import { createHttpWsLink } from './http-ws-link';
 import { createLinks } from './links';
 import { createMutationUpdaterFunctionMap } from './mutation-updater-map';
 import { addTypePolicies, createTypePolicies } from './type-policies';
-import { CustomTypePoliciesContextInitializer } from '../../graphql-service';
 
 export function createGraphQLService({
   httpUri,

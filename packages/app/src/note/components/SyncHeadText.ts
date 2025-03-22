@@ -5,8 +5,8 @@ import { getFragmentData, gql } from '../../__generated__';
 import { MapRecordCollabTextRecordFragmentFragmentDoc } from '../../__generated__/graphql';
 import { useUserId } from '../../user/context/user-id';
 import { useNoteId } from '../context/note-id';
-import { cacheRecordToCollabServiceRecord } from '../utils/map-record';
 import { getCollabService } from '../models/note/get-collab-service';
+import { cacheRecordToCollabServiceRecord } from '../utils/map-record';
 
 const SyncHeadTextWatch_Query = gql(`
   query SyncHeadTextWatch_Query($by: NoteByInput!) {

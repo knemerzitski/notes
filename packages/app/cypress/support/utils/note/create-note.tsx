@@ -2,18 +2,19 @@ import { renderHook } from '@testing-library/react';
 
 import { ReactNode } from 'react';
 
-import { GraphQLServiceProvider } from '../../../../src/graphql/components/GraphQLServiceProvider';
-import { CurrentUserIdProvider } from '../../../../src/user/components/CurrentUserIdProvider';
+import { SelectionRange } from '../../../../../collab/src/client/selection-range';
 
-import { CreateNote } from '../../../../src/note/mutations/CreateNote';
-import { useMutation } from '../../../../src/graphql/hooks/useMutation';
 import { getFragmentData } from '../../../../src/__generated__';
 import {
   CreateNotePayloadFragmentDoc,
   NoteTextFieldName,
 } from '../../../../src/__generated__/graphql';
+import { GraphQLServiceProvider } from '../../../../src/graphql/components/GraphQLServiceProvider';
+
+import { useMutation } from '../../../../src/graphql/hooks/useMutation';
 import { GraphQLService } from '../../../../src/graphql/types';
-import { SelectionRange } from '../../../../../collab/src/client/selection-range';
+import { CreateNote } from '../../../../src/note/mutations/CreateNote';
+import { CurrentUserIdProvider } from '../../../../src/user/components/CurrentUserIdProvider';
 
 export async function createNote({
   graphQLService,

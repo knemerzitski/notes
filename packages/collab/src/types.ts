@@ -1,9 +1,10 @@
 import { BaseEvents, Emitter, Handler } from 'mitt';
 
+import { Maybe } from '../../utils/src/types';
+
 import { Changeset } from './changeset';
 import { SelectionRange } from './client/selection-range';
 import { RevisionChangeset } from './records/record';
-import { Maybe } from '../../utils/src/types';
 
 /**
  * Simple facade for querying server records.

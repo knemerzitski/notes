@@ -2,7 +2,10 @@ import { ApolloClient } from '@apollo/client';
 import { onError } from '@apollo/client/link/error';
 import { nanoid } from 'nanoid';
 
-import { AuthenticationFailedReason, GraphQLErrorCode } from '../../../../api-app-shared/src/graphql/error-codes';
+import {
+  AuthenticationFailedReason,
+  GraphQLErrorCode,
+} from '../../../../api-app-shared/src/graphql/error-codes';
 
 import { UserMessageType } from '../../__generated__/graphql';
 import { addUserMessages } from '../../user/models/message/add';

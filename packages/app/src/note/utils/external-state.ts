@@ -1,3 +1,4 @@
+import { makeVar } from '@apollo/client';
 import { coerce, instance, Struct, type, unknown } from 'superstruct';
 
 import {
@@ -8,7 +9,6 @@ import {
 import { defineCreateJsonTextFromService } from '../../../../collab/src/editor/json-text';
 
 import { Logger } from '../../../../utils/src/logging';
-import { makeVar } from '@apollo/client';
 
 export function createNoteExternalStateContext<TKey extends string>(
   { keys }: { keys: TKey[] },

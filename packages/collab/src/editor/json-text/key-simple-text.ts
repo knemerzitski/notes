@@ -1,5 +1,6 @@
 import mitt, { Emitter } from 'mitt';
 
+import { Logger } from '../../../../utils/src/logging';
 import { isDefined } from '../../../../utils/src/type-guards/is-defined';
 
 import { Changeset, InsertStrip, RetainStrip, Strip } from '../../changeset';
@@ -14,7 +15,6 @@ import {
 
 import { StructJsonFormatter } from './struct-json-formatter';
 import { KeyViewText } from './types';
-import { Logger } from '../../../../utils/src/logging';
 
 export class KeySimpleText implements SimpleText {
   private readonly logger;

@@ -1,6 +1,8 @@
 import mapObject, { mapObjectSkip } from 'map-obj';
+import mitt from 'mitt';
 import { assert, expect } from 'vitest';
 
+import { createLogger } from '../../../../utils/src/logging';
 import { OrderedMessageBuffer } from '../../../../utils/src/ordered-message-buffer';
 
 import { CollabClient } from '../../client/collab-client';
@@ -24,8 +26,6 @@ import {
   getValueWithSelection,
   parseTextWithMultipleSelections,
 } from './text-with-selection';
-import mitt from 'mitt';
-import { createLogger } from '../../../../utils/src/logging';
 
 export function createHelperCollabEditingEnvironment<TClientName extends string>(
   options: {

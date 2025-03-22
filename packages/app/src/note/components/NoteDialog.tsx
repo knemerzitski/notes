@@ -2,17 +2,18 @@ import { css, Dialog, styled } from '@mui/material';
 
 import { forwardRef } from 'react';
 
+import { gql } from '../../__generated__';
 import { useIsElementScrollEnd } from '../../utils/hooks/useIsElementScrollEnd';
 
 import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 import { scrollEndShadow } from '../../utils/styles/scroll-end-shadow';
 
+import { useNoteId } from '../context/note-id';
+
 import { CollabInputsColumn } from './CollabInputsColumn';
 import { NoteToolbar } from './NoteToolbar';
 import { OpenSharingUserAvatars } from './OpenSharingUserAvatars';
 import { UserAvatarsCornerPosition } from './UserAvatarsCornerPosition';
-import { useNoteId } from '../context/note-id';
-import { gql } from '../../__generated__';
 
 const _NoteDialog_NoteFragment = gql(`
   fragment NoteDialog_NoteFragment on Note {

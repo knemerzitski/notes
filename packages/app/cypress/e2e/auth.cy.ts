@@ -1,4 +1,5 @@
 import { SelectionRange } from '../../../collab/src/client/selection-range';
+
 import { GraphQLService } from '../../src/graphql/types';
 import { AppStatus } from '../../src/utils/hooks/useAppStatus';
 import { createGraphQLService } from '../support/utils/graphql/create-graphql-service';

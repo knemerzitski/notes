@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-base-to-string */
@@ -7,8 +6,9 @@
 import { GRAPHQL_TRANSPORT_WS_PROTOCOL, ConnectionInitMessage } from 'graphql-ws';
 import { nanoid } from 'nanoid';
 
-import { GenericWebSocket, GenericWebSocketFactory } from './types';
 import { AsyncEventQueue } from '../async-event-queue';
+
+import { GenericWebSocket, GenericWebSocketFactory } from './types';
 
 export interface SimpleGraphQLWebSocket {
   ws: GenericWebSocket;

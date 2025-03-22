@@ -1,11 +1,14 @@
-import { Note } from '../../../../src/__generated__/graphql';
-import { GraphQLService } from '../../../../src/graphql/types';
 import { gql } from '@apollo/client';
-import { SyncHeadText } from '../../../../src/note/components/SyncHeadText';
+
+import { render } from '@testing-library/react';
+
+import { Note } from '../../../../src/__generated__/graphql';
 import { GraphQLServiceProvider } from '../../../../src/graphql/components/GraphQLServiceProvider';
+import { GraphQLService } from '../../../../src/graphql/types';
+import { SyncHeadText } from '../../../../src/note/components/SyncHeadText';
 import { NoteIdProvider } from '../../../../src/note/context/note-id';
 import { CurrentUserIdProvider } from '../../../../src/user/components/CurrentUserIdProvider';
-import { render } from '@testing-library/react';
+
 import { getCurrentUserId } from '../../../../src/user/models/signed-in-user/get-current';
 
 const Test_SyncHeadTextQuery = gql(`

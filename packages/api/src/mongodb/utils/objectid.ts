@@ -28,4 +28,3 @@ export function isObjectIdStr(value: string): boolean {
   if (value.length !== 16) return false;
   return /^[A-Za-z0-9+/=]{16}$/.test(value);
 }
-

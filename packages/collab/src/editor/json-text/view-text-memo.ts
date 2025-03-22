@@ -1,8 +1,9 @@
 import { Infer, InferRaw } from 'superstruct';
 
+import { Logger } from '../../../../utils/src/logging';
+
 import { StructJsonFormatter } from './struct-json-formatter';
 import { StringRecordStruct } from './types';
-import { Logger } from '../../../../utils/src/logging';
 
 interface JsonValuePosition {
   /**
