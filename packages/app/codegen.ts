@@ -27,8 +27,10 @@ const config: CodegenConfig = {
           NoteTextFieldEditor: '../note/types#NoteTextFieldEditor',
           SerializeKey: 'string | number | boolean',
         },
-        // TODO use enumValues for NoteTextFieldName
         enumsAsTypes: false,
+        enumValues: {
+          NoteTextFieldName: '../note/types#NoteTextFieldName',
+        },
         namingConvention: {
           typeNames: 'change-case-all#pascalCase',
           enumValues: 'change-case-all#upperCase',

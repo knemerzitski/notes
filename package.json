@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/knemerzitski/notes#readme",
   "scripts": {
+    "postinstall": "patch-package",
     "prepare": "husky install",
     "docker:init": "docker network ls | grep sam-api-network || docker network create sam-api-network",
     "dynamodb:start": "cd ./docker/dynamodb && docker compose up -d",
@@ -84,6 +85,7 @@
     "husky": "^8.0.3",
     "kill-port": "^2.0.1",
     "lint-staged": "^15.1.0",
+    "patch-package": "^8.0.0",
     "prettier": "^3.1.0",
     "rimraf": "^5.0.10",
     "typescript": "^5.7.3",

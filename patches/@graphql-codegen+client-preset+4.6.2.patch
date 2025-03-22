@@ -1,0 +1,12 @@
+diff --git a/node_modules/@graphql-codegen/client-preset/cjs/index.js b/node_modules/@graphql-codegen/client-preset/cjs/index.js
+index 71460cb..14fd50c 100644
+--- a/node_modules/@graphql-codegen/client-preset/cjs/index.js
++++ b/node_modules/@graphql-codegen/client-preset/cjs/index.js
+@@ -36,6 +36,7 @@ exports.preset = {
+             arrayInputCoercion: options.config.arrayInputCoercion,
+             enumsAsTypes: options.config.enumsAsTypes,
+             enumsAsConst: options.config.enumsAsConst,
++            enumValues: options.config.enumValues,
+             futureProofEnums: options.config.futureProofEnums,
+             dedupeFragments: options.config.dedupeFragments,
+             nonOptionalTypename: options.config.nonOptionalTypename,
