@@ -43,6 +43,37 @@ describe('permanentChangeModification', () => {
         records: [[[0, 4], 'e']],
       },
     },
+    {
+      msg: 'existing serverTailTransform',
+      populate: {
+        // ['ab'] * [0] = ['a']
+        serverTailTransform: [0],
+        tail: ['a'],
+        records: [['a']], // a
+      },
+      permanent: [0, '1'], // a1
+      expected: {
+        serverTailTransform: [0, '1'],
+        tail: ['a1'],
+        head: ['a1'],
+        records: [['a', 1]],
+      },
+    },
+    {
+      msg: 'delete all',
+      populate: {
+        serverTailTransform: null,
+        tail: ['abcd'],
+        records: [[[0, 3], 'e']], // abcde
+      },
+      permanent: [],
+      expected: {
+        serverTailTransform: [],
+        tail: [],
+        head: [],
+        records: [[]],
+      },
+    },
   ])('$msg', ({ populate, permanent, expected }) => {
     const memoRecords = new TextMemoRecords<ReadonlyHistoryRecord>({
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
