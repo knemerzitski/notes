@@ -20,7 +20,7 @@ export type HistoryUnshiftEntry =
       type: 'local';
     } & ReadonlyHistoryRecord);
 
-export interface CollabHistoryContext {
+export interface UnshiftRecordsModificationContext {
   readonly serverTailTextTransformToRecordsTailText: Changeset | null;
   readonly modification: (changes: CollabHistoryModification) => void;
 }
@@ -28,7 +28,7 @@ export interface CollabHistoryContext {
 /**
  * Adds new records to the beginning of history.
  */
-export function processRecordsUnshift(
+export function unshiftRecordsModification(
   {
     newRecordsTailText,
     newEntries,
@@ -36,7 +36,7 @@ export function processRecordsUnshift(
     newRecordsTailText: RevisionChangeset;
     newEntries: HistoryUnshiftEntry[];
   },
-  history: CollabHistoryContext,
+  history: UnshiftRecordsModificationContext,
   options?: {
     logger?: Logger;
   }

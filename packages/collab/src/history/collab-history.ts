@@ -30,7 +30,7 @@ import { TextMemoRecords } from '../records/text-memo-records';
 import { SimpleTextOperationOptions, SelectionChangeset, LimitedEmitter } from '../types';
 
 import { externalChangeModification } from './mod-external-change';
-import { processRecordsUnshift } from './process-records-unshift';
+import { unshiftRecordsModification } from './mod-unshift-records';
 import { CollabServiceEvents } from '../client/collab-service';
 import {
   getOrChangeset,
@@ -462,7 +462,7 @@ export class CollabHistory {
 
     const tailText = userRecords.getTextAt(firstRecord.revision - 1);
 
-    const addedEntriesCount = this.recordsUnshift(
+    const addedEntriesCount = this.unshiftRecords(
       tailText,
       relevantRecords.map((record) => {
         const isOtherUserRecord = !userRecords.isOwnRecord(record);
@@ -588,8 +588,8 @@ export class CollabHistory {
    * @param tailText First element in {@link entries} is composable on {@link tailText}.
    * @param entries Text entries.
    */
-  private recordsUnshift(tailText: RevisionChangeset, entries: HistoryRestoreEntry[]) {
-    this.logState('recordsUnshift:before', {
+  private unshiftRecords(tailText: RevisionChangeset, entries: HistoryRestoreEntry[]) {
+    this.logState('unshiftRecords:before', {
       args: {
         tailText: {
           revision: tailText.revision,
@@ -606,7 +606,7 @@ export class CollabHistory {
     const _this = this;
     const beforeRecordsCount = this.readonlyRecords.length;
 
-    processRecordsUnshift(
+    unshiftRecordsModification(
       {
         newEntries: entries,
         newRecordsTailText: tailText,
@@ -617,7 +617,7 @@ export class CollabHistory {
         },
         modification: this.modification.bind(this),
       },
-      { logger: this.logger?.extend('processRecordsUnshift') }
+      { logger: this.logger?.extend('unshiftRecords') }
     );
 
     const addedRecordsCount = this.readonlyRecords.length - beforeRecordsCount;
@@ -626,7 +626,7 @@ export class CollabHistory {
     this.lastExecutedIndex.submitted += addedRecordsCount;
     this.lastExecutedIndex.local += addedRecordsCount;
 
-    this.logState('recordsUnshift:after');
+    this.logState('unshiftRecords:after');
 
     return addedRecordsCount;
   }

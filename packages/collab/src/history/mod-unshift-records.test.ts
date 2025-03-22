@@ -5,10 +5,10 @@ import { Changeset } from '../changeset';
 import { ComposableRecordsFacade } from '../records/composable-records-facade';
 
 import {
-  processRecordsUnshift,
+  unshiftRecordsModification,
   HistoryUnshiftEntry,
-  CollabHistoryContext,
-} from './process-records-unshift';
+  UnshiftRecordsModificationContext,
+} from './mod-unshift-records';
 
 function createEntry(changeset: unknown, external?: boolean): HistoryUnshiftEntry {
   if (external) {
@@ -146,7 +146,7 @@ describe('calcHistoryRecordsUnshift', () => {
 
     let serverTailTextTransformToRecordsTailText: Changeset | null = null;
 
-    const historyContext: CollabHistoryContext = {
+    const historyContext: UnshiftRecordsModificationContext = {
       serverTailTextTransformToRecordsTailText,
       modification(changes) {
         if (changes.serverTailTextTransformToRecordsTailText !== undefined) {
@@ -167,7 +167,7 @@ describe('calcHistoryRecordsUnshift', () => {
       },
     };
 
-    processRecordsUnshift(
+    unshiftRecordsModification(
       {
         newRecordsTailText: {
           changeset: Changeset.parseValue(unshift.newTail),
