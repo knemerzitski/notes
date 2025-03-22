@@ -24,6 +24,12 @@ export default defineConfig({
       DB_URI: process.env.MONGODB_URI,
     },
 
+    // Output video only when not continous integration (GitHub Actions)
+    ...(!process.env.CI && {
+      video: true,
+      videoCompression: false,
+    }),
+
     setupNodeEvents(on, config) {
       on('file:preprocessor', vitePreprocessor());
 
