@@ -7,10 +7,6 @@ import { Strip, RetainStrip, InsertStrip, DeleteStrip, StripsStruct } from '.';
 type SliceOptions = Parameters<Strips['slice']>[2];
 
 function simpleCheckIsCompact(strips: readonly Strip[]) {
-  if (strips.length === 0) {
-    return true;
-  }
-
   if (strips.length === 1) {
     if (strips[0] instanceof InsertStrip || strips[0] instanceof RetainStrip) {
       return true;
@@ -26,6 +22,9 @@ function simpleCheckIsCompact(strips: readonly Strip[]) {
 export class Strips {
   static readonly EMPTY: Strips = new (class extends Strips {
     readonly EMPTY = true;
+    override get isCompact() {
+      return true;
+    }
     override isEqual(other: Strips): boolean {
       return other === this;
     }
@@ -50,11 +49,14 @@ export class Strips {
    */
   readonly maxIndex;
 
-  private isCompact: boolean | null;
+  private _isCompact: boolean | null;
+  get isCompact() {
+    return this._isCompact;
+  }
 
   constructor(values: readonly Strip[] = []) {
     this.values = values;
-    this.isCompact = simpleCheckIsCompact(values);
+    this._isCompact = simpleCheckIsCompact(values);
     this.length = this.values.map((strip) => strip.length).reduce((a, b) => a + b, 0);
     this.maxIndex = this.values
       .map((strip) => (strip instanceof RetainStrip ? strip.endIndex : -1))
@@ -191,7 +193,7 @@ export class Strips {
    * amount of memory.
    */
   compact(): Strips {
-    if (this.isCompact) return this;
+    if (this._isCompact) return this;
 
     const newValues = this.values.reduce<Strip[]>((compactedStrips, strip) => {
       if (strip instanceof DeleteStrip) {
@@ -212,12 +214,15 @@ export class Strips {
       return compactedStrips;
     }, []);
 
-    if (newValues.length === 1 && newValues[0] === Strip.EMPTY) {
+    if (
+      newValues.length === 0 ||
+      (newValues.length === 1 && newValues[0] === Strip.EMPTY)
+    ) {
       return Strips.EMPTY;
     }
 
     const compactStrips = new Strips(newValues);
-    compactStrips.isCompact = true;
+    compactStrips._isCompact = true;
     return compactStrips;
   }
 
@@ -252,6 +257,10 @@ export class Strips {
     return true;
   }
 
+  isEmpty() {
+    return Strips.EMPTY.isEqual(this);
+  }
+
   joinInsertions() {
     return this.values
       .filter(InsertStrip.is)
@@ -268,8 +277,8 @@ export class Strips {
   }
 
   private transferCompact(newStrips: Strips) {
-    if (!newStrips.isCompact) {
-      newStrips.isCompact = this.isCompact;
+    if (!newStrips._isCompact) {
+      newStrips._isCompact = this._isCompact;
     }
     return newStrips;
   }

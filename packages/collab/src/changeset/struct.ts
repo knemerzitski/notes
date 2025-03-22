@@ -83,13 +83,13 @@ export const StripsStruct = coerce(
 );
 
 export const ChangesetStruct = coerce(
-  instance(Changeset),
+  define<Changeset>('instance', (value) => value instanceof Changeset),
   array(unknown()),
   (value) => {
     if (value.length === 0) {
       return Changeset.EMPTY;
     }
-    return new Changeset(StripsStruct.create(value));
+    return Changeset.new(StripsStruct.create(value));
   },
   (changeset) => createRaw(changeset.strips, StripsStruct)
 );

@@ -19,45 +19,65 @@ import {
 export class Changeset {
   static readonly EMPTY: Changeset = new (class extends Changeset {
     readonly EMPTY = true;
+    constructor() {
+      super(Strips.EMPTY);
+    }
     override isEqual(other: Changeset): boolean {
       return other === this;
     }
   })();
 
+  static new(stripsOrChangeset: Changeset | Strips | readonly Strip[] = []): Changeset {
+    if (stripsOrChangeset instanceof Changeset) {
+      return stripsOrChangeset;
+    } else if (stripsOrChangeset instanceof Strips) {
+      stripsOrChangeset = stripsOrChangeset.compact();
+      if (stripsOrChangeset.isEmpty()) {
+        return Changeset.EMPTY;
+      }
+
+      return new Changeset(stripsOrChangeset);
+    } else if (Array.isArray(stripsOrChangeset)) {
+      stripsOrChangeset = new Strips(stripsOrChangeset).compact();
+      if (stripsOrChangeset.isEmpty()) {
+        return Changeset.EMPTY;
+      }
+
+      return new Changeset(stripsOrChangeset);
+    } else {
+      return Changeset.EMPTY;
+    }
+  }
+
   /**
    * Convinience method to create Changeset from spread syntax.
    */
   static from: (...strips: readonly Strip[]) => Changeset = (...strips) => {
-    return new Changeset(strips);
+    return Changeset.new(strips);
   };
 
   /**
    * Quickly create a text insertion changeset that replaces all previous content.
    */
   static fromInsertion: (insertText: string) => Changeset = (insertText) => {
-    return new Changeset([InsertStrip.create(insertText)]);
+    return Changeset.new([InsertStrip.create(insertText)]);
   };
-
-  /**
-   * Strips is always compact.
-   */
-  readonly strips: Strips;
 
   /**
    * Create new Changeset from either an array of strips or Strips instance
    * Strips will be compacted if not already.
    */
-  constructor(stripsOrChangeset: Changeset | Strips | readonly Strip[] = []) {
-    if (stripsOrChangeset instanceof Changeset) {
-      this.strips = stripsOrChangeset.strips;
-    } else if (stripsOrChangeset instanceof Strips) {
-      this.strips = stripsOrChangeset.compact();
-    } else if (Array.isArray(stripsOrChangeset)) {
-      this.strips = new Strips(stripsOrChangeset).compact();
-    } else {
-      this.strips = Strips.EMPTY;
+  private constructor(
+    /**
+     * Strips must be compact.
+     */
+    readonly strips: Strips
+  ) {
+    if (!this.strips.isCompact) {
+      throw new ChangesetCreateError(
+        `Changeset strips is not compact: ${String(this.strips)}`
+      );
     }
-
     if (!this.strips.isRetainIndexesOrdered()) {
       throw new ChangesetCreateError(
         `Changeset strips retain indexes are not ascending ordered: ${String(
@@ -106,7 +126,7 @@ export class Changeset {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const A = this;
 
-    return new Changeset(
+    return Changeset.new(
       new Strips(B.strips.values.flatMap((strip) => strip.reference(A.strips).values))
     );
   }
@@ -255,7 +275,7 @@ export class Changeset {
       }
     }
 
-    const followChangeset = new Changeset(resultStrips);
+    const followChangeset = Changeset.new(resultStrips);
     return followChangeset;
   }
 
@@ -296,7 +316,7 @@ export class Changeset {
     );
     resultStrips.push(...lastInverseStrip.reference(other.strips).values);
 
-    const resultChangeset = new Changeset(resultStrips);
+    const resultChangeset = Changeset.new(resultStrips);
 
     return resultChangeset;
   }
@@ -382,7 +402,7 @@ export class Changeset {
       }
     }
 
-    return new Changeset(resultStrips);
+    return Changeset.new(resultStrips);
   }
 
   /**
@@ -441,7 +461,7 @@ export class Changeset {
    */
   getIdentity() {
     if (this.strips.length === 0) return Changeset.EMPTY;
-    return new Changeset(new Strips([new RetainStrip(0, this.strips.length - 1)]));
+    return Changeset.new(new Strips([new RetainStrip(0, this.strips.length - 1)]));
   }
 
   joinInsertions() {
@@ -458,6 +478,10 @@ export class Changeset {
 
   isEqual(other: Changeset): boolean {
     return this.strips.isEqual(other.strips);
+  }
+
+  isEmpty() {
+    return Changeset.EMPTY.isEqual(this);
   }
 
   private inputOutputSizeString() {

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { Changeset, InsertStrip, RetainStrip, Strip, Strips } from '.';
+import { Changeset, InsertStrip, RetainStrip, Strip } from '.';
 
 const cs = Changeset.parseValue;
 
@@ -446,39 +446,48 @@ describe('getIdentity', () => {
 });
 
 describe('toString', () => {
-  it('uses strips maxIndex, length and toString', () => {
-    const strips = Object.assign(new Strips(), {
-      maxIndex: 89,
-      length: 55,
-    });
-    vi.spyOn(strips, 'toString').mockReturnValueOnce('anything');
-
-    const changeset = new Changeset(strips);
-
-    expect(changeset.toString()).toStrictEqual('(90 -> 55)anything');
+  it('empty', () => {
+    expect(Changeset.EMPTY.toString()).toMatchInlineSnapshot(`"(0 -> 0)[]"`);
   });
 
-  it('uses strips maxIndex, length and toString (different values)', () => {
-    const strips = Object.assign(new Strips(), {
-      maxIndex: 3,
-      length: -4,
-    });
-    vi.spyOn(strips, 'toString').mockReturnValueOnce('[[aaa');
+  it('string', () => {
+    expect(Changeset.from(new InsertStrip('foo')).toString()).toMatchInlineSnapshot(
+      `"(0 -> 3)["foo"]"`
+    );
+  });
 
-    const changeset = new Changeset(strips);
+  it('retain', () => {
+    expect(Changeset.from(new RetainStrip(2, 5)).toString()).toMatchInlineSnapshot(
+      `"(6 -> 4)[2 - 5]"`
+    );
+  });
 
-    expect(changeset.toString()).toStrictEqual('(4 -> -4)[[aaa');
+  it('retain single', () => {
+    expect(Changeset.from(new RetainStrip(2)).toString()).toMatchInlineSnapshot(
+      `"(3 -> 1)[2]"`
+    );
+  });
+
+  it('combination', () => {
+    expect(
+      Changeset.from(
+        new RetainStrip(2, 5),
+        new InsertStrip('foo'),
+        new RetainStrip(10),
+        new InsertStrip('bar')
+      ).toString()
+    ).toMatchInlineSnapshot(`"(11 -> 11)[2 - 5, "foo", 10, "bar"]"`);
   });
 });
 
 describe('serialize/parseValue', () => {
   it.each([
     [[], Changeset.EMPTY, undefined],
-    [[null], new Changeset([Strip.EMPTY]), []],
-    [[null, null], new Changeset([Strip.EMPTY]), []],
+    [[null], Changeset.new([Strip.EMPTY]), []],
+    [[null, null], Changeset.new([Strip.EMPTY]), []],
     [
       [1, 'abc'],
-      new Changeset([new RetainStrip(1, 1), new InsertStrip('abc')]),
+      Changeset.new([new RetainStrip(1, 1), new InsertStrip('abc')]),
       undefined,
     ],
   ])('%s', (serialized, changeset, expectedSerialized) => {

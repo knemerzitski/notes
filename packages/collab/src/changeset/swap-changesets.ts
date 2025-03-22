@@ -83,5 +83,5 @@ export function swapChangesets(
     }
   }
 
-  return [new Changeset(Y_), new Changeset(X_)];
+  return [Changeset.new(Y_), Changeset.new(X_)];
 }

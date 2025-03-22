@@ -182,7 +182,7 @@ export class KeySimpleText implements SimpleText {
           .shrink(1, 1);
 
         let localJsonValueOffset = -1;
-        const localViewComposable = new Changeset(
+        const localViewComposable = Changeset.new(
           slicedViewComposable.values.map((strip) => {
             if (strip instanceof InsertStrip) {
               const parsedInsertText = this.formatter.parseString(strip.value);

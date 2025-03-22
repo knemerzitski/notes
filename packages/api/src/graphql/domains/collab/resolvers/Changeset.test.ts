@@ -45,7 +45,7 @@ describe('Changeset', () => {
     const response = await apolloServer.executeOperation({
       query: query,
       variables: {
-        input: new Changeset([new InsertStrip('echo ')]),
+        input: Changeset.new([new InsertStrip('echo ')]),
       },
     });
 
