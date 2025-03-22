@@ -76,6 +76,6 @@ it('writes NoteExternalState to cache on first read and allows modifications', (
   const collabService = restoredNote.collabService as CollabService;
 
   expect(collabService.viewText).toMatchInlineSnapshot(
-    `"{"CONTENT":"hello","TITLE":""}"`
+    `"{"c":"hello","t":""}"`
   );
 });
