@@ -48,8 +48,8 @@ export function unshiftRecordsModification(
     records: newEntries,
   });
 
-  const resultNewRecords: ReadonlyHistoryRecord[] = [];
-  let currentTransform = history.serverTailTextTransformToRecordsTailText;
+  const newRecords: ReadonlyHistoryRecord[] = [];
+  let currentSwapTransform = history.serverTailTextTransformToRecordsTailText;
   // Starting with `currentTransform` swap records from right to left.
   // External entries are composed on `currentTransform` along the way
   // As a result all external entries will composed on `currentTransform`
@@ -62,8 +62,8 @@ export function unshiftRecordsModification(
 
     if (entry.type === 'external') {
       // Compose external record on transform
-      currentTransform = currentTransform
-        ? entry.changeset.compose(currentTransform)
+      currentSwapTransform = currentSwapTransform
+        ? entry.changeset.compose(currentSwapTransform)
         : entry.changeset;
     } else {
       const newRecord: HistoryRecord = {
@@ -72,47 +72,48 @@ export function unshiftRecordsModification(
         beforeSelection: entry.beforeSelection,
       };
 
-      if (currentTransform) {
+      if (currentSwapTransform) {
         // Record is local and currentTransform is defined
         // Must swap record and currentTransform
-        const [nextTransform, newRecordChangeset] = swapChangesets(
+        const [nextSwapTransform, newRecordChangeset] = swapChangesets(
           newEntriesMemo.getTextAt(i - 1).length,
           entry.changeset,
-          currentTransform
+          currentSwapTransform
         );
 
         newRecord.changeset = newRecordChangeset;
         newRecord.afterSelection = SelectionRange.closestRetainedPosition(
           entry.afterSelection,
-          currentTransform
+          currentSwapTransform
         );
         newRecord.beforeSelection = SelectionRange.closestRetainedPosition(
           entry.beforeSelection,
-          currentTransform
+          currentSwapTransform
         );
 
-        currentTransform = nextTransform;
+        currentSwapTransform = nextSwapTransform;
       }
 
       logger?.debug('entry', {
         index: i,
         update: `${entry.changeset.toString()} => ${newRecord.changeset.toString()}`,
       });
-      resultNewRecords.unshift(newRecord);
+      newRecords.unshift(newRecord);
     }
   }
-  if (currentTransform) {
-    newEntriesMemo.tailText = newEntriesMemo.tailText.compose(currentTransform);
+  
+  if (currentSwapTransform) {
+    newEntriesMemo.tailText = newEntriesMemo.tailText.compose(currentSwapTransform);
   }
 
   history.modification({
     serverTailRevision: newRecordsTailText.revision,
-    serverTailTextTransformToRecordsTailText: currentTransform,
+    serverTailTextTransformToRecordsTailText: currentSwapTransform,
     recordsTailText: newEntriesMemo.tailText,
     recordsSplice: {
       start: 0,
       deleteCount: 0,
-      records: resultNewRecords,
+      records: newRecords,
     },
   });
 }

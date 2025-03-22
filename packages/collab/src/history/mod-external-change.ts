@@ -44,9 +44,9 @@ export function externalChangeModification(
   const changeset = getOrChangeset(orRevisionChangeset);
 
   // [0, serverIndex]
-  const newBeforeRecords: ReadonlyHistoryRecord[] = [];
+  const modRecordsBefore: ReadonlyHistoryRecord[] = [];
   // [serverIndex + 1, history.records.length - 1]
-  const newAfterRecords: ReadonlyHistoryRecord[] = [];
+  const modRecordAfter: ReadonlyHistoryRecord[] = [];
 
   let newTailText: Changeset;
   let newServerTailRevision: number | undefined;
@@ -55,65 +55,66 @@ export function externalChangeModification(
   const serverIndex = history.serverIndex;
   logger?.debug('serverIndex', serverIndex);
   if (serverIndex >= 0) {
-    let swapChangeset = changeset;
+    let currentSwapTransform = changeset;
     for (let i = serverIndex; i >= 0; i--) {
       const record = history.records.at(i);
       if (!record) {
         continue;
       }
 
-      const modifiedRecordValue = {
+      const modRecord = {
         ...record,
       };
-      newBeforeRecords.push(modifiedRecordValue);
+      // TODO check variable names
+      modRecordsBefore.push(modRecord);
 
-      const [nextSwapChangeset, newRecordChangset] = swapChangesets(
+      const [nextSwapTransform, newRecordChangset] = swapChangesets(
         history.records.getTextAt(i - 1).length,
         record.changeset,
-        swapChangeset
+        currentSwapTransform
       );
 
-      modifiedRecordValue.changeset = newRecordChangset;
-      modifiedRecordValue.afterSelection = SelectionRange.closestRetainedPosition(
+      modRecord.changeset = newRecordChangset;
+      modRecord.afterSelection = SelectionRange.closestRetainedPosition(
         record.afterSelection,
-        swapChangeset
+        currentSwapTransform
       );
-      modifiedRecordValue.beforeSelection = SelectionRange.closestRetainedPosition(
+      modRecord.beforeSelection = SelectionRange.closestRetainedPosition(
         record.beforeSelection,
-        swapChangeset
+        currentSwapTransform
       );
 
-      swapChangeset = nextSwapChangeset;
+      currentSwapTransform = nextSwapTransform;
 
       logger?.debug('beforeServerIndex', {
         index: i,
-        update: `${record.changeset.toString()} => ${modifiedRecordValue.changeset.toString()}`,
-        swapChangeset: swapChangeset.toString(),
+        update: `${record.changeset.toString()} => ${modRecord.changeset.toString()}`,
+        swapChangeset: currentSwapTransform.toString(),
       });
     }
 
-    newBeforeRecords.reverse();
+    modRecordsBefore.reverse();
 
     const currentTransform = history.serverTailTextTransformToRecordsTailText;
 
-    newTailText = history.records.tailText.compose(swapChangeset);
+    newTailText = history.records.tailText.compose(currentSwapTransform);
 
     try {
       newServerTailTextTransformToRecordsTailText = currentTransform
-        ? currentTransform.compose(swapChangeset)
-        : swapChangeset;
+        ? currentTransform.compose(currentSwapTransform)
+        : currentSwapTransform;
       if (currentTransform) {
         logger?.debug('newServerTailTextTransformToRecordsTailText', {
           newServerTailTextTransformToRecordsTailText:
             newServerTailTextTransformToRecordsTailText.toString(),
           currentTransform: currentTransform.toString(),
-          composed: currentTransform.compose(swapChangeset).toString(),
+          composed: currentTransform.compose(currentSwapTransform).toString(),
         });
       } else {
         logger?.debug('newServerTailTextTransformToRecordsTailText', {
           newServerTailTextTransformToRecordsTailText:
             newServerTailTextTransformToRecordsTailText.toString(),
-          swapChangeset: swapChangeset.toString(),
+          swapChangeset: currentSwapTransform.toString(),
         });
       }
     } catch (err) {
@@ -121,7 +122,7 @@ export function externalChangeModification(
         logger?.error('processExternalChange.invalidTransform', {
           changeset: changeset.toString(),
           currentTransform: currentTransform?.toString(),
-          swapChangeset: swapChangeset.toString(),
+          swapChangeset: currentSwapTransform.toString(),
         });
       } else {
         throw err;
@@ -145,17 +146,17 @@ export function externalChangeModification(
 
     const nextFollowComposition = record.changeset.follow(followComposition);
 
-    const modifiedRecordValue = {
+    const modRecord = {
       ...record,
     };
-    newAfterRecords.push(modifiedRecordValue);
+    modRecordAfter.push(modRecord);
 
-    modifiedRecordValue.changeset = followComposition.follow(record.changeset);
-    modifiedRecordValue.beforeSelection = SelectionRange.closestRetainedPosition(
-      modifiedRecordValue.beforeSelection,
+    modRecord.changeset = followComposition.follow(record.changeset);
+    modRecord.beforeSelection = SelectionRange.closestRetainedPosition(
+      modRecord.beforeSelection,
       followComposition
     );
-    modifiedRecordValue.afterSelection = SelectionRange.closestRetainedPosition(
+    modRecord.afterSelection = SelectionRange.closestRetainedPosition(
       record.afterSelection,
       nextFollowComposition
     );
@@ -164,7 +165,7 @@ export function externalChangeModification(
 
     logger?.debug('afterServerIndex', {
       index: i,
-      update: `${record.changeset.toString()} => ${modifiedRecordValue.changeset.toString()}`,
+      update: `${record.changeset.toString()} => ${modRecord.changeset.toString()}`,
     });
   }
 
@@ -175,7 +176,7 @@ export function externalChangeModification(
     recordsSplice: {
       start: 0,
       deleteCount: history.records.length,
-      records: [...newBeforeRecords, ...newAfterRecords],
+      records: [...modRecordsBefore, ...modRecordAfter],
     },
   });
 }
