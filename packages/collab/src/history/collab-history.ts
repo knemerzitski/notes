@@ -29,7 +29,7 @@ import { RevisionChangeset, SubmittedRevisionRecord } from '../records/record';
 import { TextMemoRecords } from '../records/text-memo-records';
 import { SimpleTextOperationOptions, SelectionChangeset, LimitedEmitter } from '../types';
 
-import { processExternalChange } from './process-external-change';
+import { externalChangeModification } from './mod-external-change';
 import { processRecordsUnshift } from './process-records-unshift';
 import { CollabServiceEvents } from '../client/collab-service';
 import {
@@ -714,7 +714,7 @@ export class CollabHistory {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const _this = this;
 
-    processExternalChange(
+    externalChangeModification(
       externalChange,
       {
         client: {

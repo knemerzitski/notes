@@ -6,7 +6,7 @@ import { ComposableRecordsFacade } from '../records/composable-records-facade';
 import { TextMemoRecords } from '../records/text-memo-records';
 
 import { ReadonlyHistoryRecord } from './collab-history';
-import { CollabHistoryContext, processExternalChange } from './process-external-change';
+import { CollabHistoryContext, externalChangeModification } from './mod-external-change';
 
 function createRecord(rawChangeset: unknown): ReadonlyHistoryRecord {
   return {
@@ -22,7 +22,7 @@ function createRecord(rawChangeset: unknown): ReadonlyHistoryRecord {
   };
 }
 
-describe('processExternalChange', () => {
+describe('externalChangeModification', () => {
   function createHistory({
     records,
     serverIndex,
@@ -90,7 +90,7 @@ describe('processExternalChange', () => {
         .toString()
     ).toMatchInlineSnapshot(`"(0 -> 14)["_Bcde_GHijklmn"]"`);
 
-    processExternalChange(
+    externalChangeModification(
       Changeset.parseValue(['[before cd]', [0, 14]]),
       history.context
     );
@@ -134,7 +134,7 @@ describe('processExternalChange', () => {
         .toString()
     ).toMatchInlineSnapshot(`"(0 -> 14)["_Bcde_GHijklmn"]"`);
 
-    processExternalChange(
+    externalChangeModification(
       Changeset.parseValue(['[del ij]', [0, 8], [11, 14]]),
       history.context
     );
@@ -173,7 +173,7 @@ describe('processExternalChange', () => {
     });
 
     // remove "ab", keep "cd" on entry 1
-    processExternalChange(Changeset.parseValue([[2, 3]]), history.context);
+    externalChangeModification(Changeset.parseValue([[2, 3]]), history.context);
 
     expect(history.records.tailText.toString()).toStrictEqual('(0 -> 0)[]');
 
@@ -209,7 +209,7 @@ describe('processExternalChange', () => {
     });
 
     // from entry 4, delete everything
-    processExternalChange(Changeset.parseValue([]), history.context);
+    externalChangeModification(Changeset.parseValue([]), history.context);
 
     expect(history.records.tailText.toString()).toStrictEqual('(0 -> 0)[]');
 
@@ -249,7 +249,7 @@ describe('processExternalChange', () => {
       clientChangeset: Changeset.parseValue(['[new start bla]']),
     });
 
-    processExternalChange(
+    externalChangeModification(
       Changeset.parseValue([[0, 4], 'start', [5, 9]]),
       history.context
     );

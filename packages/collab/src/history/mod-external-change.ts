@@ -32,7 +32,7 @@ export interface CollabHistoryContext {
  * In other words external change is permanent and cannot be undone.
  * If external change deletes everything, whole history is lost.
  */
-export function processExternalChange(
+export function externalChangeModification(
   orRevisionChangeset: OrRevisionChangeset,
   history: CollabHistoryContext,
   options?: {
