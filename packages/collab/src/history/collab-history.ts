@@ -271,13 +271,13 @@ export class CollabHistory {
     this.eventsOff = [
       this.client.eventBus.on('submitChanges', () => {
         this.lastExecutedIndex.submitted = this.lastExecutedIndex.local;
-        this.logger?.info('event:submitChanges', {
+        this.logger?.debug('event:submitChanges', {
           lastExecutedIndex: this.lastExecutedIndex,
         });
       }),
       this.client.eventBus.on('submittedChangesAcknowledged', () => {
         this.lastExecutedIndex.server = this.lastExecutedIndex.submitted;
-        this.logger?.info('event:submittedChangesAcknowledged', {
+        this.logger?.debug('event:submittedChangesAcknowledged', {
           lastExecutedIndex: this.lastExecutedIndex,
         });
       }),
@@ -286,7 +286,7 @@ export class CollabHistory {
             options.service.eventBus.on(
               'handledExternalChange',
               ({ externalChange, revision }) => {
-                this.logger?.info('event:handledExternalChange', {
+                this.logger?.debug('event:handledExternalChange', {
                   externalChange: externalChange.toString(),
                   revision,
                 });
@@ -299,7 +299,7 @@ export class CollabHistory {
           ]
         : [
             this.client.eventBus.on('handledExternalChange', ({ externalChange }) => {
-              this.logger?.info('event:handledExternalChange', {
+              this.logger?.debug('event:handledExternalChange', {
                 externalChange: externalChange.toString(),
               });
               this.processExternalChange(externalChange);
