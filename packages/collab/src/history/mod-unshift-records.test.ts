@@ -32,7 +32,7 @@ function createEntry(changeset: unknown, external?: boolean): HistoryUnshiftEntr
   }
 }
 
-describe('calcHistoryRecordsUnshift', () => {
+describe('unshiftRecordsModification', () => {
   it.each([
     {
       msg: 'one entry replace tail abcd => cd',
