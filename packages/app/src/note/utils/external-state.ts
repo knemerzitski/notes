@@ -11,12 +11,14 @@ import { defineCreateJsonTextFromService } from '../../../../collab/src/editor/j
 import { Logger } from '../../../../utils/src/logging';
 
 export function createNoteExternalStateContext<TKey extends string>(
-  { keys }: { keys: TKey[] },
+  { keys }: { keys: [TKey, ...TKey[]] },
   options?: {
+    defaultKey?: TKey;
     logger?: Logger;
   }
 ) {
-  const createJsonTextFromService = defineCreateJsonTextFromService(Object.values(keys), {
+  const createJsonTextFromService = defineCreateJsonTextFromService(keys, {
+    defaultKey: options?.defaultKey,
     logger: options?.logger,
   });
 

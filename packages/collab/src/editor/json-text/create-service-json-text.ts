@@ -8,14 +8,16 @@ import { StructJsonFormatter } from './struct-json-formatter';
 import { JsonTextEvents, StringRecordStruct } from './types';
 
 export function defineCreateJsonTextFromService<K extends string>(
-  keys: readonly K[],
+  keys: readonly [K, ...K[]],
   options?: {
+    defaultKey?: K;
     logger?: Logger;
     eventBus?: Pick<Emitter<JsonTextEvents>, 'emit'>;
   }
 ) {
   const formatter = new StructJsonFormatter(keys, {
     mapper: spaceNewlineMapper,
+    defaultKey: options?.defaultKey,
     logger: options?.logger?.extend('StructJsonFormatter'),
     eventBus: options?.eventBus,
   });

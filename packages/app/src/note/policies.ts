@@ -46,9 +46,13 @@ import { createNoteExternalStateContext } from './utils/external-state';
 export const noteContext = function (ctx: CustomTypePoliciesInitContext) {
   const externalState = createNoteExternalStateContext<NoteTextFieldName>(
     {
-      keys: Object.values(NoteTextFieldName),
+      keys: Object.values(NoteTextFieldName) as [
+        NoteTextFieldName,
+        ...NoteTextFieldName[],
+      ],
     },
     {
+      defaultKey: NoteTextFieldName.CONTENT,
       logger: ctx.logger,
     }
   );
