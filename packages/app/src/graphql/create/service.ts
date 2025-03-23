@@ -125,7 +125,7 @@ export function createGraphQLService({
   });
 
   const typePoliciesInitContext: CustomTypePoliciesInitContext = {
-    logger: logger?.extend('policy'),
+    logger,
   };
 
   const typePoliciesContext: TypePoliciesContext = {

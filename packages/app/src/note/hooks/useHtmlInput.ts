@@ -162,7 +162,7 @@ export function useHtmlInput({
         });
       } else if (
         /delete/i.exec(type) != null ||
-        (e.nativeEvent instanceof KeyboardEvent && e.nativeEvent.code === 'Backspace')
+        ('code' in e.nativeEvent && e.nativeEvent.code === 'Backspace')
       ) {
         logger?.debug('handleInput:delete', {
           beforeSelection: previousEventSelection,

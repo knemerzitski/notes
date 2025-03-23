@@ -19,6 +19,7 @@ import { syncHeadText } from '../support/utils/note/sync-head-text';
 import { updateOpenNoteSelectionRange } from '../support/utils/note/update-open-note-selection-range';
 import { signIn } from '../support/utils/user/sign-in';
 import { userSubscription } from '../support/utils/user/user-subscription';
+import { createLogger } from '../../../utils/src/logging';
 
 interface UserContext {
   userId: string;
@@ -29,21 +30,44 @@ interface UserContext {
   };
 }
 
-interface FieldEditor {
-  insert(value: string): void;
-  delete(count: number): void;
-  select(start: number, end?: number): void;
-  type(
-    value: string,
-    options?: {
-      delay?: number;
-    }
-  ): void;
+interface TextOperationOptions {
+  delay?: number;
+  /**
+   * Don't queue operation for submission.
+   * @default false
+   */
+  noSubmit?: boolean;
 }
+
+interface FieldEditor {
+  insert(value: string, options?: TextOperationOptions): void;
+  delete(count: number, options?: TextOperationOptions): void;
+  select(start: number, end?: number, options?: TextOperationOptions): void;
+  selectOffset(offset: number, options?: TextOperationOptions): void;
+  type(value: string, options?: TextOperationOptions): void;
+}
+
+type TextOperation = (
+  | {
+      type: 'insert';
+      value: string;
+    }
+  | {
+      type: 'delete';
+      count: number;
+    }
+  | {
+      type: 'selectOffset';
+      offset: SelectionRange;
+    }
+) & {
+  options?: TextOperationOptions;
+};
 
 class SimpleTextField implements FieldEditor {
   private _eventBus = mitt<{
     selectionChanged: undefined;
+    doneExecutingOperations: undefined;
   }>();
   get eventBus(): Pick<typeof this._eventBus, 'on' | 'off'> {
     return this._eventBus;
@@ -51,6 +75,10 @@ class SimpleTextField implements FieldEditor {
 
   private selection = SelectionRange.ZERO;
   private selectionRevision: number;
+
+  private isExeceutingOperations = false;
+  private operationQueue: TextOperation[] = [];
+  private prevOperationTime = 0;
 
   constructor(
     private readonly field: SimpleText,
@@ -77,69 +105,131 @@ class SimpleTextField implements FieldEditor {
     });
   }
 
-  insert(value: string) {
-    this.field.insert(value, this.selection);
+  insert(value: string, options?: TextOperationOptions) {
+    if (options?.noSubmit) {
+      this.field.insert(value, this.selection);
+    } else {
+      this.pushOperation({
+        type: 'insert',
+        value,
+        options,
+      });
+    }
   }
 
-  delete(count: number) {
-    this.field.delete(count, this.selection);
+  delete(count: number, options?: TextOperationOptions) {
+    if (options?.noSubmit) {
+      this.field.delete(count, this.selection);
+    } else {
+      this.pushOperation({
+        type: 'delete',
+        count,
+        options,
+      });
+    }
   }
 
-  select(start: number, end?: number) {
-    const newSelection = SelectionRange.from(start, end);
-    if (SelectionRange.isEqual(this.selection, newSelection)) {
+  select(start: number, end?: number, options?: Omit<TextOperationOptions, 'noSubmit'>) {
+      this.pushOperation({
+        type: 'selectOffset',
+        offset: SelectionRange.subtract(SelectionRange.from(start, end), this.selection),
+        options,
+      });
+    }
+
+  selectOffset(offset: number, options?: Omit<TextOperationOptions, 'noSubmit'>) {
+    this.pushOperation({
+      type: 'selectOffset',
+      offset: SelectionRange.from(offset),
+      options,
+    });
+  }
+
+  executingOperations() {
+    return new Promise<void>((res) => {
+      if (this.operationQueue.length === 0) {
+        res();
+      } else {
+        const off = this._eventBus.on('doneExecutingOperations', () => {
+          off();
+          res();
+        });
+      }
+    });
+  }
+
+  private pushOperation(op: TextOperation) {
+    this.operationQueue.push(op);
+    void this.executeAllQueuedOperations();
+  }
+
+  /**
+   * Execute operations one at a time waiting for submitted record to be acknowledged
+   */
+  private async executeAllQueuedOperations() {
+    if (this.isExeceutingOperations) {
       return;
     }
 
-    this.selection = newSelection;
-    this.selectionRevision = this.service.headRevision;
+    this.isExeceutingOperations = true;
+    try {
+      let op: TextOperation | undefined;
+      while ((op = this.operationQueue.shift()) !== undefined) {
+        const delay = op.options?.delay ?? 0;
 
-    this._eventBus.emit('selectionChanged');
+        const timeElapsed = Date.now() - this.prevOperationTime;
+        const timeout = delay - timeElapsed;
+
+        if (timeout > 0) {
+          await new Promise((res) => {
+            setTimeout(res, timeout);
+          });
+        }
+
+        // Wait for submitted ack
+        if (this.service.haveSubmittedChanges()) {
+          await new Promise((res) => {
+            const off = user2.collabService.service.eventBus.on(
+              'submittedChangesAcknowledged',
+              () => {
+                off();
+                res(true);
+              }
+            );
+          });
+        }
+
+        this.prevOperationTime = Date.now();
+
+        if (op.type === 'insert') {
+          this.field.insert(op.value, this.selection);
+          await this.submitChanges();
+        } else if (op.type === 'delete') {
+          this.field.delete(op.count, this.selection);
+          await this.submitChanges();
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        } else if (op.type === 'selectOffset') {
+          const newSelection = SelectionRange.add(this.selection, op.offset);
+          if (!SelectionRange.isEqual(this.selection, newSelection)) {
+            this.selection = newSelection;
+            this.selectionRevision = this.service.headRevision;
+            this._eventBus.emit('selectionChanged');
+          }
+        }
+      }
+    } finally {
+      this.isExeceutingOperations = false;
+      this._eventBus.emit('doneExecutingOperations');
+    }
   }
 
   /**
    * Type one character at a time as a record, waiting for submitted record to be acknowledged
    */
   type(value: string, options?: Parameters<FieldEditor['type']>[1]) {
-    const delay = options?.delay ?? 0;
-    let prevInsertTime = 0;
-
-    const charQueue = value.split('');
-
-    const submitNextChar = async () => {
-      const timeElapsed = Date.now() - prevInsertTime;
-      const timeout = delay - timeElapsed;
-
-      if (timeout > 0) {
-        await new Promise((res) => {
-          setTimeout(res, timeout);
-        });
-      }
-
-      const nextChar = charQueue.shift();
-      if (nextChar == null) {
-        return;
-      }
-
-      if (!this.service.haveSubmittedChanges()) {
-        this.insert(nextChar);
-        prevInsertTime = Date.now();
-        void this.submitChanges().then(submitNextChar);
-        return;
-      }
-
-      const off = user2.collabService.service.eventBus.on(
-        'submittedChangesAcknowledged',
-        () => {
-          this.insert(nextChar);
-          prevInsertTime = Date.now();
-          void this.submitChanges().then(submitNextChar);
-          off();
-        }
-      );
-    };
-
-    void submitNextChar();
+    value.split('').forEach((char) => {
+      this.insert(char, options);
+    });
   }
 
   getServiceSelection() {
@@ -153,20 +243,24 @@ class SimpleTextField implements FieldEditor {
 class CyElementField implements FieldEditor {
   constructor(private readonly getChainableEl: () => Cypress.Chainable<JQuery>) {}
 
-  insert(value: string) {
+  insert(value: string, _options?: TextOperationOptions) {
     this.getChainableEl().type(value);
   }
 
-  delete(count: number) {
+  delete(count: number, _options?: TextOperationOptions) {
     this.getChainableEl().type('{backspace}'.repeat(count));
   }
 
-  select(start: number, end?: number) {
+  selectOffset(offset: number, _options?: TextOperationOptions): void {
+    this.getChainableEl().moveSelectionRange(offset);
+  }
+
+  select(start: number, end?: number, _options?: TextOperationOptions) {
     const selection = SelectionRange.from(start, end);
     this.getChainableEl().setSelectionRange(selection.start, selection.end);
   }
 
-  type(value: string, options?: Parameters<FieldEditor['type']>[1]) {
+  type(value: string, options?: TextOperationOptions) {
     this.getChainableEl().type(value, options);
   }
 }
@@ -176,6 +270,7 @@ type Field = 'title' | 'content';
 let user1: UserContext & {
   editor: Record<Field, FieldEditor>;
   bgEditor: Record<Field, FieldEditor>;
+  bgQueuedChangesSubmitted: () => Promise<void>;
   submitChanges: () => Promise<void>;
 };
 
@@ -183,6 +278,7 @@ let user2: UserContext & {
   editor: Record<Field, FieldEditor>;
   submitChanges: () => Promise<void>;
   submitSelection: () => Promise<void>;
+  ongoingChangesPromise: () => Promise<void>;
 };
 let noteId: string;
 let shareAccessId: string;
@@ -194,7 +290,9 @@ beforeEach(() => {
 
   cy.then(async () => {
     // Init user 1, who will be displayed in UI
-    const graphQLService = await createGraphQLService();
+    const graphQLService = await createGraphQLService({
+      logger: createLogger('user1:graphql'),
+    });
 
     // Sign in
     const { userId } = await signIn({
@@ -227,23 +325,28 @@ beforeEach(() => {
       });
     };
 
+    const bgEditor = {
+      title: new SimpleTextField(
+        fields[NoteTextFieldName.TITLE],
+        collabService,
+        _submitChanges
+      ),
+      content: new SimpleTextField(
+        fields[NoteTextFieldName.CONTENT],
+        collabService,
+        _submitChanges
+      ),
+    };
+
     user1 = {
       userId,
       editor: {
         title: new CyElementField(titleField),
         content: new CyElementField(contentField),
       },
-      bgEditor: {
-        title: new SimpleTextField(
-          fields[NoteTextFieldName.TITLE],
-          collabService,
-          _submitChanges
-        ),
-        content: new SimpleTextField(
-          fields[NoteTextFieldName.CONTENT],
-          collabService,
-          _submitChanges
-        ),
+      bgEditor,
+      bgQueuedChangesSubmitted: async () => {
+        await Promise.all(Object.values(bgEditor).map((e) => e.executingOperations()));
       },
       submitChanges: _submitChanges,
       graphQLService,
@@ -263,6 +366,7 @@ beforeEach(() => {
     // Init user 2, who will be programmatically controlled in the background
     await createGraphQLService({
       storageKey: `apollo:cache:test:user2:${nextStorageKeyCounter++}`,
+      logger: createLogger('user2:graphql'),
     }).then(async (graphQLService) => {
       const { userId } = await signIn({
         graphQLService,
@@ -334,6 +438,11 @@ beforeEach(() => {
           fields,
         },
         editor: testEditorByName,
+        ongoingChangesPromise: async () => {
+          await Promise.all(
+            Object.values(testEditorByName).map((e) => e.executingOperations())
+          );
+        },
         submitChanges: _submitChanges,
         submitSelection: async () => {
           const testEditor = lastSelectedTestEditor;
@@ -449,8 +558,12 @@ describe('with initial text', () => {
 
   beforeEach(() => {
     cy.then(async () => {
-      user2.editor.title.insert('lorem ipsum title');
-      user2.editor.content.insert(contentValue);
+      user2.editor.title.insert('lorem ipsum title', {
+        noSubmit: true,
+      });
+      user2.editor.content.insert(contentValue, {
+        noSubmit: true,
+      });
       await user2.submitChanges();
 
       initialHeadRevision = user2.collabService.service.headRevision;
@@ -620,17 +733,13 @@ describe('with history', () => {
   beforeEach(() => {
     cy.then(async () => {
       user1.bgEditor.content.insert('[before]\n\n[history]\n\n\n[after]\n');
-      await user1.submitChanges();
 
       user1.bgEditor.content.select(20);
       user1.bgEditor.content.insert('[t1]');
-      await user1.submitChanges();
-
       user1.bgEditor.content.insert('[t2]');
-      await user1.submitChanges();
-
       user1.bgEditor.content.insert('[t3]');
-      await user1.submitChanges();
+
+      await user1.bgQueuedChangesSubmitted();
 
       initialHeadRevision = user1.collabService.service.headRevision;
 
@@ -687,5 +796,80 @@ describe('with history', () => {
 
     undoButton().should('be.disabled');
     shouldContentHaveValue('12345');
+  });
+
+  it('type, delete, redo while receiving changes from user2', () => {
+    cy.clock();
+
+    cy.visit(noteRoute());
+
+    shouldHaveRevision(initialHeadRevision);
+
+    cy.tick(100);
+
+    // [before]\n\n[history]\n[t1][t2][t3]>\n\n[after]\n
+
+    user1.editor.content.select(32);
+
+    user1.editor.content.type('abc'); // type abc
+    // [before]\n\n[history]\n[t1][t2][t3]abc>\n\n[after]\n
+
+    cy.tick(100);
+
+    cy.then(() => {
+      user2.editor.content.select(9);
+      user2.editor.content.type('12345');
+    });
+    // [before]\n12345\n[history]\n[t1][t2][t3]abc>\n\n[after]\n
+
+    user1.editor.content.selectOffset(-7);
+
+      user1.editor.content.delete(4); // delete [t2]
+    cy.tick(5000);
+    // [before]\n12345\n[history]\n[t1]>[t3]abc\n\n[after]\n
+
+    cy.then(() => {
+      user2.editor.content.delete(2);
+    });
+    // [before]\n123\n[history]\n[t1]>[t3]abc\n\n[after]\n
+
+      user1.editor.content.delete(4); // delete [t1]
+    cy.tick(5000);
+    // [before]\n123\n[history]\n>[t3]abc\n\n[after]\n
+
+    shouldContentHaveValue('[before]\n123\n[history]\n[t3]abc\n\n[after]\n');
+
+    cy.tick(100);
+
+    undoButton().click(); // +[t1]
+    undoButton().click(); // +[t2]
+    undoButton().click(); // -abc
+
+    shouldContentHaveValue('[before]\n123\n[history]\n[t1][t2][t3]\n\n[after]\n');
+  });
+
+  it('user2 deletes most history entries', () => {
+    cy.visit(noteRoute());
+
+    shouldHaveRevision(initialHeadRevision);
+
+    // [before]\n\n[history]\n[t1][t2][t3]>\n\n[after]\n
+
+    cy.then(() => {
+      user2.editor.content.select(32);
+      user2.editor.content.delete(12);
+      user2.editor.content.select(9);
+      user2.editor.content.type('123');
+    });
+
+    undoButton().click();
+
+    shouldContentHaveValue('123');
+
+    user1.editor.content.type('a');
+    shouldContentHaveValue('123a');
+
+    undoButton().click();
+    shouldContentHaveValue('123');
   });
 });

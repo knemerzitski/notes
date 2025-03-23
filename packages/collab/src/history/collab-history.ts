@@ -312,7 +312,7 @@ export class CollabHistory {
           ]),
     ];
 
-    this.logState('constructor');
+    this.logState('constructor:after');
   }
 
   reset(options?: Pick<CollabHistoryOptions, 'serverTailRevision'>) {
@@ -328,7 +328,7 @@ export class CollabHistory {
       local: -1,
     };
 
-    this.logState('reset');
+    this.logState('reset:after');
   }
 
   /**
@@ -343,7 +343,7 @@ export class CollabHistory {
   /**
    * Changeset that matches `client.view`
    */
-  getHeadText(): Changeset {
+  private getViewText(): Changeset {
     return this.readonlyRecords.getTextAt(this.lastExecutedIndex.local);
   }
 
@@ -395,11 +395,11 @@ export class CollabHistory {
     value: SelectionChangeset,
     options?: SimpleTextOperationOptions
   ) {
-    if (value.changeset.isIdentity(this.getHeadText())) {
+    if (value.changeset.isIdentity(this.getViewText())) {
       return;
     }
 
-    this.logState('pushSelectionChangeset', {
+    this.logState('pushSelectionChangeset:before', {
       value: {
         ...value,
         changeset: value.changeset.toString(),
@@ -410,13 +410,19 @@ export class CollabHistory {
     if (options?.type === 'permanent') {
       // eslint-disable-next-line @typescript-eslint/no-this-alias
       const _this = this;
-      permanentChangeModification(value.changeset, {
-        records: this.readonlyRecords,
-        get serverTailTextTransformToRecordsTailText() {
-          return _this.serverTailTextTransformToRecordsTailText;
+      permanentChangeModification(
+        value.changeset,
+        {
+          records: this.readonlyRecords,
+          get serverTailTextTransformToRecordsTailText() {
+            return _this.serverTailTextTransformToRecordsTailText;
+          },
+          modification: this.modification.bind(this),
         },
-        modification: this.modification.bind(this),
-      });
+        {
+          logger: _this.logger?.extend('permanentChangeMod'),
+        }
+      );
 
       this.client.composeLocalChange(value.changeset);
       const newestRecord = this.readonlyRecords.at(this.localIndex);
@@ -470,11 +476,7 @@ export class CollabHistory {
         }
       }
 
-      this.logState('pushSelectionChangeset', {
-        args: {
-          changeset: value.changeset.toString(),
-        },
-      });
+      this.logState('pushSelectionChangeset:after');
     }
   }
 
@@ -485,10 +487,6 @@ export class CollabHistory {
     depth = 0
   ): number | undefined {
     if (desiredRestoreCount <= 0) return 0;
-
-    this.logState('restoreFromUserRecords', {
-      desiredRestoreCount,
-    });
 
     const { records: relevantRecords, ownCount: potentialRestoreCount } =
       userRecords.sliceOlderRecordsUntilDesiredOwnCount(
@@ -558,7 +556,19 @@ export class CollabHistory {
       records: ReadonlyHistoryRecord[];
     };
   }) {
-    this.logState('modification', mod);
+    this.logState('modification:before', {
+      ...mod,
+      serverTailTextTransformToRecordsTailText:
+        mod.serverTailTextTransformToRecordsTailText?.toString(),
+      recordsTailText: mod.recordsTailText?.toString(),
+      recordsSplice: {
+        ...mod.recordsSplice,
+        records: mod.recordsSplice?.records.map((r) => ({
+          ...r,
+          changeset: r.changeset.toString(),
+        })),
+      },
+    });
 
     // Ensure modification is valid
     if (
@@ -624,7 +634,7 @@ export class CollabHistory {
 
     this.deleteIdentityRecords();
 
-    this.logState('mod:after');
+    this.logState('modification:after');
   }
 
   /**
@@ -660,7 +670,7 @@ export class CollabHistory {
         },
         modification: this.modification.bind(this),
       },
-      { logger: this.logger?.extend('unshiftRecords') }
+      { logger: this.logger?.extend('unshiftRecordsMod') }
     );
 
     const addedRecordsCount = this.readonlyRecords.length - beforeRecordsCount;
@@ -688,20 +698,17 @@ export class CollabHistory {
       return false;
     }
 
-    this.lastExecutedIndex.local--;
-
     const inverseChangeset = record.changeset.inverse(
-      this.readonlyRecords.getTextAt(this.lastExecutedIndex.local)
+      this.readonlyRecords.getTextAt(this.lastExecutedIndex.local - 1)
     );
 
-    this.logState('undo', {
-      recordChangeset: record.changeset.toString(),
-      inverseTextAt: this.readonlyRecords
-        .getTextAt(this.lastExecutedIndex.local)
-        .toString(),
-      inverseChangeset: inverseChangeset.toString(),
-      inverseChangesetComposed: this.client.view.compose(inverseChangeset).toString(),
+    this.logState('undo:before', {
+      executo: record.changeset.toString(),
+      undo: inverseChangeset.toString(),
+      viewAfterUndo: this.client.view.compose(inverseChangeset).toString(),
     });
+
+    this.lastExecutedIndex.local--;
 
     this.client.composeLocalChange(inverseChangeset);
     this._eventBus.emit('appliedTypingOperation', {
@@ -717,6 +724,8 @@ export class CollabHistory {
         selection: record.beforeSelection,
       },
     });
+
+    this.logState('undo:after');
 
     return true;
   }
@@ -735,11 +744,12 @@ export class CollabHistory {
       return false;
     }
 
-    this.lastExecutedIndex.local++;
-
-    this.logState('redo', {
-      changeset: record.changeset.toString(),
+    this.logState('redo:before', {
+      execute: record.changeset.toString(),
+      viewAfterExecute: this.client.view.compose(record.changeset).toString(),
     });
+
+    this.lastExecutedIndex.local++;
 
     this.client.composeLocalChange(record.changeset);
     this._eventBus.emit('appliedTypingOperation', {
@@ -755,6 +765,8 @@ export class CollabHistory {
         selection: record.afterSelection,
       },
     });
+
+    this.logState('redo:after');
 
     return true;
   }
@@ -786,7 +798,7 @@ export class CollabHistory {
         modification: this.modification.bind(this),
       },
       {
-        logger: this.logger?.extend('processExternalChange'),
+        logger: this.logger?.extend('externalChangeMod'),
       }
     );
 
@@ -841,7 +853,7 @@ export class CollabHistory {
       this.entryAtIndexDeleted(i);
     }
 
-    this.logState('mergeRecords', {
+    this.logState('mergeRecords:after', {
       args: {
         startIndex,
         endIndex,
@@ -874,7 +886,7 @@ export class CollabHistory {
       this.entryAtIndexDeleted(i);
     }
 
-    this.logState('mergeToRecordsTailText', {
+    this.logState('mergeToRecordsTailText:after', {
       args: {
         count,
       },
@@ -961,7 +973,7 @@ export class CollabHistory {
         records: this.readonlyRecords.items.map((r) => r.changeset.toString()),
         serverTailTextTransformToRecordsTailText:
           this.serverTailTextTransformToRecordsTailText?.toString(),
-        headText: this.getHeadText().toString(),
+        viewText: this.getViewText().toString(),
         client: {
           server: this.client.server.toString(),
           submitted: this.client.submitted.toString(),

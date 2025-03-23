@@ -14,11 +14,11 @@ import { useHtmlInput } from './useHtmlInput';
 interface UseHTMLInputCollabEditorOptions {
   merge?: {
     /**
-     * @default 1000 milliseconds
+     * @default 2000 milliseconds
      */
     wait?: number;
     /**
-     * @default {maxWait: 5000}
+     * @default {maxWait: 6000}
      */
     options?: Options;
   };
@@ -36,6 +36,7 @@ export function useCollabHtmlInput(
 
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const prevSelectionRef = useRef<SelectionRange | null>(null);
   const forceSelectionRef = useRef<SelectionRange | null>(null);
   const latestTypingSelectionRef = useRef<SelectionRange | null>(null);
 
@@ -112,6 +113,21 @@ export function useCollabHtmlInput(
       );
 
       forceSetSelection(adjustSelectionToExternalChanges(getInputSelection()));
+
+      if (prevSelectionRef.current) {
+        const newSelection = adjustSelectionToExternalChanges(prevSelectionRef.current);
+        if (newSelection) {
+          prevSelectionRef.current = newSelection;
+        }
+      }
+      if (latestTypingSelectionRef.current) {
+        const newSelection = adjustSelectionToExternalChanges(
+          latestTypingSelectionRef.current
+        );
+        if (newSelection) {
+          latestTypingSelectionRef.current = newSelection;
+        }
+      }
     });
   }, [
     editor,
@@ -158,23 +174,48 @@ export function useCollabHtmlInput(
   }, [renderCounter, logger]);
 
   // Merge changes made in a short duration
-  const isMergeChangesRef = useRef(false);
+  const isMergeChangesRef = useRef<'insert' | 'delete' | null>(null);
   const debouncedResetMergeChanges = useDebouncedCallback(
     () => {
-      isMergeChangesRef.current = false;
+      logger?.debug('merge:stop', {
+        value: editor.value,
+      });
+      isMergeChangesRef.current = null;
     },
-    options?.merge?.wait ?? 1000,
+    options?.merge?.wait ?? 2000,
     {
-      maxWait: options?.merge?.options?.maxWait ?? 5000,
+      maxWait: options?.merge?.options?.maxWait ?? 6000,
       ...options?.merge?.options,
     }
   );
 
-  function startDebouncedMerge() {
-    if (!isMergeChangesRef.current) {
-      isMergeChangesRef.current = true;
-      debouncedResetMergeChanges();
+  function startDebouncedMerge(type: 'insert' | 'delete') {
+    if (isMergeChangesRef.current === type) {
+      return;
     }
+
+    if (!isMergeChangesRef.current) {
+      logger?.debug('merge:start', {
+        type,
+        value: editor.value,
+      });
+    } else {
+      logger?.debug('merge:type', {
+        value: editor.value,
+        from: isMergeChangesRef.current,
+        to: type,
+      });
+    }
+
+    isMergeChangesRef.current = type;
+    debouncedResetMergeChanges();
+  }
+
+  function stopDebouncedMerge() {
+    logger?.debug('merge:flush', {
+      value: editor.value,
+    });
+    debouncedResetMergeChanges.flush();
   }
 
   const htmlInput = useHtmlInput({
@@ -193,9 +234,9 @@ export function useCollabHtmlInput(
       });
 
       editor.insert(insertValue, adjustedBeforeSelection, {
-        type: isMergeChangesRef.current ? 'merge' : undefined,
+        type: isMergeChangesRef.current === 'insert' ? 'merge' : undefined,
       });
-      startDebouncedMerge();
+      startDebouncedMerge('insert');
     },
     onDelete({ beforeSelection }) {
       const adjustedBeforeSelection =
@@ -211,41 +252,51 @@ export function useCollabHtmlInput(
       });
 
       editor.delete(1, adjustedBeforeSelection, {
-        type: isMergeChangesRef.current ? 'merge' : undefined,
+        type: isMergeChangesRef.current === 'delete' ? 'merge' : undefined,
       });
-      startDebouncedMerge();
+      startDebouncedMerge('delete');
     },
     onSelect(selection) {
-      if (latestTypingSelectionRef.current) {
-        const latestTypingSelection = latestTypingSelectionRef.current;
-        latestTypingSelectionRef.current = null;
+      try {
+        if (latestTypingSelectionRef.current) {
+          const latestTypingSelection = latestTypingSelectionRef.current;
+          latestTypingSelectionRef.current = null;
 
-        if (SelectionRange.isEqual(latestTypingSelection, selection)) {
-          logger?.debug('onSelect:ignoreFromTyping');
-          return;
+          if (SelectionRange.isEqual(latestTypingSelection, selection)) {
+            logger?.debug('onSelect:ignoreFromTyping');
+            return;
+          }
         }
+
+        let newSelection: SelectionRange;
+        if (externalChangesSinceLastRenderRef.current.length > 0) {
+          // If have external changes, must adjust selection accordingly
+          newSelection = adjustSelectionToExternalChanges(selection) ?? selection;
+          logger?.debug('onSelect:adjusted', newSelection.start);
+          forceSetSelection(newSelection);
+        } else {
+          newSelection = selection;
+          logger?.debug('onSelect:default', newSelection.start);
+          // Clear force set selection since user is overwriting it
+          forceSelectionRef.current = null;
+
+          // Stop merging typings when user changes selection
+          if (
+            prevSelectionRef.current &&
+            !SelectionRange.isEqual(prevSelectionRef.current, selection)
+          ) {
+            stopDebouncedMerge();
+          }
+        }
+
+        editor.sharedEventBus.emit('selectionChanged', {
+          source: 'immutable',
+          editor,
+          selection: newSelection,
+        });
+      } finally {
+        prevSelectionRef.current = selection;
       }
-
-      let newSelection: SelectionRange;
-      if (externalChangesSinceLastRenderRef.current.length > 0) {
-        // If have external changes, must adjust selection accordingly
-        newSelection = adjustSelectionToExternalChanges(selection) ?? selection;
-        logger?.debug('onSelect:adjusted', newSelection.start);
-        forceSetSelection(newSelection);
-      } else {
-        newSelection = selection;
-        logger?.debug('onSelect:default', newSelection.start);
-        // Clear force set selection since user is overwriting it
-        forceSelectionRef.current = null;
-      }
-
-      //!! new record should update selection too
-
-      editor.sharedEventBus.emit('selectionChanged', {
-        source: 'immutable',
-        editor,
-        selection: newSelection,
-      });
     },
     onUndo() {
       service.undo();

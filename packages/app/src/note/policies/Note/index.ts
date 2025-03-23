@@ -32,10 +32,15 @@ export const Note: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
         const { readField, args } = options;
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const name: typeof NoteTextFieldName | undefined = args?.name;
-        if (typeof name !== 'string') {
+        const name = args?.name;
+        if (
+          typeof name !== 'string' ||
+          !Object.values(NoteTextFieldName).includes(name as NoteTextFieldName)
+        ) {
           // eslint-disable-next-line @typescript-eslint/no-base-to-string
-          throw new Error(`Expected arg "name" to be a string but is "${String(name)}"`);
+          throw new Error(
+            `Expected arg "name" to be a NoteTextFieldName but is  "${String(name)}"`
+          );
         }
 
         return {
@@ -43,7 +48,7 @@ export const Note: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
           // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
           id: readField('id') as string,
           noteRef: readNoteRef(options),
-          fieldName: NoteTextFieldName[name],
+          fieldName: name as NoteTextFieldName,
         };
       },
       textFields(_existing, options): TextFieldsResult[] {

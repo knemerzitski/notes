@@ -7,7 +7,9 @@ import {
 } from '../../../../src/graphql-service';
 
 export async function createGraphQLService(
-  options?: Partial<Pick<Parameters<typeof app_createGraphQLService>[0], 'storageKey'>> &
+  options?: Partial<
+    Pick<Parameters<typeof app_createGraphQLService>[0], 'storageKey' | 'logger'>
+  > &
     Pick<
       NonNullable<Parameters<typeof app_createGraphQLService>[0]['linkOptions']>,
       'debug'
@@ -20,6 +22,7 @@ export async function createGraphQLService(
   const service = app_createGraphQLService({
     ...params,
     storageKey: options?.storageKey ?? params.storageKey,
+    logger: options?.logger,
     linkOptions: {
       ...params.linkOptions,
       debug: {

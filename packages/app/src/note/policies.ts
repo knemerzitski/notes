@@ -50,7 +50,7 @@ export const noteContext = function (ctx: CustomTypePoliciesInitContext) {
     },
     {
       defaultKey: NoteTextFieldName.CONTENT,
-      logger: ctx.logger,
+      logger: ctx.logger?.extend('noteExternal'),
     }
   );
 

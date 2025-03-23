@@ -4,15 +4,15 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
-      setSelectionRange: (start: number, end: number) => Chainable<void>;
+      moveSelectionRange: (offset: number) => Chainable<void>;
     }
   }
 }
 
 Cypress.Commands.add(
-  'setSelectionRange',
+  'moveSelectionRange',
   { prevSubject: 'element' },
-  (subject: JQuery, start: number, end: number) => {
+  (subject: JQuery, offset: number) => {
     const el = subject.get()[0];
     if (
       el == null ||
@@ -25,7 +25,11 @@ Cypress.Commands.add(
 
     // Must focus or setSelectionRange will have no effect
     inputEl.focus();
-    inputEl.setSelectionRange(start, end, 'forward');
-    cy.log('setSelectionRange', start, end);
+    inputEl.setSelectionRange(
+      (inputEl.selectionStart ?? 0) + offset,
+      (inputEl.selectionEnd ?? 0) + offset,
+      inputEl.selectionDirection ?? 'none'
+    );
+    cy.log('moveSelectionRange', offset);
   }
 );
