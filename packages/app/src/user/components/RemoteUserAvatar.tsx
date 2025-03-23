@@ -52,7 +52,12 @@ export const RemoteUserAvatar = forwardRef<HTMLDivElement, RemoteUserAvatarProps
           : TextBackgroundAvatar;
 
     return (
-      <SizeTextBackgroundAvatar ref={ref} bgColorText={name}>
+      <SizeTextBackgroundAvatar
+        ref={ref}
+        bgColorText={name}
+        aria-label="avatar"
+        data-user-id={userId}
+      >
         <FirstLetter text={name} />
       </SizeTextBackgroundAvatar>
     );

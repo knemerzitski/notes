@@ -585,6 +585,12 @@ function shouldAppStatusEqual(value: AppStatus[] | AppStatus) {
   return cy.get('[aria-label="app status"]').should(haveData('status', value));
 }
 
+function user2Avatar() {
+  return noteDialog().find(
+    `[aria-label="active users"] [aria-label="avatar"][data-user-id="${user2.userId}"]`
+  );
+}
+
 describe('with empty text', () => {
   it('receives text from user 2', () => {
     cy.visit(noteRoute());
@@ -595,6 +601,12 @@ describe('with empty text', () => {
     });
 
     shouldContentHaveValue('foobar');
+  });
+
+  it('has visible user 2 avatar', () => {
+    cy.visit(noteRoute());
+
+    user2Avatar().should('be.visible');
   });
 });
 

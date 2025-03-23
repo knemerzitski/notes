@@ -60,7 +60,12 @@ export const OpenedNoteUserAvatars = forwardRef<
   }
 
   return (
-    <AvatarGroupStyled ref={ref} {...restProps} size={UserAvatarProps?.size}>
+    <AvatarGroupStyled
+      ref={ref}
+      {...restProps}
+      size={UserAvatarProps?.size}
+      aria-label="active users"
+    >
       {userLinks.map((userLink) => (
         <UserIdProvider key={userLink.id} userId={userLink.user.id}>
           <UserAvatar {...UserAvatarProps} />
