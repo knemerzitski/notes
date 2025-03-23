@@ -10,10 +10,16 @@ export const SignOut = mutationDefinition(
       }
     }
   `),
-  (cache, result, { context }) => {
+  (cache, result, { context, variables }) => {
     const data = result.data;
     if (!data) return;
 
-    removeUsers(data.signOut.signedOutUserIds, cache, context?.taggedEvict);
+    if (data.signOut.signedOutUserIds.length === 0 && variables?.input.allUsers) {
+      // Requested to sign out all users but server signed out no users
+      // Most likely cookies has no sessions stored. Must clear all cached users.
+      removeUsers(null, cache, context?.taggedEvict);
+    } else {
+      removeUsers(data.signOut.signedOutUserIds, cache, context?.taggedEvict);
+    }
   }
 );
