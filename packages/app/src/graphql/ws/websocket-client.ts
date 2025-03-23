@@ -55,6 +55,10 @@ export class WebSocketClient {
     }
   }
 
+  close() {
+    return this.client.dispose();
+  }
+
   private connectionParams() {
     const payload: ConnectionInitMessage['payload'] = {};
 

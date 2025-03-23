@@ -303,8 +303,7 @@ class CyElementField implements FieldEditor {
   }
 }
 
-const fields = ['title', 'content'] as const;
-type Field = (typeof fields)[number];
+type Field = 'title' | 'content';
 
 let user1: UserContext & {
   bgEditor: Record<Field, FieldEditor>;
@@ -507,6 +506,11 @@ beforeEach(() => {
 
     await persistCache(graphQLService);
   });
+});
+
+afterEach(async () => {
+  // Must dispose or using too many concurrent WebSocket clients without proper cleanup will hang any further requests
+  await Promise.all([user1.graphQLService.dispose(), user2.graphQLService.dispose()]);
 });
 
 function noteRoute() {
@@ -943,14 +947,13 @@ describe('with history', () => {
   });
 });
 
-describe('generated actions', () => {
-  // TODO update config with more tests
+describe('with generated actions', () => {
   const config = {
-    seed: 4325,
-    testCount: 1,
+    seed: 65431,
+    testCount: 8,
     actionsPerTest: {
-      min: 10,
-      max: 10,
+      min: 8,
+      max: 27,
     },
     insertLength: {
       min: 1,
@@ -960,6 +963,26 @@ describe('generated actions', () => {
       min: 1,
       max: 6,
     },
+    user: [
+      {
+        weight: 6,
+        value: 'UI',
+      },
+      {
+        weight: 4,
+        value: 'BG',
+      },
+    ],
+    field: [
+      {
+        weight: 2,
+        value: 'title' satisfies Field,
+      },
+      {
+        weight: 8,
+        value: 'content' satisfies Field,
+      },
+    ],
     typingDelay: [
       {
         weight: 20,
@@ -978,6 +1001,7 @@ describe('generated actions', () => {
         value: 300,
       },
     ],
+    newLineProbability: 0.6,
     waitForSeparateHistoryRecordProbability: 0.2,
   };
 
@@ -985,7 +1009,6 @@ describe('generated actions', () => {
     name: string;
     context: UserContext;
   }[];
-  let userNames: string[];
 
   function findUser(name: string) {
     const user = users.find((user) => user.name === name);
@@ -1010,8 +1033,8 @@ describe('generated actions', () => {
       value: {
         name: 'select',
         generateInput: () => {
-          const userName = faker.helpers.arrayElement(userNames);
-          const field = faker.helpers.arrayElement(fields);
+          const userName = faker.helpers.weightedArrayElement(config.user);
+          const field = faker.helpers.weightedArrayElement(config.field);
 
           const start = Math.round(faker.number.float() * 100) / 100;
           const end =
@@ -1047,12 +1070,15 @@ describe('generated actions', () => {
         name: 'type',
         generateInput: () =>
           [
-            faker.helpers.arrayElement(userNames),
-            faker.helpers.arrayElement(fields),
+            faker.helpers.weightedArrayElement(config.user),
+            faker.helpers.weightedArrayElement(config.field),
             faker.helpers.weightedArrayElement(config.typingDelay),
             faker.word.sample({
               length: config.insertLength,
               strategy: 'closest',
+            }),
+            faker.helpers.maybe(() => true, {
+              probability: config.newLineProbability,
             }),
             faker.helpers.maybe(() => true, {
               probability: config.waitForSeparateHistoryRecordProbability,
@@ -1063,11 +1089,12 @@ describe('generated actions', () => {
           field: Field,
           delay: number,
           input: string,
+          newLine: true | undefined,
           tick: true | undefined
         ) => {
           const user = findUser(userName);
           const editor = user.context.editor[field];
-          editor.insert(input, { delay });
+          editor.insert(input + (newLine ? '\n' : ''), { delay });
           if (user.context.type === 'interface' && tick) {
             cy.tick(5000);
           }
@@ -1080,8 +1107,8 @@ describe('generated actions', () => {
         name: 'delete',
         generateInput: () =>
           [
-            faker.helpers.arrayElement(userNames),
-            faker.helpers.arrayElement(fields),
+            faker.helpers.weightedArrayElement(config.user),
+            faker.helpers.weightedArrayElement(config.field),
             faker.helpers.weightedArrayElement(config.typingDelay),
             faker.number.int(config.deleteCount),
             faker.helpers.maybe(() => true, {
@@ -1131,33 +1158,34 @@ describe('generated actions', () => {
         context: user2,
       },
     ];
-    userNames = users.map((user) => user.name);
   });
 
   [...new Array<undefined>(config.testCount)].forEach((_, index) => {
-    // TODO inputs inside test message?
-    it(`test ${index}`, () => {
+    const n = faker.number.int(config.actionsPerTest);
+    it(`test ${index}, actions: ${n}`, () => {
       cy.clock();
 
       cy.visit(noteRoute());
 
       shouldHaveRevision(1);
 
-      const n = faker.number.int(config.actionsPerTest);
-      cy.log(`actionsCount: ${n}`);
+      cy.clock(10000);
+
       for (let i = 0; i < n; i++) {
         const action = faker.helpers.weightedArrayElement(actions);
         const input = action.generateInput?.() ?? [];
         cy.log(`${i} ${action.name}: ${JSON.stringify(input)}`);
-        // cy.then(() => {
-        action.invoke(...input);
-        // });
+        cy.then(() => {
+          action.invoke(...input);
+        });
         cy.tick(100);
-
-        // todo check that user 2 avatar is visible
       }
 
-      cy.tick(10000);
+      cy.tick(5000);
+
+      cy.then(() => user2.ongoingChangesPromise());
+
+      cy.tick(5000);
 
       shouldAppStatusEqual(['synchronized', 'refresh']);
     });

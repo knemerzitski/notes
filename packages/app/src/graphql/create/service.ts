@@ -236,9 +236,10 @@ export function createGraphQLService({
      *
      * Service will no longer function properly.
      */
-    dispose: () => {
+    dispose: async () => {
       apolloClient.stop();
       disposeOnlineGate();
+      await wsClient?.close();
     },
   };
 
