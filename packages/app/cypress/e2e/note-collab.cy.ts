@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import mitt from 'mitt';
 
@@ -20,14 +22,19 @@ import { updateOpenNoteSelectionRange } from '../support/utils/note/update-open-
 import { signIn } from '../support/utils/user/sign-in';
 import { userSubscription } from '../support/utils/user/user-subscription';
 import { createLogger } from '../../../utils/src/logging';
+import { faker } from '@faker-js/faker';
+import { AppStatus } from '../../src/utils/hooks/useAppStatus';
 
 interface UserContext {
   userId: string;
+  type: 'interface' | 'background';
   graphQLService: GraphQLService;
   collabService: {
     service: CollabService;
     fields: Record<NoteTextFieldName, SimpleText>;
   };
+  editor: Record<Field, FieldEditor>;
+  submitChanges: () => Promise<void>;
 }
 
 interface TextOperationOptions {
@@ -40,11 +47,11 @@ interface TextOperationOptions {
 }
 
 interface FieldEditor {
+  getValue(): PromiseLike<string>;
   insert(value: string, options?: TextOperationOptions): void;
   delete(count: number, options?: TextOperationOptions): void;
   select(start: number, end?: number, options?: TextOperationOptions): void;
   selectOffset(offset: number, options?: TextOperationOptions): void;
-  type(value: string, options?: TextOperationOptions): void;
 }
 
 type TextOperation = (
@@ -105,7 +112,11 @@ class SimpleTextField implements FieldEditor {
     });
   }
 
-  insert(value: string, options?: TextOperationOptions) {
+  getValue() {
+    return Promise.resolve(this.field.value);
+  }
+
+  private _insert(value: string, options?: TextOperationOptions) {
     if (options?.noSubmit) {
       this.field.insert(value, this.selection);
     } else {
@@ -117,7 +128,21 @@ class SimpleTextField implements FieldEditor {
     }
   }
 
-  delete(count: number, options?: TextOperationOptions) {
+  insert(value: string, options?: TextOperationOptions) {
+    const delay = options?.delay ?? 10;
+    if (delay <= 0) {
+      this._insert(value, options);
+    } else {
+      value.split('').forEach((char) => {
+        this._insert(char, {
+          ...options,
+          delay,
+        });
+      });
+    }
+  }
+
+  _delete(count: number, options?: TextOperationOptions) {
     if (options?.noSubmit) {
       this.field.delete(count, this.selection);
     } else {
@@ -129,13 +154,24 @@ class SimpleTextField implements FieldEditor {
     }
   }
 
-  select(start: number, end?: number, options?: Omit<TextOperationOptions, 'noSubmit'>) {
-      this.pushOperation({
-        type: 'selectOffset',
-        offset: SelectionRange.subtract(SelectionRange.from(start, end), this.selection),
-        options,
+  delete(count: number, options?: TextOperationOptions) {
+    const delay = options?.delay ?? 10;
+    if (delay <= 0) {
+      this._delete(count, options);
+    } else {
+      [...new Array<undefined>(count)].forEach(() => {
+        this._delete(1, options);
       });
     }
+  }
+
+  select(start: number, end?: number, options?: Omit<TextOperationOptions, 'noSubmit'>) {
+    this.pushOperation({
+      type: 'selectOffset',
+      offset: SelectionRange.subtract(SelectionRange.from(start, end), this.selection),
+      options,
+    });
+  }
 
   selectOffset(offset: number, options?: Omit<TextOperationOptions, 'noSubmit'>) {
     this.pushOperation({
@@ -223,15 +259,6 @@ class SimpleTextField implements FieldEditor {
     }
   }
 
-  /**
-   * Type one character at a time as a record, waiting for submitted record to be acknowledged
-   */
-  type(value: string, options?: Parameters<FieldEditor['type']>[1]) {
-    value.split('').forEach((char) => {
-      this.insert(char, options);
-    });
-  }
-
   getServiceSelection() {
     return {
       revision: this.selectionRevision,
@@ -242,6 +269,17 @@ class SimpleTextField implements FieldEditor {
 
 class CyElementField implements FieldEditor {
   constructor(private readonly getChainableEl: () => Cypress.Chainable<JQuery>) {}
+
+  getValue() {
+    return this.getChainableEl()
+      .invoke('val')
+      .then((value) => {
+        if (typeof value !== 'string') {
+          throw new Error(`Unexpected value is not string "${String(value)}"`);
+        }
+        return value;
+      });
+  }
 
   insert(value: string, _options?: TextOperationOptions) {
     this.getChainableEl().type(value);
@@ -265,18 +303,15 @@ class CyElementField implements FieldEditor {
   }
 }
 
-type Field = 'title' | 'content';
+const fields = ['title', 'content'] as const;
+type Field = (typeof fields)[number];
 
 let user1: UserContext & {
-  editor: Record<Field, FieldEditor>;
   bgEditor: Record<Field, FieldEditor>;
   bgQueuedChangesSubmitted: () => Promise<void>;
-  submitChanges: () => Promise<void>;
 };
 
 let user2: UserContext & {
-  editor: Record<Field, FieldEditor>;
-  submitChanges: () => Promise<void>;
   submitSelection: () => Promise<void>;
   ongoingChangesPromise: () => Promise<void>;
 };
@@ -292,6 +327,9 @@ beforeEach(() => {
     // Init user 1, who will be displayed in UI
     const graphQLService = await createGraphQLService({
       logger: createLogger('user1:graphql'),
+      debug: {
+        logging: false,
+      },
     });
 
     // Sign in
@@ -340,6 +378,7 @@ beforeEach(() => {
 
     user1 = {
       userId,
+      type: 'interface',
       editor: {
         title: new CyElementField(titleField),
         content: new CyElementField(contentField),
@@ -367,6 +406,9 @@ beforeEach(() => {
     await createGraphQLService({
       storageKey: `apollo:cache:test:user2:${nextStorageKeyCounter++}`,
       logger: createLogger('user2:graphql'),
+      debug: {
+        logging: false,
+      },
     }).then(async (graphQLService) => {
       const { userId } = await signIn({
         graphQLService,
@@ -432,6 +474,7 @@ beforeEach(() => {
 
       user2 = {
         userId,
+        type: 'background',
         graphQLService,
         collabService: {
           service: collabService,
@@ -536,6 +579,10 @@ function shouldHaveRevision(revision: number) {
   noteDialog()
     .find('[aria-label="collab-service"]')
     .should(haveData('revision', String(revision)));
+}
+
+function shouldAppStatusEqual(value: AppStatus[] | AppStatus) {
+  return cy.get('[aria-label="app status"]').should(haveData('status', value));
 }
 
 describe('with empty text', () => {
@@ -686,13 +733,13 @@ describe('with initial text', () => {
 
         cy.then(() => {
           user2.editor.content.select(userBG.select);
-          user2.editor.content.type(userBG.insert, {
+          user2.editor.content.insert(userBG.insert, {
             delay: userBG.delay,
           });
         });
 
         user1.editor.content.select(userUI.select);
-        user1.editor.content.type(userUI.insert, {
+        user1.editor.content.insert(userUI.insert, {
           delay: userUI.delay,
         });
 
@@ -732,12 +779,20 @@ describe('with history', () => {
 
   beforeEach(() => {
     cy.then(async () => {
-      user1.bgEditor.content.insert('[before]\n\n[history]\n\n\n[after]\n');
+      user1.bgEditor.content.insert('[before]\n\n[history]\n\n\n[after]\n', {
+        delay: 0,
+      });
 
       user1.bgEditor.content.select(20);
-      user1.bgEditor.content.insert('[t1]');
-      user1.bgEditor.content.insert('[t2]');
-      user1.bgEditor.content.insert('[t3]');
+      user1.bgEditor.content.insert('[t1]', {
+        delay: 0,
+      });
+      user1.bgEditor.content.insert('[t2]', {
+        delay: 0,
+      });
+      user1.bgEditor.content.insert('[t3]', {
+        delay: 0,
+      });
 
       await user1.bgQueuedChangesSubmitted();
 
@@ -754,7 +809,7 @@ describe('with history', () => {
 
     cy.then(() => {
       user2.editor.content.select(9);
-      user2.editor.content.type('12345');
+      user2.editor.content.insert('12345');
     });
 
     undoButton().click();
@@ -769,7 +824,7 @@ describe('with history', () => {
 
     cy.then(() => {
       user2.editor.content.select(9);
-      user2.editor.content.type('1234567');
+      user2.editor.content.insert('1234567');
     });
 
     undoButton().click();
@@ -786,7 +841,7 @@ describe('with history', () => {
 
     cy.then(() => {
       user2.editor.content.select(9);
-      user2.editor.content.type('12345');
+      user2.editor.content.insert('12345');
     });
 
     undoButton().click();
@@ -811,20 +866,20 @@ describe('with history', () => {
 
     user1.editor.content.select(32);
 
-    user1.editor.content.type('abc'); // type abc
+    user1.editor.content.insert('abc'); // type abc
     // [before]\n\n[history]\n[t1][t2][t3]abc>\n\n[after]\n
 
     cy.tick(100);
 
     cy.then(() => {
       user2.editor.content.select(9);
-      user2.editor.content.type('12345');
+      user2.editor.content.insert('12345');
     });
     // [before]\n12345\n[history]\n[t1][t2][t3]abc>\n\n[after]\n
 
     user1.editor.content.selectOffset(-7);
 
-      user1.editor.content.delete(4); // delete [t2]
+    user1.editor.content.delete(4); // delete [t2]
     cy.tick(5000);
     // [before]\n12345\n[history]\n[t1]>[t3]abc\n\n[after]\n
 
@@ -833,7 +888,7 @@ describe('with history', () => {
     });
     // [before]\n123\n[history]\n[t1]>[t3]abc\n\n[after]\n
 
-      user1.editor.content.delete(4); // delete [t1]
+    user1.editor.content.delete(4); // delete [t1]
     cy.tick(5000);
     // [before]\n123\n[history]\n>[t3]abc\n\n[after]\n
 
@@ -857,19 +912,242 @@ describe('with history', () => {
 
     cy.then(() => {
       user2.editor.content.select(32);
-      user2.editor.content.delete(12);
+      user2.editor.content.delete(12, {
+        delay: 0,
+      });
       user2.editor.content.select(9);
-      user2.editor.content.type('123');
+      user2.editor.content.insert('123');
     });
 
     undoButton().click();
 
     shouldContentHaveValue('123');
 
-    user1.editor.content.type('a');
+    user1.editor.content.insert('a');
     shouldContentHaveValue('123a');
 
     undoButton().click();
     shouldContentHaveValue('123');
+  });
+});
+
+describe('generated actions', () => {
+  // TODO update config with more tests
+  const config = {
+    seed: 4325,
+    testCount: 1,
+    actionsPerTest: {
+      min: 10,
+      max: 10,
+    },
+    insertLength: {
+      min: 1,
+      max: 9,
+    },
+    deleteCount: {
+      min: 1,
+      max: 6,
+    },
+    typingDelay: [
+      {
+        weight: 20,
+        value: 0,
+      },
+      {
+        weight: 10,
+        value: 1,
+      },
+      {
+        weight: 66,
+        value: 10,
+      },
+      {
+        weight: 2,
+        value: 300,
+      },
+    ],
+    waitForSeparateHistoryRecordProbability: 0.2,
+  };
+
+  let users: {
+    name: string;
+    context: UserContext;
+  }[];
+  let userNames: string[];
+
+  function findUser(name: string) {
+    const user = users.find((user) => user.name === name);
+    if (!user) {
+      throw new Error(`Failed to find user ${name}`);
+    }
+    return user;
+  }
+
+  interface Action {
+    name: string;
+    generateInput?: () => any[];
+    invoke: (...args: any[]) => void;
+  }
+
+  const actions: {
+    weight: number;
+    value: Action;
+  }[] = [
+    {
+      weight: 40,
+      value: {
+        name: 'select',
+        generateInput: () => {
+          const userName = faker.helpers.arrayElement(userNames);
+          const field = faker.helpers.arrayElement(fields);
+
+          const start = Math.round(faker.number.float() * 100) / 100;
+          const end =
+            Math.round(
+              faker.number.float({
+                min: start,
+                max: 1,
+              }) * 100
+            ) / 100;
+
+          return [userName, field, start, end];
+        },
+        invoke: (
+          userName: string,
+          field: Field,
+          startRatio: number,
+          endRatio: number
+        ) => {
+          const user = findUser(userName);
+          const editor = user.context.editor[field];
+          editor.getValue().then((value) => {
+            editor.select(
+              Math.floor(startRatio * value.length),
+              Math.floor(endRatio * value.length)
+            );
+          });
+        },
+      },
+    },
+    {
+      weight: 110,
+      value: {
+        name: 'type',
+        generateInput: () =>
+          [
+            faker.helpers.arrayElement(userNames),
+            faker.helpers.arrayElement(fields),
+            faker.helpers.weightedArrayElement(config.typingDelay),
+            faker.word.sample({
+              length: config.insertLength,
+              strategy: 'closest',
+            }),
+            faker.helpers.maybe(() => true, {
+              probability: config.waitForSeparateHistoryRecordProbability,
+            }),
+          ] as const,
+        invoke: (
+          userName: string,
+          field: Field,
+          delay: number,
+          input: string,
+          tick: true | undefined
+        ) => {
+          const user = findUser(userName);
+          const editor = user.context.editor[field];
+          editor.insert(input, { delay });
+          if (user.context.type === 'interface' && tick) {
+            cy.tick(5000);
+          }
+        },
+      },
+    },
+    {
+      weight: 75,
+      value: {
+        name: 'delete',
+        generateInput: () =>
+          [
+            faker.helpers.arrayElement(userNames),
+            faker.helpers.arrayElement(fields),
+            faker.helpers.weightedArrayElement(config.typingDelay),
+            faker.number.int(config.deleteCount),
+            faker.helpers.maybe(() => true, {
+              probability: config.waitForSeparateHistoryRecordProbability,
+            }),
+          ] as const,
+        invoke: (
+          userName: string,
+          field: Field,
+          delay: number,
+          input: number,
+          tick: true | undefined
+        ) => {
+          const user = findUser(userName);
+          const editor = user.context.editor[field];
+
+          editor.delete(input, { delay });
+          if (user.context.type === 'interface' && tick) {
+            cy.tick(5000);
+          }
+        },
+      },
+    },
+    {
+      weight: 1,
+      value: {
+        name: 'reload',
+        invoke: () => {
+          cy.visit(noteRoute());
+        },
+      },
+    },
+  ];
+
+  before(() => {
+    faker.seed(config.seed);
+  });
+
+  beforeEach(() => {
+    users = [
+      {
+        name: 'UI',
+        context: user1,
+      },
+      {
+        name: 'BG',
+        context: user2,
+      },
+    ];
+    userNames = users.map((user) => user.name);
+  });
+
+  [...new Array<undefined>(config.testCount)].forEach((_, index) => {
+    // TODO inputs inside test message?
+    it(`test ${index}`, () => {
+      cy.clock();
+
+      cy.visit(noteRoute());
+
+      shouldHaveRevision(1);
+
+      const n = faker.number.int(config.actionsPerTest);
+      cy.log(`actionsCount: ${n}`);
+      for (let i = 0; i < n; i++) {
+        const action = faker.helpers.weightedArrayElement(actions);
+        const input = action.generateInput?.() ?? [];
+        cy.log(`${i} ${action.name}: ${JSON.stringify(input)}`);
+        // cy.then(() => {
+        action.invoke(...input);
+        // });
+        cy.tick(100);
+
+        // todo check that user 2 avatar is visible
+      }
+
+      cy.tick(10000);
+
+      shouldAppStatusEqual(['synchronized', 'refresh']);
+    });
   });
 });
