@@ -1,13 +1,22 @@
 import { Reference, StoreObject } from '@apollo/client';
 
-import { DateTime } from '../../graphql/scalars/DateTime';
+import { createDateTimePolicy } from '../../graphql/scalars/DateTime';
 
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
 
 export const OpenedNote: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
   return {
     fields: {
-      closedAt: DateTime,
+      closedAt: createDateTimePolicy({
+        nullable: false,
+        read(existing) {
+          // By default closedAt since beginning of time
+          if (existing === undefined) {
+            return new Date(0);
+          }
+          return existing;
+        },
+      }),
       collabTextEditing: {
         read(existing = null) {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -39,11 +48,19 @@ export const OpenedNote: CreateTypePolicyFn = function (ctx: TypePoliciesContext
         },
       },
       active(existing, { readField }) {
+        // Manually overwritten active
+        if (existing != null) {
+          return existing as boolean;
+        }
+
+        // Calculate from closedAt
         const closedAt = readField('closedAt');
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        existing = existing ?? closedAt != null;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return existing;
+        if (closedAt instanceof Date) {
+          const hasClosedAtElapsed = closedAt <= new Date();
+          return !hasClosedAtElapsed;
+        }
+
+        return false;
       },
     },
   };
