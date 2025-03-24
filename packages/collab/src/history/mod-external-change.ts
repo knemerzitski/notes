@@ -1,6 +1,6 @@
 import { Logger } from '../../../utils/src/logging';
 
-import { Changeset, ChangesetOperationError } from '../changeset';
+import { Changeset } from '../changeset';
 import { swapChangesets } from '../changeset/swap-changesets';
 import { CollabClient } from '../client/collab-client';
 import { SelectionRange } from '../client/selection-range';
@@ -99,34 +99,22 @@ export function externalChangeModification(
 
     newTailText = history.records.tailText.compose(currentSwapTransform);
 
-    try {
-      newServerTailTextTransformToRecordsTailText = currentTransform
-        ? currentTransform.compose(currentSwapTransform)
-        : currentSwapTransform;
-      if (currentTransform) {
-        logger?.debug('newServerTailTextTransformToRecordsTailText', {
-          newServerTailTextTransformToRecordsTailText:
-            newServerTailTextTransformToRecordsTailText.toString(),
-          currentTransform: currentTransform.toString(),
-          composed: currentTransform.compose(currentSwapTransform).toString(),
-        });
-      } else {
-        logger?.debug('newServerTailTextTransformToRecordsTailText', {
-          newServerTailTextTransformToRecordsTailText:
-            newServerTailTextTransformToRecordsTailText.toString(),
-          swapChangeset: currentSwapTransform.toString(),
-        });
-      }
-    } catch (err) {
-      if (err instanceof ChangesetOperationError) {
-        logger?.error('processExternalChange.invalidTransform', {
-          changeset: changeset.toString(),
-          currentTransform: currentTransform?.toString(),
-          swapChangeset: currentSwapTransform.toString(),
-        });
-      } else {
-        throw err;
-      }
+    newServerTailTextTransformToRecordsTailText = currentTransform
+      ? currentTransform.compose(currentSwapTransform)
+      : currentSwapTransform;
+    if (currentTransform) {
+      logger?.debug('newServerTailTextTransformToRecordsTailText', {
+        newServerTailTextTransformToRecordsTailText:
+          newServerTailTextTransformToRecordsTailText.toString(),
+        currentTransform: currentTransform.toString(),
+        composed: currentTransform.compose(currentSwapTransform).toString(),
+      });
+    } else {
+      logger?.debug('newServerTailTextTransformToRecordsTailText', {
+        newServerTailTextTransformToRecordsTailText:
+          newServerTailTextTransformToRecordsTailText.toString(),
+        swapChangeset: currentSwapTransform.toString(),
+      });
     }
   } else {
     newTailText = history.client.server;
