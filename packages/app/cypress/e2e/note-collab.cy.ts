@@ -24,6 +24,7 @@ import { userSubscription } from '../support/utils/user/user-subscription';
 import { createLogger } from '../../../utils/src/logging';
 import { faker } from '@faker-js/faker';
 import { AppStatus } from '../../src/utils/hooks/useAppStatus';
+import { MaybePromise } from '../../../utils/src/types';
 
 interface UserContext {
   userId: string;
@@ -87,6 +88,10 @@ class SimpleTextField implements FieldEditor {
   private operationQueue: TextOperation[] = [];
   private prevOperationTime = 0;
 
+  get value() {
+    return this.field.value;
+  }
+
   constructor(
     private readonly field: SimpleText,
     private readonly service: CollabService,
@@ -112,7 +117,7 @@ class SimpleTextField implements FieldEditor {
     });
   }
 
-  getValue() {
+  getValue(): PromiseLike<string> {
     return Promise.resolve(this.field.value);
   }
 
@@ -306,11 +311,13 @@ class CyElementField implements FieldEditor {
 type Field = 'title' | 'content';
 
 let user1: UserContext & {
+  editor: Record<Field, CyElementField>;
   bgEditor: Record<Field, FieldEditor>;
   bgQueuedChangesSubmitted: () => Promise<void>;
 };
 
 let user2: UserContext & {
+  editor: Record<Field, SimpleTextField>;
   submitSelection: () => Promise<void>;
   ongoingChangesPromise: () => Promise<void>;
 };
@@ -595,6 +602,57 @@ function user2Avatar() {
   );
 }
 
+function retry(
+  fn: () => MaybePromise<void>,
+  options?: {
+    /**
+     * @default 3
+     */
+    maxRetries?: number;
+    /**
+     * @default 500 ms
+     */
+    timeout?: number;
+  }
+) {
+  cy.then(async () => {
+    let attemptsRemaining = 1 + (options?.maxRetries ?? 3);
+    const timeout = options?.timeout ?? 500;
+
+    const _log = Cypress.log.bind(Cypress);
+    // @ts-expect-error Ignore typing
+    Cypress.log = (...args) => {
+      const [options] = args;
+      // @ts-expect-error Ignore typing
+      if (options.name === 'assert' && options.passed === false) {
+        // Ignore failed assertions while attemptsRemaining > 0
+        if (attemptsRemaining > 0) {
+          return;
+        }
+      }
+      return _log(...args);
+    };
+    try {
+      while (attemptsRemaining-- > 0) {
+        try {
+          await fn();
+          return;
+        } catch (err) {
+          if (attemptsRemaining <= 0) {
+            throw err;
+          } else {
+            await new Promise((res) => {
+              setTimeout(res, timeout);
+            });
+          }
+        }
+      }
+    } finally {
+      Cypress.log = _log;
+    }
+  });
+}
+
 describe('with empty text', () => {
   it('receives text from user 2', () => {
     cy.visit(noteRoute());
@@ -611,6 +669,169 @@ describe('with empty text', () => {
     cy.visit(noteRoute());
 
     user2Avatar().should('be.visible');
+  });
+
+  it('can undo and redo interweaved history', () => {
+    cy.visit(noteRoute());
+
+    // user 1 type [1][2][3][4] and then undo and redo it
+    // user 2 type [a][b][c][d] and then undo and redo it
+
+    //
+    user1.editor.content.insert('[1]', {
+      delay: 0,
+    });
+    shouldContentHaveValue('[1]');
+    cy.then(() => {
+      user2.editor.content.insert('[a]', {
+        delay: 0,
+      });
+    });
+    shouldContentHaveValue('[1][a]');
+
+    //
+    user1.editor.content.selectOffset(3);
+    user1.editor.content.insert('[2]', {
+      delay: 0,
+    });
+    retry(() => {
+      expect(user2.editor.content.value).to.equal('[1][a][2]');
+    });
+    cy.then(() => {
+      user2.editor.content.selectOffset(3);
+      user2.editor.content.insert('[b]', {
+        delay: 0,
+      });
+    });
+    shouldContentHaveValue('[1][a][2][b]');
+
+    //
+    user1.editor.content.selectOffset(3);
+    user1.editor.content.insert('[3]', {
+      delay: 0,
+    });
+    retry(() => {
+      expect(user2.editor.content.value).to.equal('[1][a][2][b][3]');
+    });
+    cy.then(() => {
+      user2.editor.content.selectOffset(3);
+      user2.editor.content.insert('[c]', {
+        delay: 0,
+      });
+    });
+    shouldContentHaveValue('[1][a][2][b][3][c]');
+
+    //
+    user1.editor.content.selectOffset(3);
+    user1.editor.content.insert('[4]', {
+      delay: 0,
+    });
+    retry(() => {
+      expect(user2.editor.content.value).to.equal('[1][a][2][b][3][c][4]');
+    });
+    cy.then(() => {
+      user2.editor.content.selectOffset(3);
+      user2.editor.content.insert('[d]', {
+        delay: 0,
+      });
+    });
+    shouldContentHaveValue('[1][a][2][b][3][c][4][d]');
+
+    undoButton().click();
+    shouldContentHaveValue('[1][a][2][b][3][c][d]');
+
+    undoButton().click();
+    shouldContentHaveValue('[1][a][2][b][c][d]');
+
+    undoButton().click();
+    shouldContentHaveValue('[1][a][b][c][d]');
+
+    undoButton().click();
+    shouldContentHaveValue('[a][b][c][d]');
+
+    redoButton().click();
+    shouldContentHaveValue('[1][a][b][c][d]');
+
+    redoButton().click();
+    shouldContentHaveValue('[1][a][2][b][c][d]');
+
+    redoButton().click();
+    shouldContentHaveValue('[1][a][2][b][3][c][d]');
+
+    redoButton().click();
+    shouldContentHaveValue('[1][a][2][b][3][c][4][d]');
+
+    retry(() => {
+      expect(user2.editor.content.value).to.equal('[1][a][2][b][3][c][4][d]');
+    });
+    cy.then(async () => {
+      user2.collabService.service.undo();
+      return user2.submitChanges();
+    });
+    shouldContentHaveValue('[1][a][2][b][3][c][4]');
+
+    retry(() => {
+      expect(user2.editor.content.value).to.equal('[1][a][2][b][3][c][4]');
+    });
+    cy.then(async () => {
+      user2.collabService.service.undo();
+      return user2.submitChanges();
+    });
+    shouldContentHaveValue('[1][a][2][b][3][4]');
+
+    retry(() => {
+      expect(user2.editor.content.value).to.equal('[1][a][2][b][3][4]');
+    });
+    cy.then(async () => {
+      user2.collabService.service.undo();
+      return user2.submitChanges();
+    });
+    shouldContentHaveValue('[1][a][2][3][4]');
+
+    retry(() => {
+      expect(user2.editor.content.value).to.equal('[1][a][2][3][4]');
+    });
+    cy.then(async () => {
+      user2.collabService.service.undo();
+      return user2.submitChanges();
+    });
+    shouldContentHaveValue('[1][2][3][4]');
+
+    retry(() => {
+      expect(user2.editor.content.value).to.equal('[1][2][3][4]');
+    });
+    cy.then(async () => {
+      user2.collabService.service.redo();
+      return user2.submitChanges();
+    });
+    shouldContentHaveValue('[1][a][2][3][4]');
+
+    retry(() => {
+      expect(user2.editor.content.value).to.equal('[1][a][2][3][4]');
+    });
+    cy.then(async () => {
+      user2.collabService.service.redo();
+      return user2.submitChanges();
+    });
+    shouldContentHaveValue('[1][a][2][b][3][4]');
+
+    retry(() => {
+      expect(user2.editor.content.value).to.equal('[1][a][2][b][3][4]');
+    });
+    cy.then(async () => {
+      user2.collabService.service.redo();
+      return user2.submitChanges();
+    });
+    shouldContentHaveValue('[1][a][2][b][3][c][4]');
+
+    retry(() => {
+      expect(user2.editor.content.value).to.equal('[1][a][2][b][3][c][4]');
+    });
+    cy.then(async () => {
+      user2.collabService.service.redo();
+      return user2.submitChanges();
+    });
+    shouldContentHaveValue('[1][a][2][b][3][c][4][d]');
   });
 });
 
