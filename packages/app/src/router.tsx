@@ -1,11 +1,13 @@
 import { ApolloClient } from '@apollo/client';
 import { createRouter } from '@tanstack/react-router';
 
+import { Logger } from '../../utils/src/logging';
+
+import { Maybe } from '../../utils/src/types';
+
 import { routeTree } from './__generated__/routeTree.gen';
 import { createRouteMasks } from './route-masks';
 import { FetchedRoutes } from './router/context/fetched-routes';
-import { Logger } from '../../utils/src/logging';
-import { Maybe } from '../../utils/src/types';
 
 export interface RouterContext {
   apolloClient: ApolloClient<object>;

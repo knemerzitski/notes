@@ -1,15 +1,15 @@
+import Block from '@mui/icons-material/Block';
 import CloudDoneIcon from '@mui/icons-material/CloudDone';
 import CloudOffIcon from '@mui/icons-material/CloudOff';
-import Block from '@mui/icons-material/Block';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { CircularProgress } from '@mui/material';
 
 import { useEffect, useRef, useState } from 'react';
 
+import { useIsSessionExpired } from '../../user/hooks/useIsSessionExpired';
 import { AppStatus, useAppStatus } from '../hooks/useAppStatus';
 
 import { CrossFade } from './CrossFade';
-import { useIsSessionExpired } from '../../user/hooks/useIsSessionExpired';
 
 export function AppStatusIcon({
   visibleStatuses,

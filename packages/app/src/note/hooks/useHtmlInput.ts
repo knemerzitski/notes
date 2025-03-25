@@ -2,8 +2,9 @@ import { FormEventHandler, KeyboardEventHandler, useCallback, useRef } from 'rea
 
 import { SelectionRange } from '../../../../collab/src/client/selection-range';
 
-import { useLogger } from '../../utils/context/logger';
 import { isObjectLike } from '../../../../utils/src/type-guards/is-object-like';
+
+import { useLogger } from '../../utils/context/logger';
 
 export interface SelectionEvent {
   /**

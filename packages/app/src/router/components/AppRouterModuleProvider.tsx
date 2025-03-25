@@ -5,8 +5,8 @@ import { useEffect, useMemo } from 'react';
 
 import { createRouterContext, router } from '../../router';
 import { useUserId } from '../../user/context/user-id';
-import { FetchedRoutesProvider, useFetchedRoutes } from '../context/fetched-routes';
 import { useLogger } from '../../utils/context/logger';
+import { FetchedRoutesProvider, useFetchedRoutes } from '../context/fetched-routes';
 
 export function AppRouterModuleProvider() {
   return (

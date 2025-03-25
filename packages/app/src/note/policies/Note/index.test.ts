@@ -75,7 +75,5 @@ it('writes NoteExternalState to cache on first read and allows modifications', (
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   const collabService = restoredNote.collabService as CollabService;
 
-  expect(collabService.viewText).toMatchInlineSnapshot(
-    `"{"c":"hello","t":""}"`
-  );
+  expect(collabService.viewText).toMatchInlineSnapshot(`"{"c":"hello","t":""}"`);
 });

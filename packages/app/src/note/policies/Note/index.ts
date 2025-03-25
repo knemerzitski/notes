@@ -37,7 +37,6 @@ export const Note: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
           typeof name !== 'string' ||
           !Object.values(NoteTextFieldName).includes(name as NoteTextFieldName)
         ) {
-          // eslint-disable-next-line @typescript-eslint/no-base-to-string
           throw new Error(
             `Expected arg "name" to be a NoteTextFieldName but is  "${String(name)}"`
           );

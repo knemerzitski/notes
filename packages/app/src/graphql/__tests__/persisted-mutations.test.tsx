@@ -128,7 +128,7 @@ it('remembers displayName mutation when app goes offline and resumes when online
     await new Promise(process.nextTick.bind(process));
 
     await service.persistor.persist();
-    service.dispose();
+    await service.dispose();
   }
 
   async function expectPersistedNormalAndOptimisticDisplayName() {
@@ -145,7 +145,7 @@ it('remembers displayName mutation when app goes offline and resumes when online
       'Operation was not persisted or resumed'
     ).toStrictEqual('new name');
 
-    service.dispose();
+    await service.dispose();
   }
 
   async function expectMutationResumedWhenOnline() {
@@ -165,7 +165,7 @@ it('remembers displayName mutation when app goes offline and resumes when online
     ).toStrictEqual('new name');
     expect(readDisplayName(userA, cache, true)).toStrictEqual('new name');
 
-    service.dispose();
+    await service.dispose();
   }
 
   onLineSpy.mockReturnValue(false);

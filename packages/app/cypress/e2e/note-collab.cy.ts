@@ -1,14 +1,20 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { faker } from '@faker-js/faker';
 import mitt from 'mitt';
 
 import { CollabService } from '../../../collab/src/client/collab-service';
 import { SelectionRange } from '../../../collab/src/client/selection-range';
 import { SimpleText } from '../../../collab/src/types';
 
+import { createLogger } from '../../../utils/src/logging';
+
+import { MaybePromise } from '../../../utils/src/types';
+
 import { NoteTextFieldName } from '../../src/__generated__/graphql';
 import { GraphQLService } from '../../src/graphql/types';
+import { AppStatus } from '../../src/utils/hooks/useAppStatus';
 import { createGraphQLService } from '../support/utils/graphql/create-graphql-service';
 import { persistCache } from '../support/utils/graphql/persist-cache';
 import { createCollabService } from '../support/utils/note/create-collab-service';
@@ -21,10 +27,6 @@ import { syncHeadText } from '../support/utils/note/sync-head-text';
 import { updateOpenNoteSelectionRange } from '../support/utils/note/update-open-note-selection-range';
 import { signIn } from '../support/utils/user/sign-in';
 import { userSubscription } from '../support/utils/user/user-subscription';
-import { createLogger } from '../../../utils/src/logging';
-import { faker } from '@faker-js/faker';
-import { AppStatus } from '../../src/utils/hooks/useAppStatus';
-import { MaybePromise } from '../../../utils/src/types';
 
 interface UserContext {
   userId: string;
@@ -540,7 +542,6 @@ function undoButton() {
   return noteDialog().find('[aria-label="history undo"]');
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function redoButton() {
   return noteDialog().find('[aria-label="history redo"]');
 }

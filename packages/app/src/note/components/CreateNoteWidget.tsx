@@ -3,6 +3,7 @@ import { ClickAwayListener, css, Paper, styled } from '@mui/material';
 import { forwardRef, useState } from 'react';
 
 import { OnCloseProvider } from '../../utils/context/on-close';
+import { useDescentantUnfocusedListener } from '../../utils/hooks/useDescentantUnfocusedListener';
 import { NoteIdProvider } from '../context/note-id';
 
 import { useSelectedNoteIdsModel } from '../context/selected-note-ids';
@@ -14,7 +15,6 @@ import { CollabContentInput } from './CollabContentInput';
 import { CollabInputsColumn } from './CollabInputsColumn';
 
 import { NoteToolbar } from './NoteToolbar';
-import { useDescentantUnfocusedListener } from '../../utils/hooks/useDescentantUnfocusedListener';
 
 export function CreateNoteWidget() {
   const selectedNoteIdsModel = useSelectedNoteIdsModel();

@@ -24,6 +24,7 @@ import {
 } from '../../__generated__/graphql';
 import { useUserId } from '../../user/context/user-id';
 import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
+import { useIsSessionExpired } from '../../user/hooks/useIsSessionExpired';
 import { useIsLoading } from '../../utils/context/is-loading';
 import { useLogger } from '../../utils/context/logger';
 import { useIsOnline } from '../../utils/hooks/useIsOnline';
@@ -38,7 +39,6 @@ import { NoteCard } from './NoteCard';
 import { NotesCardGrid } from './NotesCardGrid';
 import { SortableNoteCard } from './SortableNoteCard';
 import { SortableNotesContext } from './SortableNotesContext';
-import { useIsSessionExpired } from '../../user/hooks/useIsSessionExpired';
 
 export const NotesConnectionGrid_UserNoteLinkConnectionFragment = gql(`
   fragment NotesConnectionGrid_UserNoteLinkConnectionFragment on UserNoteLinkConnection {

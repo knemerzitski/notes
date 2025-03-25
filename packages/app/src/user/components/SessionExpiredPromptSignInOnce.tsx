@@ -1,11 +1,14 @@
-import { useNavigate } from '@tanstack/react-router';
-import { gql } from '../../__generated__';
-import { useUserId } from '../context/user-id';
 import { useApolloClient, useQuery } from '@apollo/client';
+import { useNavigate } from '@tanstack/react-router';
+
 import { useEffect } from 'react';
-import { setUserSessionExpiredPromptedToSignIn } from '../models/local-user/set-session-expired-prompted-to-sign-in';
-import { useLogger } from '../../utils/context/logger';
+
+import { gql } from '../../__generated__';
 import { useCachePersistor } from '../../graphql/context/cache-persistor';
+import { useLogger } from '../../utils/context/logger';
+import { useUserId } from '../context/user-id';
+
+import { setUserSessionExpiredPromptedToSignIn } from '../models/local-user/set-session-expired-prompted-to-sign-in';
 
 const SessionExpiredPromtSignInOnce_Query = gql(`
   query SessionExpiredPromtSignInOnce_Query($id: ObjectID!) {

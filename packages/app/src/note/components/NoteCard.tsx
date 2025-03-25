@@ -24,6 +24,7 @@ import { gql } from '../../__generated__';
 import { NoteCategory } from '../../__generated__/graphql';
 import { IsDesktop } from '../../utils/components/IsDesktop';
 import { IsLoading } from '../../utils/components/IsLoading';
+import { isDescendant } from '../../utils/is-descentant';
 import { isElHover } from '../../utils/is-el-hover';
 import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 
@@ -48,7 +49,6 @@ import { OpenedNoteUserAvatars } from './OpenedNoteUserAvatars';
 import { SyncOutdatedNote } from './SyncOutdatedNote';
 import { TitleTypography } from './TitleTypography';
 import { UserAvatarsCornerPosition } from './UserAvatarsCornerPosition';
-import { isDescendant } from '../../utils/is-descentant';
 
 const _NoteCard_UserNoteLinkFragment = gql(`
   fragment NoteCard_UserNoteLinkFragment on UserNoteLink {

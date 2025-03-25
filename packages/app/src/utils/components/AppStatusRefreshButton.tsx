@@ -10,10 +10,10 @@ import { useStatsLink } from '../../graphql/context/stats-link';
 import { useFetchedRoutes } from '../../router/context/fetched-routes';
 import { useUserId } from '../../user/context/user-id';
 
+import { useIsSessionExpired } from '../../user/hooks/useIsSessionExpired';
 import { useAppStatus } from '../hooks/useAppStatus';
 
 import { AppStatusIcon } from './AppStatusIcon';
-import { useIsSessionExpired } from '../../user/hooks/useIsSessionExpired';
 
 const AppStatusRefreshButton_Query = gql(`
   query AppStatusRefreshButton_Query($id: ObjectID!) {

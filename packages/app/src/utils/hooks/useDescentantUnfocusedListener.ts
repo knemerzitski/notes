@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+
 import { isDescendant } from '../is-descentant';
 
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters

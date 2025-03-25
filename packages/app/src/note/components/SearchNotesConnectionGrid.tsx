@@ -1,4 +1,5 @@
 import { useQuery } from '@apollo/client';
+import SearchOffIcon from '@mui/icons-material/SearchOff';
 import { Alert, Box, CircularProgress, css, styled } from '@mui/material';
 import {
   ComponentType,
@@ -18,6 +19,7 @@ import { Logger } from '../../../../utils/src/logging';
 import { getFragmentData, gql } from '../../__generated__';
 import { Note, SearchNotesConnectionGridQueryQuery } from '../../__generated__/graphql';
 import { useUserId } from '../../user/context/user-id';
+import { useIsSessionExpired } from '../../user/hooks/useIsSessionExpired';
 import { PassChildren } from '../../utils/components/PassChildren';
 import { useIsLoading } from '../../utils/context/is-loading';
 import { useLogger } from '../../utils/context/logger';
@@ -25,6 +27,7 @@ import { useOnIntersecting } from '../../utils/hooks/useOnIntersecting';
 import { useNoteId } from '../context/note-id';
 import { NoteIdsProvider } from '../context/note-ids';
 
+import { CenterIconText } from './CenterIconText';
 import { DevClearNotesSearchButton } from './DevClearNotesSearchButton';
 import { NoteCard } from './NoteCard';
 import { NotesCardGrid } from './NotesCardGrid';
@@ -32,9 +35,6 @@ import { NotesCardGrid } from './NotesCardGrid';
 import { NotesConnectionGrid_UserNoteLinkConnectionFragment } from './NotesConnectionGrid';
 import { SearchNoMatchIconText } from './SearchNoMatchIconText';
 import { SearchStartTypingIconText } from './SearchStartTypingIconText';
-import { useIsSessionExpired } from '../../user/hooks/useIsSessionExpired';
-import { CenterIconText } from './CenterIconText';
-import SearchOffIcon from '@mui/icons-material/SearchOff';
 
 const SearchNotesConnectionGrid_Query = gql(`
   query SearchNotesConnectionGrid_Query($userBy: UserByInput!, $searchText: String!, $first: NonNegativeInt, $after: String) {
