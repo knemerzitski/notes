@@ -38,6 +38,7 @@ import { NoteCard } from './NoteCard';
 import { NotesCardGrid } from './NotesCardGrid';
 import { SortableNoteCard } from './SortableNoteCard';
 import { SortableNotesContext } from './SortableNotesContext';
+import { useIsSessionExpired } from '../../user/hooks/useIsSessionExpired';
 
 export const NotesConnectionGrid_UserNoteLinkConnectionFragment = gql(`
   fragment NotesConnectionGrid_UserNoteLinkConnectionFragment on UserNoteLinkConnection {
@@ -105,6 +106,7 @@ export function NotesConnectionGrid({
   const isLocalOnlyUser = useIsLocalOnlyUser();
   const isParentLoading = useIsLoading();
   const isOnline = useIsOnline();
+  const isSessionExpired = useIsSessionExpired();
 
   const resetFetchMoreRef = useRef({
     userId,
@@ -361,6 +363,8 @@ export function NotesConnectionGrid({
     return emptyListElement;
   }
 
+  const showLoadingCountAndNoteIds = isOnline && !isSessionExpired;
+
   const isSortableCategory = !!toMovableNoteCategory(category);
 
   const maybeSortableNotesGrid = (
@@ -377,8 +381,8 @@ export function NotesConnectionGrid({
         />
       </Suspense>
       <NotesCardGrid
-        loadingCount={isOnline ? loadingCount : 0}
-        loadingNoteIds={isOnline ? loadingNoteIds : EMPTY_ARRAY}
+        loadingCount={showLoadingCountAndNoteIds ? loadingCount : 0}
+        loadingNoteIds={showLoadingCountAndNoteIds ? loadingNoteIds : EMPTY_ARRAY}
         noteCard={
           <IntersectOnceNoteCard
             sortable={isSortableCategory}
