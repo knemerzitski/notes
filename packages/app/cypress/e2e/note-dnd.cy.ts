@@ -127,14 +127,146 @@ function arrowDnD(noteContent: string, commands: ('right' | 'left' | 'up' | 'dow
   });
 }
 
-it('swaps first two notes', () => {
-  cy.visit('/');
+[
+  { network: 'online' },
+  { network: 'offline' },
+  {
+    network: 'offline',
+    reload: true,
+  },
+].forEach(({ network, reload }) => {
+  describe(`network: ${network}, reload: ${reload ?? false}`, () => {
+    beforeEach(() => {
+      cy.visit('/');
 
-  shouldHaveOrder(['1', '2', '3', '4', '5', '6']);
-  arrowDnD('2', ['left']);
-  shouldHaveOrder(['2', '1', '3', '4', '5', '6']);
+      if (network === 'offline') {
+        shouldAppBeSync();
+        cy.goOffline();
+      }
+    });
 
-  // Extra check without optimistic response
-  shouldAppBeSync();
-  shouldHaveOrder(['2', '1', '3', '4', '5', '6']);
+    afterEach(() => {
+      cy.goOnline();
+    });
+
+    function shouldOnlineSync(expectedFn: () => void) {
+      if (reload) {
+        cy.visit('/');
+        expectedFn();
+      }
+
+      if (network === 'offline') {
+        cy.goOnline();
+      }
+      // Extra check without optimistic response
+      shouldAppBeSync();
+      expectedFn();
+    }
+
+    it('swaps first two notes', () => {
+      shouldHaveOrder(['1', '2', '3', '4', '5', '6']);
+      arrowDnD('2', ['left']);
+      shouldHaveOrder(['2', '1', '3', '4', '5', '6']);
+
+      shouldOnlineSync(() => {
+        shouldHaveOrder(['2', '1', '3', '4', '5', '6']);
+      });
+    });
+
+    it('moves two notes in succession', () => {
+      arrowDnD('5', ['up', 'right']);
+      // prettier-ignore
+      shouldHaveOrder([
+        '1', '2', '5', 
+        '3', '4', '6' 
+      ]);
+
+      arrowDnD('6', ['left', 'up']);
+      // prettier-ignore
+      shouldHaveOrder([
+        '1', '6', '2', 
+        '5', '3', '4' 
+      ]);
+
+      shouldOnlineSync(() => {
+        // prettier-ignore
+        shouldHaveOrder([
+        '1', '6', '2', 
+        '5', '3', '4' 
+      ]);
+      });
+    });
+
+    it('scramble 8 moves', () => {
+      // prettier-ignore
+      shouldHaveOrder([
+        '1', '2', '3', 
+        '4', '5', '6'
+      ]);
+
+      arrowDnD('1', ['right', 'right', 'down']);
+      // prettier-ignore
+      shouldHaveOrder([
+        '2', '3', '4', 
+        '5', '6', '1' 
+      ]);
+
+      arrowDnD('5', ['up']);
+      // prettier-ignore
+      shouldHaveOrder([
+        '5', '2', '3', 
+        '4', '6', '1' 
+      ]);
+
+      arrowDnD('3', ['left', 'down']);
+      // prettier-ignore
+      shouldHaveOrder([
+        '5', '2', '4', 
+        '6', '3', '1' 
+      ]);
+
+      arrowDnD('4', ['left', 'left']);
+      // prettier-ignore
+      shouldHaveOrder([
+        '4', '5', '2', 
+        '6', '3', '1' 
+      ]);
+
+      arrowDnD('2', ['down', 'left', 'left']);
+      // prettier-ignore
+      shouldHaveOrder([
+        '4', '5', '6', 
+        '2', '3', '1' 
+      ]);
+
+      arrowDnD('6', ['down']);
+      // prettier-ignore
+      shouldHaveOrder([
+        '4', '5', '2', 
+        '3', '1', '6' 
+      ]);
+
+      arrowDnD('2', ['left']);
+      // prettier-ignore
+      shouldHaveOrder([
+        '4', '2', '5', 
+        '3', '1', '6' 
+      ]);
+
+      arrowDnD('1', ['right']);
+      // prettier-ignore
+      shouldHaveOrder([
+        '4', '2', '5', 
+        '3', '6', '1' 
+      ]);
+
+      shouldOnlineSync(() => {
+        // prettier-ignore
+        shouldHaveOrder([
+          '4', '2', '5', 
+          '3', '6', '1' 
+        ]);
+      });
+    });
+  });
 });
