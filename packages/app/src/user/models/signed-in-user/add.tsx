@@ -9,6 +9,7 @@ const AddUser_Query = gql(`
       local {
         id
         sessionExpired
+        sessionExpiredPromptedToSignIn
       }
     }
   }
@@ -27,6 +28,7 @@ export function addUser(userId: string, cache: Pick<ApolloCache<unknown>, 'write
             __typename: 'LocalUser',
             id: userId,
             sessionExpired: false,
+            sessionExpiredPromptedToSignIn: false,
           },
         },
       ],

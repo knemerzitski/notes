@@ -77,7 +77,9 @@ export function SignInModal({
         <SignInProvidersList onSuccess={handleClose} onError={handleClose} />
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose}>Cancel</Button>
+        <Button onClick={handleClose} aria-label="cancel">
+          Cancel
+        </Button>
       </DialogActions>
     </Dialog>
   );

@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-router';
 
 import { ReactNode, useEffect, useState } from 'react';
-import { coerce, number, optional, string, type } from 'superstruct';
+import { boolean, coerce, number, optional, string, type } from 'superstruct';
 
 import { gql } from '../__generated__';
 import { AppBarDrawerLayout } from '../layout/components/AppBarDrawerLayout';
@@ -22,6 +22,7 @@ import { loaderUserFetchLogic } from '../router/utils/loader-user-fetch-logic';
 import { useIsMobile } from '../theme/context/is-mobile';
 import { ErrorComponent } from '../utils/components/ErrorComponent';
 import { NotFoundTypography } from '../utils/components/NotFoundTypography';
+import { RouteSignInDialog } from '../user/components/RouteSignInDialog';
 
 const RouteRoot_Query = gql(`
   query RouteRoot_Query($userBy: UserByInput!, 
@@ -43,13 +44,25 @@ const RouteRoot_Query = gql(`
   }
 `);
 
+const stringCoerceNumber = optional(coerce(string(), number(), (v) => String(v)));
+
 const searchSchema = type({
-  noteId: optional(coerce(string(), number(), (v) => String(v))),
-  sharingNoteId: optional(coerce(string(), number(), (v) => String(v))),
   /**
-   * Share id that can be use to access a note.
+   * Parallel route <RouteNoteDialog />
    */
-  share: optional(coerce(string(), number(), (v) => String(v))),
+  noteId: stringCoerceNumber,
+  /**
+   * Parallel route <RouteNoteSharingDialog />
+   */
+  sharingNoteId: stringCoerceNumber,
+  /**
+   * Parallel route <RouteSignInDialog />
+   */
+  signIn: optional(boolean()),
+  /**
+   * Redirects to note based on this share value.
+   */
+  share: stringCoerceNumber,
 });
 
 export const Route = createRootRouteWithContext<RouterContext>()({
@@ -116,7 +129,7 @@ function Modules({ children }: { children: ReactNode }) {
 }
 
 function Root() {
-  const { noteId, sharingNoteId, share } = Route.useSearch();
+  const { noteId, sharingNoteId, share, signIn } = Route.useSearch();
 
   const router = useRouter();
   const isMobile = useIsMobile();
@@ -166,6 +179,8 @@ function Root() {
       )}
 
       {sharingNoteId && <RouteNoteSharingDialog key={dialogKey} noteId={sharingNoteId} />}
+
+      {signIn && <RouteSignInDialog />}
     </Modules>
   );
 }

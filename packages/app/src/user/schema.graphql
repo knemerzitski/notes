@@ -62,6 +62,10 @@ type LocalUser {
   Current session has expired and is unusable. Must sign in again.
   """
   sessionExpired: Boolean!
+  """
+  When session expires, prompt user to sign in when this boolean is false.
+  """
+  sessionExpiredPromptedToSignIn: Boolean!
 }
 
 ################################ LocalUser.messages ################################

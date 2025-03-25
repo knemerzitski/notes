@@ -53,6 +53,10 @@ function signOutAllUsersButton() {
   return usersInfo().find('[aria-label="sign out all users"]');
 }
 
+function signInModal() {
+  return cy.get('[aria-label="sign in modal"]');
+}
+
 function signInWithGoogleDialog() {
   return cy.get('[aria-label="sign in with google dialog"]');
 }
@@ -278,6 +282,9 @@ it('refreshes user expired session', () => {
 
   cy.contains('Current session has expired! Please sign in.').should('be.visible');
 
+  signInModal().should('be.visible');
+  signInModal().find('[aria-label="cancel"]').click();
+
   currentUserButton().find('[aria-label="session expired"]').should('exist');
   currentUserButton().click();
 
@@ -358,6 +365,10 @@ it('switches to a user with expired session and shows notes', () => {
   });
 
   cy.visit('/');
+
+  signInModal().should('be.visible');
+  signInModal().find('[aria-label="cancel"]').click();
+
   currentUserButton().click();
   usersListItem(1).click();
 
@@ -387,6 +398,9 @@ it('forgets user with expired session', () => {
   cy.visit('/');
 
   cy.contains('Current session has expired! Please sign in.').should('be.visible');
+
+  signInModal().should('be.visible');
+  signInModal().find('[aria-label="cancel"]').click();
 
   currentUserButton().find('[aria-label="session expired"]').should('exist');
   currentUserButton().click();
@@ -478,4 +492,33 @@ it('signs out all users', () => {
   currentUserInfo().should('include.text', 'Local Account');
 
   shouldHaveUsersCount(1);
+});
+
+it('expired session sign in prompt is displayed only once', () => {
+  cy.then(async () => {
+    const { userId } = await signIn({
+      graphQLService,
+      signInUserId: '1',
+      displayName: 'Forget me',
+    });
+
+    cy.then(() => {
+      cy.expireUserSessions({
+        userId,
+      });
+    });
+
+    await persistCache(graphQLService);
+  });
+
+  cy.visit('/');
+
+  signInModal().should('be.visible');
+  signInModal().find('[aria-label="cancel"]').click();
+  signInModal().should('not.exist');
+
+  cy.visit('/');
+
+  currentUserButton().should('exist');
+  signInModal().should('not.exist');
 });

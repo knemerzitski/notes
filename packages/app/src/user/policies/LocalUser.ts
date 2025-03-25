@@ -8,6 +8,10 @@ export const LocalUser: CreateTypePolicyFn = function () {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return existing;
       },
+      sessionExpiredPromptedToSignIn(existing = false) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return existing;
+      },
       messages: fieldArrayToMap('id'),
       operations: fieldArrayToMap('id', {
         read(existing = {}) {
