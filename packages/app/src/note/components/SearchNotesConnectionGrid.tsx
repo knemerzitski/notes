@@ -32,6 +32,9 @@ import { NotesCardGrid } from './NotesCardGrid';
 import { NotesConnectionGrid_UserNoteLinkConnectionFragment } from './NotesConnectionGrid';
 import { SearchNoMatchIconText } from './SearchNoMatchIconText';
 import { SearchStartTypingIconText } from './SearchStartTypingIconText';
+import { useIsSessionExpired } from '../../user/hooks/useIsSessionExpired';
+import { CenterIconText } from './CenterIconText';
+import SearchOffIcon from '@mui/icons-material/SearchOff';
 
 const SearchNotesConnectionGrid_Query = gql(`
   query SearchNotesConnectionGrid_Query($userBy: UserByInput!, $searchText: String!, $first: NonNegativeInt, $after: String) {
@@ -74,6 +77,7 @@ export function SearchNotesConnectionGrid({
 
   const userId = useUserId();
   const isParentLoading = useIsLoading();
+  const isSessionExpired = useIsSessionExpired();
 
   const resetFetchMoreRef = useRef({
     userId,
@@ -297,6 +301,19 @@ export function SearchNotesConnectionGrid({
 
   if (isParentLoading) {
     logger?.debug('parentLoading');
+
+    if (isSessionExpired) {
+      logger?.debug('sessionExpired');
+      return (
+        <NoListComponent>
+          <CenterIconText
+            icon={<SearchOffIcon />}
+            text={'Cannot search online while session is expired'}
+          />
+        </NoListComponent>
+      );
+    }
+
     return (
       <NoListComponent>
         <CenterCircularProgress />
