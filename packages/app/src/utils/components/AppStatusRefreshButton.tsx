@@ -13,6 +13,7 @@ import { useUserId } from '../../user/context/user-id';
 import { useAppStatus } from '../hooks/useAppStatus';
 
 import { AppStatusIcon } from './AppStatusIcon';
+import { useIsSessionExpired } from '../../user/hooks/useIsSessionExpired';
 
 const AppStatusRefreshButton_Query = gql(`
   query AppStatusRefreshButton_Query($id: ObjectID!) {
@@ -29,6 +30,7 @@ export const AppStatusRefreshButton = forwardRef<
 >(function AppStatusRefreshButton(props, ref) {
   const status = useAppStatus();
   const fetchedRoutes = useFetchedRoutes();
+  const isSessionExpired = useIsSessionExpired();
 
   const statsLink = useStatsLink();
   const navigate = useNavigate();
@@ -80,6 +82,18 @@ export const AppStatusRefreshButton = forwardRef<
     void fetch();
   }
 
+  function tooltipTitle() {
+    if (status === 'offline') {
+      return 'Offline';
+    }
+
+    if (isSessionExpired) {
+      return 'Session Expired';
+    }
+
+    return 'Refresh';
+  }
+
   return (
     <IconButton
       ref={ref}
@@ -89,7 +103,7 @@ export const AppStatusRefreshButton = forwardRef<
       aria-label="app status"
       data-status={status}
     >
-      <Tooltip title={status === 'offline' ? 'Offline' : 'Refresh'}>
+      <Tooltip title={tooltipTitle()}>
         <span>
           <AppStatusIcon />
         </span>
