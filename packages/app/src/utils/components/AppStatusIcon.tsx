@@ -1,5 +1,6 @@
 import CloudDoneIcon from '@mui/icons-material/CloudDone';
 import CloudOffIcon from '@mui/icons-material/CloudOff';
+import Block from '@mui/icons-material/Block';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { CircularProgress } from '@mui/material';
 
@@ -8,6 +9,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AppStatus, useAppStatus } from '../hooks/useAppStatus';
 
 import { CrossFade } from './CrossFade';
+import { useIsSessionExpired } from '../../user/hooks/useIsSessionExpired';
 
 export function AppStatusIcon({
   visibleStatuses,
@@ -24,6 +26,7 @@ export function AppStatusIcon({
   duration?: number;
 }) {
   const status = useAppStatus();
+  const isSessionExpired = useIsSessionExpired();
 
   const prevStatusRef = useRef(status);
   const [isVisible, setIsVisible] = useState(true);
@@ -55,8 +58,16 @@ export function AppStatusIcon({
     };
   }, [duration, status]);
 
-  function isStatusVisible(targetStatus: AppStatus) {
+  function isStatusVisible(targetStatus: AppStatus | 'expired') {
     if (!isVisible) {
+      return false;
+    }
+
+    if (isSessionExpired) {
+      if (targetStatus === 'expired') {
+        return true;
+      }
+
       return false;
     }
 
@@ -74,6 +85,10 @@ export function AppStatusIcon({
   return (
     <CrossFade
       elements={[
+        {
+          in: isStatusVisible('expired'),
+          element: <Block fontSize="inherit" />,
+        },
         {
           in: isStatusVisible('offline'),
           element: <CloudOffIcon fontSize="inherit" />,
