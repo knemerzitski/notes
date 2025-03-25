@@ -14,6 +14,7 @@ import { CollabContentInput } from './CollabContentInput';
 import { CollabInputsColumn } from './CollabInputsColumn';
 
 import { NoteToolbar } from './NoteToolbar';
+import { useDescentantUnfocusedListener } from '../../utils/hooks/useDescentantUnfocusedListener';
 
 export function CreateNoteWidget() {
   const selectedNoteIdsModel = useSelectedNoteIdsModel();
@@ -89,6 +90,15 @@ function ExpandedWidget({
   onCollapse: () => void;
   onChange: () => void;
 }) {
+  const ref = useDescentantUnfocusedListener(
+    () => {
+      onCollapse();
+    },
+    {
+      ignoreFirstFocus: true,
+    }
+  );
+
   function handleClickAway() {
     onCollapse();
   }
@@ -99,7 +109,11 @@ function ExpandedWidget({
       touchEvent="onTouchStart"
       mouseEvent="onMouseDown"
     >
-      <BasePaperDefaultPropsStyled aria-label="create note widget" data-collapsed={false}>
+      <BasePaperDefaultPropsStyled
+        ref={ref}
+        aria-label="create note widget"
+        data-collapsed={false}
+      >
         <CollabInputsColumn
           CollabInputsProps={{
             CollabTitleInputProps: {
