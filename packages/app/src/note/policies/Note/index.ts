@@ -32,14 +32,17 @@ export const Note: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
         const { readField, args } = options;
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const name = args?.name;
-        if (
-          typeof name !== 'string' ||
-          !Object.values(NoteTextFieldName).includes(name as NoteTextFieldName)
-        ) {
-          throw new Error(
-            `Expected arg "name" to be a NoteTextFieldName but is  "${String(name)}"`
-          );
+        let name = args?.name;
+        if (typeof name !== 'string') {
+          throw new Error(`Expected arg "name" to be a string but is  "${String(name)}"`);
+        }
+        if (!Object.values(NoteTextFieldName).includes(name as NoteTextFieldName)) {
+          name = NoteTextFieldName[name as keyof typeof NoteTextFieldName];
+          if (name === undefined) {
+            throw new Error(
+              `Expected arg "name" to be a NoteTextFieldName but is  "${String(name)}"`
+            );
+          }
         }
 
         return {

@@ -55,8 +55,12 @@ export class WebSocketClient {
     }
   }
 
-  close() {
-    return this.client.dispose();
+  async close() {
+    try {
+      await this.client.dispose();
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   private connectionParams() {
