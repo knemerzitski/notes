@@ -6,6 +6,7 @@ import { useEffect, useMemo } from 'react';
 import { createRouterContext, router } from '../../router';
 import { useUserId } from '../../user/context/user-id';
 import { FetchedRoutesProvider, useFetchedRoutes } from '../context/fetched-routes';
+import { useLogger } from '../../utils/context/logger';
 
 export function AppRouterModuleProvider() {
   return (
@@ -16,6 +17,7 @@ export function AppRouterModuleProvider() {
 }
 
 function InnerProvider() {
+  const logger = useLogger('RouterContext');
   const apolloClient = useApolloClient();
   const fetchedRoutes = useFetchedRoutes();
 
@@ -24,8 +26,9 @@ function InnerProvider() {
       createRouterContext({
         apolloClient,
         fetchedRoutes,
+        logger,
       }),
-    [apolloClient, fetchedRoutes]
+    [apolloClient, fetchedRoutes, logger]
   );
 
   return (

@@ -12,6 +12,7 @@ import { submitChanges } from '../support/utils/note/submit-changes';
 import { signIn } from '../support/utils/user/sign-in';
 
 let graphQLService: GraphQLService;
+let nextStorageKeyCounter = 0;
 
 beforeEach(() => {
   cy.resetDatabase();
@@ -521,4 +522,57 @@ it('expired session sign in prompt is displayed only once', () => {
 
   currentUserButton().should('exist');
   signInModal().should('not.exist');
+});
+
+it('shows sync notes list after signing in with different user from expired user', () => {
+  cy.then(async () => {
+    const { userId } = await signIn({
+      graphQLService,
+      signInUserId: '1',
+      displayName: 'Forget me',
+    });
+
+    await createNote({
+      graphQLService,
+      userId,
+      initialText: {
+        [NoteTextFieldName.CONTENT]: 'foo',
+      },
+    });
+
+    await persistCache(graphQLService);
+  });
+
+  cy.visit('/');
+
+  shouldAppStatusEqual(['refresh', 'synchronized']);
+
+  cy.resetDatabase().then(async () => {
+    const graphQLService = await createGraphQLService({
+      storageKey: `apollo:cache:test:user2:${nextStorageKeyCounter++}`,
+    });
+
+    const { userId } = await signIn({
+      graphQLService,
+      signInUserId: '1',
+      displayName: 'Forget me 2',
+    });
+
+    await createNote({
+      graphQLService,
+      userId,
+      initialText: {
+        [NoteTextFieldName.CONTENT]: 'foo',
+      },
+    });
+  });
+
+  cy.visit('/');
+
+  signInModal().should('be.visible');
+  signInModal().find('[aria-label="sign in with google"]').click();
+  signInWithGoogleDialog().find('button[type="submit"][aria-label="sign in"]').click();
+
+  // Notes list should not be loding after session is refreshed with new user
+  notesListItem(0).find('[aria-label="loading"]').should('not.exist');
 });

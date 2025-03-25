@@ -8,6 +8,7 @@ import {
 } from 'react';
 
 import { User } from '../../__generated__/graphql';
+import { useLogger } from '../../utils/context/logger';
 
 export interface FetchedRoutes {
   add: (userId: User['id'], routeId: string) => void;
@@ -30,26 +31,41 @@ export function useFetchedRoutes(): FetchedRoutes {
 }
 
 export function FetchedRoutesProvider({ children }: { children: ReactNode }) {
+  const logger = useLogger('FetchedRoutesProvider');
   const fetchedRoutesByUserRef = useRef<Map<User['id'] | null, Set<string>>>(new Map());
 
-  const add = useCallback((userId: User['id'], routeId: string) => {
-    let fetchedRoutes = fetchedRoutesByUserRef.current.get(userId);
-    if (!fetchedRoutes) {
-      fetchedRoutes = new Set();
-      fetchedRoutesByUserRef.current.set(userId, fetchedRoutes);
-    }
+  const add = useCallback(
+    (userId: User['id'], routeId: string) => {
+      let fetchedRoutes = fetchedRoutesByUserRef.current.get(userId);
+      if (!fetchedRoutes) {
+        fetchedRoutes = new Set();
+        fetchedRoutesByUserRef.current.set(userId, fetchedRoutes);
+      }
 
-    fetchedRoutes.add(routeId);
-  }, []);
+      fetchedRoutes.add(routeId);
+      logger?.debug('add', {
+        userId,
+        routeId,
+      });
+    },
+    [logger]
+  );
 
-  const clear = useCallback((userId: User['id']) => {
-    const fetchedRoutes = fetchedRoutesByUserRef.current.get(userId);
-    fetchedRoutes?.clear();
-  }, []);
+  const clear = useCallback(
+    (userId: User['id']) => {
+      const fetchedRoutes = fetchedRoutesByUserRef.current.get(userId);
+      fetchedRoutes?.clear();
+      logger?.debug('clear', {
+        userId,
+      });
+    },
+    [logger]
+  );
 
   const clearAll = useCallback(() => {
     fetchedRoutesByUserRef.current.clear();
-  }, []);
+    logger?.debug('clearAll');
+  }, [logger]);
 
   const has = useCallback((userId: User['id'], routeId: string) => {
     const fetchedRoutes = fetchedRoutesByUserRef.current.get(userId);

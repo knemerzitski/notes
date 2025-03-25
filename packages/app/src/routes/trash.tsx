@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 
 import { gql } from '../__generated__';
 import { TrashMain } from '../note/components/TrashMain';
-import { useIsRouteLoaded } from '../router/hooks/useIsRouteLoaded';
+import { useIsLoaderDataFulfilled } from '../router/hooks/useIsLoaderDataFulfilled';
 import { loaderUserFetchLogic } from '../router/utils/loader-user-fetch-logic';
 import { IsLoadingProvider } from '../utils/context/is-loading';
 
@@ -46,7 +46,7 @@ export const Route = createFileRoute('/_root_layout/trash')({
 });
 
 function Trash() {
-  const isRouteLoaded = useIsRouteLoaded(Route, 'query');
+  const isRouteLoaded = useIsLoaderDataFulfilled(Route, 'query');
 
   return (
     <IsLoadingProvider isLoading={!isRouteLoaded}>

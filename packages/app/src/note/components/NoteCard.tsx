@@ -340,7 +340,7 @@ function DuringLoadingNoteRefreshingProgress() {
 
 const NoteRefreshingProgress = memo(function NoteRefreshingProgress() {
   return (
-    <Tooltip title="Refreshing">
+    <Tooltip title="Refreshing" aria-label="loading">
       <TopRightProgress size="3em" />
     </Tooltip>
   );

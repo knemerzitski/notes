@@ -354,6 +354,9 @@ export function NotesConnectionGrid({
     isParentLoading,
     loadingCount,
     loadingNoteIds,
+    isOnline,
+    isSessionExpired,
+    isLocalOnlyUser,
   });
 
   const isLoading =

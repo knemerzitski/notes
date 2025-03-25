@@ -3,7 +3,7 @@ import { boolean, optional, string, type } from 'superstruct';
 
 import { gql } from '../__generated__';
 import { SearchMain } from '../note/components/SearchMain';
-import { useIsRouteLoaded } from '../router/hooks/useIsRouteLoaded';
+import { useIsLoaderDataFulfilled } from '../router/hooks/useIsLoaderDataFulfilled';
 import { loaderUserFetchLogic } from '../router/utils/loader-user-fetch-logic';
 import { IsLoadingProvider } from '../utils/context/is-loading';
 
@@ -69,7 +69,7 @@ export const Route = createFileRoute('/_root_layout/search')({
 });
 
 function Search() {
-  const isRouteLoaded = useIsRouteLoaded(Route, 'query');
+  const isRouteLoaded = useIsLoaderDataFulfilled(Route, 'query');
 
   return (
     <IsLoadingProvider isLoading={!isRouteLoaded}>
