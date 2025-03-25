@@ -48,6 +48,7 @@ import { OpenedNoteUserAvatars } from './OpenedNoteUserAvatars';
 import { SyncOutdatedNote } from './SyncOutdatedNote';
 import { TitleTypography } from './TitleTypography';
 import { UserAvatarsCornerPosition } from './UserAvatarsCornerPosition';
+import { isDescendant } from '../../utils/is-descentant';
 
 const _NoteCard_UserNoteLinkFragment = gql(`
   fragment NoteCard_UserNoteLinkFragment on UserNoteLink {
@@ -88,7 +89,7 @@ const HoverableNoteCardWithToolbarPaper = forwardRef<
   HTMLDivElement,
   NoteCardWithToolbarPaperProps
 >(function HoverableNoteCardWithToolbarPaper(props, ref) {
-  const { onClick, onMouseEnter, onMouseLeave, ...restProps } = props;
+  const { onClick, onMouseEnter, onMouseLeave, onFocus, onBlur, ...restProps } = props;
 
   const noteId = useNoteId();
   const localOnly = useIsLocalOnlyNote();
@@ -104,26 +105,59 @@ const HoverableNoteCardWithToolbarPaper = forwardRef<
   const isSelected = useIsNoteSelected(noteId);
   const isNoteOpen = useIsNoteOpen(noteId);
 
-  // Paper is active when hovering or more options menu is open
+  const isMouseOverRef = useRef(false);
+
+  // Paper is active when hovering, focusing descentant or more options menu is open
   const [isActive, setIsActive] = useState(false);
 
-  const isPaperHover = useCallback(() => {
-    const el = paperElRef.current;
-    if (!el) {
-      return false;
-    }
+  const updateIsActive = useCallback(
+    (options?: { hover?: boolean; focus?: boolean; mouseOver?: boolean }) => {
+      const maybeEl = paperElRef.current;
+      if (!maybeEl) {
+        setIsActive(false);
+        return;
+      }
+      const el = maybeEl;
 
-    return isElHover(el);
-  }, []);
+      function isHovering() {
+        if (options?.hover === false) {
+          return false;
+        }
+        return isElHover(el);
+      }
 
-  const updateIsActive = useCallback(() => {
-    requestAnimationFrame(() => {
-      setIsActive(isPaperHover());
-    });
-  }, [isPaperHover]);
+      function isDescentantFocused() {
+        if (options?.focus === false) {
+          return false;
+        }
+        const activeElement = document.activeElement;
+        return isDescendant(el, activeElement);
+      }
+
+      function isMouseOver() {
+        if (options?.mouseOver === false) {
+          return false;
+        }
+        return isMouseOverRef.current;
+      }
+
+      function calcIsActive() {
+        return isHovering() || isDescentantFocused() || isMouseOver();
+      }
+
+      window.requestAnimationFrame(() => {
+        setIsActive(calcIsActive());
+      });
+    },
+    []
+  );
 
   const handleExitedMoreOptionsMenu = useCallback(() => {
-    updateIsActive();
+    updateIsActive({
+      focus: false,
+      hover: true,
+      mouseOver: false,
+    });
   }, [updateIsActive]);
 
   const handleClick: PaperProps['onClick'] = (e) => {
@@ -162,12 +196,24 @@ const HoverableNoteCardWithToolbarPaper = forwardRef<
 
   const handleMouseEnter: PaperProps['onMouseEnter'] = (e) => {
     onMouseEnter?.(e);
-    setIsActive(true);
+    isMouseOverRef.current = true;
+    updateIsActive();
   };
 
   const handleMouseLeave: PaperProps['onMouseLeave'] = (e) => {
     onMouseLeave?.(e);
-    setIsActive(false);
+    isMouseOverRef.current = false;
+    updateIsActive();
+  };
+
+  const handleFocus: PaperProps['onFocus'] = (e) => {
+    onFocus?.(e);
+    updateIsActive();
+  };
+
+  const handleBlur: PaperProps['onBlur'] = (e) => {
+    onBlur?.(e);
+    updateIsActive();
   };
 
   const toolbarBoxChildren = useMemo(
@@ -204,6 +250,8 @@ const HoverableNoteCardWithToolbarPaper = forwardRef<
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onClick={handleClick}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
       active={isActive}
       ToolbarBoxProps={{
         active: isActive && !isAnyNoteSelected,
