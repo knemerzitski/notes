@@ -75,7 +75,7 @@ export function createApolloHttpHandlerDefaultParams(
       const connectionsAuthCache = new ConnectionsAuthenticationServiceCache({
         connections: context.loaders.connections,
         mongoDB: mongoDBContext,
-        apiOptions,
+        options: apiOptions,
       });
 
       // Cookies, Sessions
@@ -85,7 +85,7 @@ export function createApolloHttpHandlerDefaultParams(
           cookies,
         },
         {
-          key: apiOptions.sessions?.cookieKey,
+          key: apiOptions.sessions.cookieKey,
         }
       );
       currentRequestSessionsCookie.updateModelFromCookies();
@@ -128,6 +128,7 @@ export function createApolloHttpHandlerDefaultParams(
         {
           mongoDB: mongoDBContext,
           sessionsCookie: currentRequestSessionsCookie,
+          options: apiOptions,
         },
         currentRequestAuthModel
       );

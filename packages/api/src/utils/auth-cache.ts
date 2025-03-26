@@ -31,16 +31,13 @@ export class ConnectionsAuthenticationServiceCache {
 
   constructor(
     private readonly ctx: {
-      connections: Pick<ConnectionTable, 'get'>;
-      mongoDB: ConstructorParameters<
-        typeof CookiesMongoDBDynamoDBAuthenticationService
-      >[0]['mongoDB'];
-      apiOptions: {
-        sessions?: {
-          cookieKey?: NonNullable<ApiOptions['sessions']>['cookieKey'];
+      readonly connections: Pick<ConnectionTable, 'get'>;
+      readonly options: {
+        readonly sessions: {
+          readonly cookieKey: ApiOptions['sessions']['cookieKey'];
         };
       };
-    }
+    } & ConstructorParameters<typeof CookiesMongoDBDynamoDBAuthenticationService>[0]
   ) {}
 
   async getCustomData(connectionId: string) {
@@ -63,6 +60,7 @@ export class ConnectionsAuthenticationServiceCache {
   private createAuthService() {
     return new CookiesMongoDBDynamoDBAuthenticationService({
       mongoDB: this.ctx.mongoDB,
+      options: this.ctx.options,
     });
   }
 
@@ -85,12 +83,13 @@ export class ConnectionsAuthenticationServiceCache {
       service: new CookiesMongoDBDynamoDBAuthenticationService(
         {
           mongoDB: this.ctx.mongoDB,
+          options: this.ctx.options,
           sessionsCookie: new SessionsCookie(
             {
               model: customData.sessionsCookie,
             },
             {
-              key: this.ctx.apiOptions.sessions?.cookieKey,
+              key: this.ctx.options.sessions.cookieKey,
             }
           ),
         },

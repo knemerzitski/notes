@@ -28,7 +28,7 @@ export const updateOpenNoteSelectionRange: NonNullable<
       start: input.selectionRange.start,
       end: input.selectionRange.end ?? undefined,
     },
-    openNoteDuration: ctx.options?.note?.openNoteDuration,
+    openNoteDuration: ctx.options.note.openNoteDuration,
   });
 
   const noteQuery = mongoDB.loaders.note.createQueryFn({

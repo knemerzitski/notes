@@ -29,7 +29,7 @@ export const onConnect: WebSocketHandlerParams<WebSocketHandlerGraphQLResolversC
         model: sessionsCookieModel,
       },
       {
-        key: apiOptions.sessions?.cookieKey,
+        key: apiOptions.sessions.cookieKey,
       }
     );
     sessionsCookie.updateModelFromCookies();

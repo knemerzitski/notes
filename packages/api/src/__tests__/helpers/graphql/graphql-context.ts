@@ -8,11 +8,12 @@ import {
   Publisher,
   createPublisher as _createPublisher,
 } from '../../../../../lambda-graphql/src/pubsub/publish';
+import { mergeObjects } from '../../../../../utils/src/object/merge-objects';
 import { PartialBy } from '../../../../../utils/src/types';
 
 import { resolvers } from '../../../graphql/domains/resolvers.generated';
 import { typeDefs } from '../../../graphql/domains/typeDefs.generated';
-import { GraphQLContext, GraphQLResolversContext } from '../../../graphql/types';
+import { ApiOptions, GraphQLResolversContext } from '../../../graphql/types';
 
 import { AuthenticatedContextsModel } from '../../../models/auth/authenticated-contexts';
 import { MongoDBCollections } from '../../../mongodb/collections';
@@ -23,6 +24,7 @@ import { DBSessionSchema } from '../../../mongodb/schema/session';
 import { DBUserSchema } from '../../../mongodb/schema/user';
 import { MongoPartialDeep } from '../../../mongodb/types';
 import { objectIdToStr } from '../../../mongodb/utils/objectid';
+import { createDefaultApiOptions } from '../../../parameters';
 import { CookiesMongoDBDynamoDBAuthenticationService } from '../../../services/auth/auth-service';
 import { Cookies } from '../../../services/http/cookies';
 import { SessionsCookie } from '../../../services/http/sessions-cookie';
@@ -32,7 +34,7 @@ export interface CreateGraphQLResolversContextOptions {
   user?: Partial<DBUserSchema>;
   session?: Partial<DBSessionSchema>;
   createPublisher?: (ctx: Omit<GraphQLResolversContext, 'publish'>) => Publisher;
-  mongoDB?: PartialBy<GraphQLContext['mongoDB'], 'loaders'>;
+  mongoDB?: PartialBy<GraphQLResolversContext['mongoDB'], 'loaders'>;
   override?: MongoPartialDeep<GraphQLResolversContext>;
   cookies?: Cookies;
   sessionsCookie?: SessionsCookie;
@@ -45,6 +47,11 @@ export function createGraphQLResolversContext(
   if (options?.contextValue) {
     return options.contextValue;
   }
+
+  const apiOptions = mergeObjects(
+    createDefaultApiOptions(),
+    options?.override?.options
+  ) as ApiOptions;
 
   const mongoDBContext: MongoDBContext<MongoDBCollections> = options?.mongoDB ?? {
     client: mongoClient,
@@ -74,6 +81,7 @@ export function createGraphQLResolversContext(
     {
       mongoDB,
       sessionsCookie,
+      options: apiOptions,
     },
     authModel
   );
@@ -97,6 +105,7 @@ export function createGraphQLResolversContext(
       ...options?.override?.services,
     },
     ...options?.override,
+    options: apiOptions,
   } as Omit<GraphQLResolversContext, 'publish'>;
 
   return {

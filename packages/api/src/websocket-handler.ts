@@ -66,12 +66,7 @@ export function createWebSocketHandlerDefaultParams(
       createDefaultDynamoDBParams(logger),
     pingpong: options?.pingPongParams,
     connection: (() => {
-      const sessionDuration = new SessionDuration(
-        apiOptions.sessions?.webSocket ?? {
-          duration: 1000 * 60 * 60 * 3, // 3 hours
-          refreshThreshold: 1 / 3, // 1 hour
-        }
-      );
+      const sessionDuration = new SessionDuration(apiOptions.sessions.webSocket);
 
       return {
         defaultTtl: sessionDuration.new.bind(sessionDuration),
@@ -79,7 +74,7 @@ export function createWebSocketHandlerDefaultParams(
       };
     })(),
     completedSubscription: {
-      ttl: apiOptions.completedSubscriptions.duration ?? 1000 * 5, // 5 seconds
+      ttl: apiOptions.completedSubscriptions.duration,
     },
     onConnect,
     onConnectionInit,
@@ -102,7 +97,7 @@ export function createWebSocketHandlerDefaultParams(
       const authCache = new ConnectionsAuthenticationServiceCache({
         connections: context.loaders.connections,
         mongoDB: mongoDBContext,
-        apiOptions,
+        options: apiOptions,
       });
 
       return {

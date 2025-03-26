@@ -85,7 +85,7 @@ function createDBdata(note?: DBNoteSchema) {
 }
 
 async function createHttpOperations(db: ReturnType<typeof createDBdata>) {
-  const sessionsCookieKey = createDefaultApiOptions().sessions?.cookieKey ?? 'Sessions';
+  const sessionsCookieKey = createDefaultApiOptions().sessions.cookieKey;
 
   const httpSession = new HttpSession();
   httpSession.setCookie(

@@ -21,7 +21,7 @@ export const trashUserNoteLink: NonNullable<
     trashCategoryName: NoteCategory.TRASH,
     noteId,
     userId: currentUserId,
-    trashDuration: ctx.options?.note?.trashDuration,
+    trashDuration: ctx.options.note.trashDuration,
   });
 
   const payload: ResolversTypes['SignedInUserMutation'] = {

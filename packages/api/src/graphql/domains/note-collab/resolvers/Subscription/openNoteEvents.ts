@@ -117,9 +117,7 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
         const openNote: Omit<OpenNoteSchema, 'clients'> = {
           noteId,
           userId: currentUserId,
-          expireAt: new Date(
-            Date.now() + (ctx.options?.note?.openNoteDuration ?? 1000 * 60 * 60)
-          ),
+          expireAt: new Date(Date.now() + ctx.options.note.openNoteDuration),
         };
 
         // Prime with new expireAt

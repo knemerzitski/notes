@@ -5,6 +5,8 @@ import { SubscriptionGraphQLContext } from '../../../lambda-graphql/src/pubsub/s
 import { BaseGraphQLContext } from '../../../lambda-graphql/src/type';
 import { WebSocketGraphQLContext } from '../../../lambda-graphql/src/websocket-handler';
 
+import { ReadonlyDeep } from '../../../utils/src/types';
+
 import { MongoDBCollections } from '../mongodb/collections';
 
 import { MongoDBLoaders } from '../mongodb/loaders';
@@ -13,69 +15,79 @@ import { AuthenticationService } from '../services/auth/types';
 import { SessionDurationConfig } from '../services/session/duration';
 
 export interface ApiOptions {
-  readonly sessions?: {
+  sessions: {
     /**
+     * Key used in user's browser cookie to store sessions.
      * @default "Sessions"
      */
-    readonly cookieKey?: string;
+    cookieKey: string;
     /**
      * User sessions stored in MongoDB Sessions collection
      */
-    readonly user?: SessionDurationConfig;
+    user: SessionDurationConfig;
     /**
      * Subscriptions stored in DynamoDB tables
      */
-    readonly webSocket?: SessionDurationConfig;
+    webSocket: SessionDurationConfig;
   };
-  readonly completedSubscriptions: {
+  completedSubscriptions: {
     /**
-     * How long to store info that a subscription completed before it's been fully processed/subscribed.
+     * How long to store info that a subscription has
+     * completed before it's been fully processed/subscribed.
+     * Value is in milliseconds. \
      * @default 1000 * 5  // seconds
      */
-    readonly duration?: number;
+    duration: number;
   };
-  readonly note?: {
+  note: {
     /**
-     * How long note is kept in trash in milliseconds.
+     * How long note is kept in trash. After duration has elapsed,
+     * not is eligible for deletion.
+     * Value is in milliseconds. \
      * @default 1000 * 60 * 60 * 24 * 30 // 30 days
      */
-    readonly trashDuration?: number;
+    trashDuration: number;
     /**
-     * How long open note document is stored in milliseconds
+     * How long opened note state is persisted in database
+     * withouth receiving any updates from clients.
+     * Value is in milliseconds. \
      * @default 1000 * 60 * 60 // 1 hour
      */
-    readonly openNoteDuration?: number;
+    openNoteDuration: number;
   };
-  readonly collabText?: {
+  collabText: {
     /**
-     * Records array max length. If not defined then array will keep growing.
+     * Maxiumum amount of collaborative text records per note.
+     * Set null for unlimited amount of records.
      * @default 500
      */
-    readonly maxRecordsCount?: number;
+    maxRecordsCount: number | null;
   };
 }
 
 /**
  * GraphQL context is created before request is handled and is not serializable
  */
-export interface GraphQLContext {
-  readonly services: {
-    readonly auth: AuthenticationService;
-  };
-  readonly mongoDB: {
-    readonly client: MongoClient;
-    readonly collections: MongoDBCollections;
-    readonly loaders: MongoDBLoaders;
-  };
-  readonly options?: ApiOptions;
+interface GraphQLContext {
+  services: Readonly<{
+    auth: AuthenticationService;
+  }>;
+  mongoDB: Readonly<{
+    client: MongoClient;
+    collections: MongoDBCollections;
+    loaders: MongoDBLoaders;
+  }>;
+  options: ReadonlyDeep<ApiOptions>;
   /**
-   * Current user connectionId.
+   * Current user connectionId that is tied to WebSocket subscriptions.
    * Same user might send requests using different connectionId's at the same time.
    */
-  readonly connectionId: string | undefined;
+  connectionId: string | undefined;
 }
 
-export type GraphQLResolversContext = GraphQLContext &
+type ReadonlyGraphQLContext = Readonly<GraphQLContext>;
+
+export type GraphQLResolversContext = ReadonlyGraphQLContext &
   BaseGraphQLContext &
   SubscriptionGraphQLContext &
   ApolloHttpGraphQLContext &
@@ -84,11 +96,11 @@ export type GraphQLResolversContext = GraphQLContext &
 /**
  * Type for apollo-http-handler
  */
-export type ApolloHttpHandlerGraphQLResolversContext = GraphQLContext &
+export type ApolloHttpHandlerGraphQLResolversContext = ReadonlyGraphQLContext &
   Omit<WebSocketGraphQLContext, keyof ApolloHttpGraphQLContext>;
 
 /**
  * Type for websocket-handler
  */
-export type WebSocketHandlerGraphQLResolversContext = GraphQLContext &
+export type WebSocketHandlerGraphQLResolversContext = ReadonlyGraphQLContext &
   Omit<ApolloHttpGraphQLContext, keyof WebSocketGraphQLContext>;

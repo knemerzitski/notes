@@ -34,9 +34,9 @@ export class CookiesMongoDBDynamoDBAuthenticationService
         readonly collections: Pick<MongoDBCollections, CollectionName.SESSIONS>;
         readonly loaders: Pick<MongoDBLoaders, 'session'>;
       };
-      readonly options?: {
-        readonly sessions?: {
-          readonly user?: SessionDurationConfig;
+      readonly options: {
+        readonly sessions: {
+          readonly user: SessionDurationConfig;
         };
       };
       readonly sessionsCookie?: SessionsCookie;
@@ -51,12 +51,7 @@ export class CookiesMongoDBDynamoDBAuthenticationService
     const session = await insertSession({
       mongoDB: this.ctx.mongoDB,
       userId: strToObjectId(userId),
-      duration: new SessionDuration(
-        this.ctx.options?.sessions?.user ?? {
-          duration: 1000 * 60 * 60 * 24 * 14, // 14 days,
-          refreshThreshold: 0.5, // 7 days
-        }
-      ),
+      duration: new SessionDuration(this.ctx.options.sessions.user),
     });
 
     const auth: AuthenticatedContext = {

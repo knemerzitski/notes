@@ -11,6 +11,8 @@ import {
 } from '../../../../collab/src/records/record';
 import { RevisionRecords } from '../../../../collab/src/records/revision-records';
 
+import { Maybe } from '../../../../utils/src/types';
+
 import { CollectionName } from '../../mongodb/collection-names';
 import { MongoDBCollections } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
@@ -68,7 +70,7 @@ interface InsertCollabRecordParams {
   /**
    * Limit the records array by deleting older records
    */
-  maxRecordsCount?: number;
+  maxRecordsCount?: Maybe<number>;
   openNoteDuration?: number;
   connectionId?: string;
 }

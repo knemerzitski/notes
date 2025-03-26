@@ -14,7 +14,7 @@ import { UnauthenticatedServiceError } from './errors';
 /**
  * Get session info from database using provided cookieId.
  * Can refresh session if it's about to expire.
- * Leave option undefined not not refresh session.
+ * Leave option undefined skip refreshing session.
  */
 export async function findRefreshSessionByCookieId(
   cookieId: string,
@@ -26,8 +26,8 @@ export async function findRefreshSessionByCookieId(
       collections: Pick<MongoDBCollections, CollectionName.SESSIONS>;
       loaders: Pick<MongoDBLoaders, 'session'>;
     };
-    options?: {
-      sessions?: {
+    options: {
+      sessions: {
         user?: SessionDurationConfig;
       };
     };
@@ -43,7 +43,7 @@ export async function findRefreshSessionByCookieId(
     throw new UnauthenticatedServiceError(AuthenticationFailedReason.SESSION_EXPIRED);
   }
 
-  if (!options?.sessions?.user) {
+  if (!options.sessions.user) {
     return session;
   }
 
