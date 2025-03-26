@@ -13,7 +13,7 @@ import { GoogleLoginButton } from './GoogleLoginButton';
 
 const SignInProvidersList_Query = gql(`
   query SignInProvidersList_Query($id: ObjectID!) {
-    signedInUser(by: { id: $id }) @client {
+    signedInUser(by: { id: $id }) {
       id
       authProviderUser(type: GOOGLE) {
         id
@@ -51,6 +51,7 @@ export function SignInProvidersList({
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       id: userIdHint!,
     },
+    fetchPolicy: 'cache-only',
   });
 
   const login_hint = data?.signedInUser.authProviderUser?.id;

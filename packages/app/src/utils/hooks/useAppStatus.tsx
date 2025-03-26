@@ -9,7 +9,7 @@ import { useUserId } from '../../user/context/user-id';
 
 const UseAppStatus_Query = gql(`
   query UseAppStatus_Query {
-    currentSignedInUser @client {
+    currentSignedInUser {
       id
       local {
         id

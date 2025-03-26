@@ -8,7 +8,7 @@ import { setLayoutMode } from '../models/layout-mode/set';
 
 const UseLayoutMode_Query = gql(`
   query UseLayoutMode_Query {
-    devicePreferences @client {
+    devicePreferences {
       layoutMode
     }
   }
@@ -17,7 +17,9 @@ const UseLayoutMode_Query = gql(`
 export function useLayoutMode() {
   const client = useApolloClient();
 
-  const { data } = useQuery(UseLayoutMode_Query);
+  const { data } = useQuery(UseLayoutMode_Query, {
+    fetchPolicy: 'cache-only',
+  });
 
   const layoutMode = data?.devicePreferences.layoutMode ?? LayoutMode.RESPONSIVE;
 

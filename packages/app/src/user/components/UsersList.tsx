@@ -10,17 +10,17 @@ import { UserListItem } from './UsersListItem';
 
 const UsersList_Query = gql(`
   query UsersList_Query {
-    signedInUsers @client {
+    signedInUsers {
       id
     }
-    currentSignedInUser @client {
+    currentSignedInUser {
       id
     }
   }
 `);
 
 export function UsersList({ listProps }: { listProps?: ListProps }) {
-  const { data } = useQuery(UsersList_Query);
+  const { data } = useQuery(UsersList_Query, { fetchPolicy: 'cache-only' });
   if (!data) return null;
 
   const userIds = data.signedInUsers.map((user) => user.id);

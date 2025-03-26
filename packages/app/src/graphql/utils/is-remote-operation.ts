@@ -9,7 +9,7 @@ import { hasRemoteDirective } from '../link/remote-directive';
 
 const IsRemoteOperation_Query = gql(`
   query IsRemoteOperation_Query($id: ObjectID!) {
-    signedInUser(by: { id: $id }) @client {
+    signedInUser(by: { id: $id }) {
       id
       localOnly
     }

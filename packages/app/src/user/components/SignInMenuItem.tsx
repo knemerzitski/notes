@@ -8,7 +8,7 @@ import { useUserId } from '../context/user-id';
 
 const SignInMenuItem_Query = gql(`
   query SignInMenuItem_Query($id: ObjectID!) {
-    signedInUser(by: { id: $id }) @client {
+    signedInUser(by: { id: $id }) {
       id
       local {
         id
@@ -29,6 +29,7 @@ export function SignInMenuItem(props: Omit<MenuItemProps, 'onClick'>) {
     variables: {
       id: userId,
     },
+    fetchPolicy: 'cache-only',
   });
 
   const user = data?.signedInUser;

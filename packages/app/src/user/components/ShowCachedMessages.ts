@@ -10,7 +10,7 @@ import { removeUserMessages } from '../models/message/remove';
 
 const ShowCachedMessages_Query = gql(`
   query ShowCachedMessages_Query($id: ObjectID!) {
-    signedInUser(by: { id: $id }) @client {
+    signedInUser(by: { id: $id }) {
       id
       local {
         id
@@ -32,6 +32,7 @@ export function ShowCachedUserMessages() {
     variables: {
       id: userId,
     },
+    fetchPolicy: 'cache-only',
   });
 
   const lastOpenedMessageRef = useRef<{

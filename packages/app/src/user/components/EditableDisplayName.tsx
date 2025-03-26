@@ -27,7 +27,7 @@ import { DisplayNameTitleTextField } from './DisplayNameTitleTextField';
 
 const EditableDisplayName_Query = gql(`
   query EditableDisplayName_Query($id: ObjectID!) {
-    signedInUser(by: { id: $id }) @client {
+    signedInUser(by: { id: $id }) {
       ...EditableDisplayName_UserFragment
     }
   }
@@ -53,6 +53,7 @@ export function EditableDisplayName() {
     variables: {
       id: userId,
     },
+    fetchPolicy: 'cache-only',
   });
 
   const _user = data?.signedInUser;

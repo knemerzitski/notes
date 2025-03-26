@@ -17,7 +17,7 @@ import { AppStatusIcon } from './AppStatusIcon';
 
 const AppStatusRefreshButton_Query = gql(`
   query AppStatusRefreshButton_Query($id: ObjectID!) {
-    signedInUser(by: { id: $id }) @client {
+    signedInUser(by: { id: $id }) {
       id
       localOnly
     }
@@ -40,6 +40,7 @@ export const AppStatusRefreshButton = forwardRef<
     variables: {
       id: userId,
     },
+    fetchPolicy: 'cache-only',
   });
 
   const isLocalOnlyUser = data?.signedInUser.localOnly ?? false;

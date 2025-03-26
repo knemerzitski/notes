@@ -13,7 +13,7 @@ import { confirmUnsavedChanges } from '../utils/confirm-unsaved-changes';
 
 const SignOutAllUsersButton_Query = gql(`
   query SignOutAllUsersButton_Query {
-    signedInUsers(localOnly: false) @client {
+    signedInUsers(localOnly: false) {
       id
     }
   }
@@ -26,7 +26,9 @@ export function SignOutAllUsersButton() {
   const showConfirm = useShowConfirm();
   const fetchedRoutes = useFetchedRoutes();
 
-  const { data } = useQuery(SignOutAllUsersButton_Query);
+  const { data } = useQuery(SignOutAllUsersButton_Query, {
+    fetchPolicy: 'cache-only',
+  });
   if (!data) return null;
 
   if (data.signedInUsers.length === 0) return null;

@@ -10,7 +10,7 @@ import { setColorMode } from '../models/color-mode/set';
 
 const UseColorMode_Query = gql(`
   query UseColorMode_Query {
-    devicePreferences @client {
+    devicePreferences {
       colorMode
     }
   }
@@ -21,7 +21,9 @@ export function useColorMode() {
   const bootstrapCache = useBootstrapCache(true);
   const client = useApolloClient();
 
-  const { data } = useQuery(UseColorMode_Query);
+  const { data } = useQuery(UseColorMode_Query, {
+    fetchPolicy: 'cache-only',
+  });
 
   const colorMode = isCacheRestored
     ? (data?.devicePreferences.colorMode ??

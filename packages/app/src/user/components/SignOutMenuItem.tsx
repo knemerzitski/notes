@@ -13,7 +13,7 @@ import { confirmUnsavedChanges } from '../utils/confirm-unsaved-changes';
 
 const SignOutMenuItem_Query = gql(`
   query SignOutMenuItem_Query($id: ObjectID!) {
-    signedInUser(by: { id: $id }) @client {
+    signedInUser(by: { id: $id }) {
       id
       profile {
         displayName
@@ -40,6 +40,7 @@ export function SignOutMenuItem() {
     variables: {
       id: userId,
     },
+    fetchPolicy: 'cache-only',
   });
 
   const _user = data?.signedInUser;

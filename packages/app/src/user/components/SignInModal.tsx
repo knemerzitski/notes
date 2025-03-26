@@ -17,7 +17,7 @@ import { SignInProvidersList } from './SignInProvidersList';
 
 const SignInModal_Query = gql(`
   query SignInModal_Query($id: ObjectID!) {
-    signedInUser(by: { id: $id }) @client {
+    signedInUser(by: { id: $id }) {
       id
       profile {
         displayName
@@ -45,6 +45,7 @@ export function SignInModal({
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       id: userId!,
     },
+    fetchPolicy: 'cache-only'
   });
 
   const user = data?.signedInUser;

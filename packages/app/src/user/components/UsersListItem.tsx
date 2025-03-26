@@ -27,7 +27,7 @@ import { UserMoreOptionsButton } from './UserMoreOptionsButton';
 
 const UserListItem_Query = gql(`
   query UserListItem_Query($id: ObjectID!) {
-    signedInUser(by: { id: $id }) @client {
+    signedInUser(by: { id: $id }) {
       id
       profile {
         displayName
@@ -51,6 +51,7 @@ export function UserListItem(props?: Parameters<typeof ActivableListItem>[0]) {
     variables: {
       id: userId,
     },
+    fetchPolicy: 'cache-only',
   });
 
   const user = data?.signedInUser;

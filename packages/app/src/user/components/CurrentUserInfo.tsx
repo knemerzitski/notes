@@ -11,7 +11,7 @@ import { UserAvatar } from './UserAvatar';
 
 const CurrentUserInfo_Query = gql(`
   query CurrentUserInfo_Query {
-    currentSignedInUser @client {
+    currentSignedInUser {
       id
       email
       localOnly
@@ -20,7 +20,9 @@ const CurrentUserInfo_Query = gql(`
 `);
 
 export function CurrentUserInfo() {
-  const { data } = useQuery(CurrentUserInfo_Query);
+  const { data } = useQuery(CurrentUserInfo_Query, {
+    fetchPolicy: 'cache-only',
+  });
   if (!data) return;
 
   const user = data.currentSignedInUser;

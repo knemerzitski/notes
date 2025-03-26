@@ -9,7 +9,7 @@ import { CollabService } from './CollabService';
 
 const UnsavedCollabServices_Query = gql(`
   query UnsavedCollabServices_Query($id: ObjectID!) {
-    signedInUser(by: { id: $id }) @client {
+    signedInUser(by: { id: $id }) {
       id
       local {
         id
@@ -30,6 +30,7 @@ export function UnsavedCollabServices() {
     variables: {
       id: userId,
     },
+    fetchPolicy: 'cache-only',
   });
 
   return (

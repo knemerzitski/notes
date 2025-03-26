@@ -7,14 +7,16 @@ import { UserIdProvider } from '../context/user-id';
 
 const CurrentUserIdProvider_Query = gql(`
   query CurrentUserIdProvider_Query {
-    currentSignedInUser @client {
+    currentSignedInUser {
       id
     }
   }
 `);
 
 export function CurrentUserIdProvider({ children }: { children: ReactNode }) {
-  const { data } = useQuery(CurrentUserIdProvider_Query);
+  const { data } = useQuery(CurrentUserIdProvider_Query, {
+    fetchPolicy: 'cache-only',
+  });
   if (!data) return;
 
   const user = data.currentSignedInUser;
