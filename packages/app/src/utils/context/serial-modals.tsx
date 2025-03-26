@@ -5,6 +5,7 @@ import {
   createContext,
   useContext,
   useCallback,
+  useRef,
 } from 'react';
 
 import { IsOpenProvider } from './is-open';
@@ -97,9 +98,11 @@ export function SerialModalsProvider({
   defaultMaxShowCount?: number;
 }) {
   const [queue, setQueue] = useState<readonly ModalState[]>([]);
+  const isActiveOpenRef = useRef(false);
 
   const active = queue[0];
   const open = active?.status === 'showing';
+  isActiveOpenRef.current = open;
 
   useEffect(() => {
     const first = queue[0];
@@ -114,7 +117,7 @@ export function SerialModalsProvider({
   }, [queue, defaultMaxShowCount]);
 
   useEffect(() => {
-    if (!active) {
+    if (active?.status !== 'showing') {
       return;
     }
 
@@ -151,7 +154,8 @@ export function SerialModalsProvider({
             onShowing: options?.onShowing,
             onRemoved: options?.onRemoved,
           },
-          prev
+          prev,
+          isActiveOpenRef.current
         );
         const wasNewModalAdded = prev !== next;
 
@@ -163,7 +167,7 @@ export function SerialModalsProvider({
       });
 
       return () => {
-        setQueue((prev) => removeByModal(newModal, prev));
+        setQueue((prev) => removeByModal(newModal, prev, isActiveOpenRef.current));
       };
     },
     [defaultMaxShowCount]
@@ -227,14 +231,15 @@ function updateStatusClosing(states: readonly ModalState[]): readonly ModalState
  */
 function addToQueue(
   newItem: ModalState,
-  items: readonly ModalState[]
+  items: readonly ModalState[],
+  isActiveOpen: boolean
 ): readonly ModalState[] {
   if (newItem.key != null) {
     let sameKeyIndex = items.findIndex((item) => item.key === newItem.key);
     if (sameKeyIndex !== -1) {
       if (sameKeyIndex === 0) {
         // Close or remove active
-        items = removeByIndex(sameKeyIndex, items);
+        items = removeByIndex(sameKeyIndex, items, isActiveOpen);
         // Find next same key
         sameKeyIndex = items.findIndex(
           (item, index) => index !== 0 && item.key === newItem.key
@@ -304,15 +309,17 @@ function addToQueue(
  */
 function removeByModal(
   modal: Modal,
-  items: readonly ModalState[]
+  items: readonly ModalState[],
+  isActiveOpen: boolean
 ): readonly ModalState[] {
   const index = items.findIndex((item) => item.modal === modal);
-  return removeByIndex(index, items);
+  return removeByIndex(index, items, isActiveOpen);
 }
 
 function removeByIndex(
   index: number,
-  items: readonly ModalState[]
+  items: readonly ModalState[],
+  isActiveOpen: boolean
 ): readonly ModalState[] {
   if (index === -1) {
     return items;
@@ -323,7 +330,10 @@ function removeByIndex(
   }
 
   const isActive = index === 0;
-  if (isActive) {
+  const isActiveModalOpen = isActive && isActiveOpen;
+  if (isActiveModalOpen) {
+    // If modal is active and open (visible) then
+    // must update status and not remove from list immediately
     switch (item.status) {
       case 'showing':
         return updateStatusClosing(items);
