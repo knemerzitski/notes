@@ -18,6 +18,7 @@ import {
   NoteNotFoundServiceError,
   NoteNotOpenedServiceError,
   NoteReadOnlyServiceError,
+  NoteUserCountLimitReachedServiceError,
   NoteUserNotFoundServiceError,
 } from '../../services/note/errors';
 
@@ -71,6 +72,17 @@ export class NoteUnauthorizedUserError extends GraphQLError {
   }
 }
 
+class NoteUsersLimitReachedError extends GraphQLError {
+  constructor() {
+    super('Users count limit reached', {
+      extensions: {
+        code: GraphQLErrorCode.LIMIT_REACHED,
+        resource: ResourceType.USER,
+      },
+    });
+  }
+}
+
 function newNoteErrorMapper() {
   const mapper = new ErrorMapper();
   mapper.add(NoteNotFoundServiceError, () => new NoteNotFoundError());
@@ -78,6 +90,10 @@ function newNoteErrorMapper() {
   mapper.add(NoteNotFoundQueryLoaderError, () => new NoteNotFoundError());
   mapper.add(NoteReadOnlyServiceError, () => new NoteReadOnlyError());
   mapper.add(NoteByShareLinkNotFoundServiceError, () => new NoteNotFoundError());
+  mapper.add(
+    NoteUserCountLimitReachedServiceError,
+    () => new NoteUsersLimitReachedError()
+  );
 
   mapper.add(NoteCollabRecordInsertError, (error) => {
     if (error.cause instanceof InsertRecordError) {

@@ -19,6 +19,7 @@ export const createNoteLinkByShareAccess: NonNullable<
     userId: currentUserId,
     categoryName: NoteCategory.DEFAULT,
     shareLinkId: input.shareAccessId,
+    maxUsersCount: ctx.options.note.maxUsersCount,
   });
 
   const payload: ResolversTypes['SignedInUserMutation'] = {

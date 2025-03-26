@@ -14,7 +14,8 @@ export type NoteServiceErrorCode =
   | 'NOTE_COLLAB_RECORD_INSERT'
   | 'NOTE_SHARE_LINK_NOTE_FOUND'
   | 'NOTE_NOT_OPENED'
-  | 'NOTE_COLLAB_TEXT_INVALID_REVISION';
+  | 'NOTE_COLLAB_TEXT_INVALID_REVISION'
+  | 'NOTE_USERS_COUNT_LIMIT_REACHED';
 
 export class NoteServiceError extends ServiceError<NoteServiceErrorCode> {}
 
@@ -143,5 +144,14 @@ export class NoteCollabTextInvalidRevisionError extends NoteServiceError {
     this.revision = revision;
     this.minRevision = minRevision;
     this.maxRevision = minRevision;
+  }
+}
+
+export class NoteUserCountLimitReachedServiceError extends NoteServiceError {
+  constructor(readonly usersCount: number) {
+    super(
+      'NOTE_USERS_COUNT_LIMIT_REACHED',
+      `Note users count limit reached ${usersCount}`
+    );
   }
 }

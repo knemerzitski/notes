@@ -44,6 +44,7 @@ export function createDefaultApiOptions(): ApiOptions {
     note: {
       trashDuration: 1000 * 60 * 60 * 24 * 30, // 30 days
       openNoteDuration: 1000 * 60 * 60, // 1 hour
+      maxUsersCount: 10,
     },
     collabText: {
       maxRecordsCount: 500,

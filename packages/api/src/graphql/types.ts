@@ -54,6 +54,12 @@ export interface ApiOptions {
      * @default 1000 * 60 * 60 // 1 hour
      */
     openNoteDuration: number;
+    /**
+     * How many users can a single note have. Limits sharing of a note.
+     * Set null for unlimited.
+     * @default 10
+     */
+    maxUsersCount: number | null;
   };
   collabText: {
     /**

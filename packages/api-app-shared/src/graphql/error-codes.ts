@@ -29,6 +29,10 @@ export enum GraphQLErrorCode {
    * Resource is outdated for modifications. Must fetch newest resource version.
    */
   OUTDATED = 'OUTDATED',
+  /**
+   * Reached a limit of a resource
+   */
+  LIMIT_REACHED = 'LIMIT_REACHED',
 }
 
 export enum AuthenticationFailedReason {

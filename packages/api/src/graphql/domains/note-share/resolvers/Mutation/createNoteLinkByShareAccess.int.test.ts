@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
+ 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
@@ -9,13 +9,17 @@ import {
   createGraphQLResolversContext,
   CreateGraphQLResolversContextOptions,
 } from '../../../../../__tests__/helpers/graphql/graphql-context';
-import { expectGraphQLResponseData } from '../../../../../__tests__/helpers/graphql/response';
+import {
+  expectGraphQLResponseData,
+  expectGraphQLResponseError,
+} from '../../../../../__tests__/helpers/graphql/response';
 import {
   mongoCollections,
   resetDatabase,
   mongoCollectionStats,
 } from '../../../../../__tests__/helpers/mongodb/instance';
-import { populateNotes } from '../../../../../__tests__/helpers/mongodb/populate/populate';
+import { fakeNotePopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/note';
+import { userAddNote } from '../../../../../__tests__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../../../../../__tests__/helpers/mongodb/populate/populate-queue';
 import { fakeUserPopulateQueue } from '../../../../../__tests__/helpers/mongodb/populate/user';
 import { DBNoteSchema } from '../../../../../mongodb/schema/note';
@@ -53,25 +57,26 @@ beforeEach(async () => {
   faker.seed(843);
   await resetDatabase();
 
+  user = fakeUserPopulateQueue();
   otherUser = fakeUserPopulateQueue();
 
-  const populateResult = populateNotes(1, {
-    mapShareLink() {
-      return {
-        override: {
+  ({ note } = fakeNotePopulateQueue(user, {
+    override: {
+      shareLinks: [
+        {
           permissions: {
             user: {
               readOnly: true,
             },
           },
         },
-      };
+      ],
     },
-  });
-  user = populateResult.user;
-  note = populateResult.data[0]!.note;
-  assert(populateResult.data[0]?.note.shareLinks?.[0] != null);
-  shareNoteLink = populateResult.data[0].note.shareLinks[0];
+  }));
+  userAddNote(user, note);
+
+  assert(note.shareLinks?.[0] != null);
+  shareNoteLink = note.shareLinks[0];
 
   await populateExecuteAll();
 
@@ -174,5 +179,37 @@ it('links existing note and creates UserNote with access to note', async () => {
   );
 });
 
-// TODO create test: when sharing doesn't exist
+it('throws error on invalid access id', async () => {
+  const response = await executeOperation(
+    {
+      shareAccessId: new ObjectId(),
+    },
+    {
+      user: otherUser,
+    }
+  );
+
+  expectGraphQLResponseError(response, 'Note not found');
+});
+
+it('throws users count limit reached', async () => {
+  const response = await executeOperation(
+    {
+      shareAccessId: shareNoteLink._id,
+    },
+    {
+      user: otherUser,
+      override: {
+        options: {
+          note: {
+            maxUsersCount: 1,
+          },
+        },
+      },
+    }
+  );
+
+  expectGraphQLResponseError(response, 'Users count limit reached');
+});
+
 // TODO create test: link is published as new note creation

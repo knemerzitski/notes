@@ -1,5 +1,7 @@
 import { MongoClient, ObjectId } from 'mongodb';
 
+import { Maybe } from '../../../../utils/src/types';
+
 import { CollectionName } from '../../mongodb/collection-names';
 import { MongoDBCollections } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
@@ -11,7 +13,10 @@ import { NoteUserSchema } from '../../mongodb/schema/note-user';
 
 import { withTransaction } from '../../mongodb/utils/with-transaction';
 
-import { NoteByShareLinkNotFoundServiceError } from './errors';
+import {
+  NoteByShareLinkNotFoundServiceError,
+  NoteUserCountLimitReachedServiceError,
+} from './errors';
 import { findNoteUser } from './note';
 
 export async function insertUserByShareLink({
@@ -19,6 +24,7 @@ export async function insertUserByShareLink({
   userId,
   shareLinkId,
   categoryName,
+  maxUsersCount,
 }: {
   mongoDB: {
     client: MongoClient;
@@ -37,6 +43,11 @@ export async function insertUserByShareLink({
    * Category where to put the note
    */
   categoryName: string;
+  /**
+   * Maximum numer of allowed users in the note via sharing.
+   * Leave undefined for unlimited.
+   */
+  maxUsersCount?: Maybe<number>;
 }) {
   return withTransaction(
     mongoDB.client,
@@ -100,6 +111,13 @@ export async function insertUserByShareLink({
             noteUser,
             note,
           };
+        }
+
+        const usersCount = note.users.length;
+        const hasUserCountLimitReached =
+          maxUsersCount != null && usersCount >= maxUsersCount;
+        if (hasUserCountLimitReached) {
+          throw new NoteUserCountLimitReachedServiceError(usersCount);
         }
 
         const newNoteUser: NoteUserSchema = {
