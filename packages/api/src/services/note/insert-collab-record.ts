@@ -325,13 +325,16 @@ export function insertCollabRecord({
           let newTailText: RevisionChangeset | undefined;
           const collabTextForTailCompose = noteForTailText?.collabText;
           if (collabTextForTailCompose) {
-            const tailRevisionRecords = new RevisionRecords({
-              tailText: collabTextForTailCompose.tailText,
-              records: collabTextForTailCompose.records,
-            });
+            const { records, tailText } = collabTextForTailCompose;
+            if (records.length > 0) {
+              const tailRevisionRecords = new RevisionRecords({
+                tailText,
+                records,
+              });
 
-            tailRevisionRecords.mergeToTail(tailRevisionRecords.items.length);
-            newTailText = tailRevisionRecords.tailText;
+              tailRevisionRecords.mergeToTail(tailRevisionRecords.items.length);
+              newTailText = tailRevisionRecords.tailText;
+            }
           }
 
           await Promise.all([

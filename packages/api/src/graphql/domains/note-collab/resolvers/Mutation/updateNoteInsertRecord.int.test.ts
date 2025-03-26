@@ -138,20 +138,20 @@ beforeEach(async () => {
     collabText: {
       override: {
         headText: {
-          revision: 5,
+          revision: 6,
           changeset: ['abcdef'],
         },
       },
       // Records with appending characters from "a" to "abcdef"
       records: [
-        ['a'],
-        [0, 'b'],
-        [[0, 1], 'c'],
-        [[0, 2], 'd'],
-        [[0, 3], 'e'],
-        [[0, 4], 'f'],
+        ['a'], // 1
+        [0, 'b'], // 2
+        [[0, 1], 'c'], // 3
+        [[0, 2], 'd'], // 4
+        [[0, 3], 'e'], // 5
+        [[0, 4], 'f'], // 6
       ].map((changeset, index) => ({
-        revision: index,
+        revision: index + 1,
         changeset,
       })),
     },
@@ -736,14 +736,14 @@ describe('with other MongoDB context', () => {
         insertChange(
           {
             changeset: Changeset.parseValue([[0, 5], 'A']),
-            revision: 5,
+            revision: 6,
           },
           { user }
         ),
         insertChange(
           {
             changeset: Changeset.parseValue([[0, 5], 'B']),
-            revision: 5,
+            revision: 6,
           },
           // Second insert with a different mongo client
           {
@@ -769,7 +769,7 @@ describe('with other MongoDB context', () => {
           collabText: expect.objectContaining({
             headText: {
               changeset: ['abcdefAB'],
-              revision: 7,
+              revision: 8,
             },
             tailText: {
               changeset: Changeset.EMPTY.serialize(),
@@ -782,12 +782,12 @@ describe('with other MongoDB context', () => {
       // Check last 2 records (could be inserted in any order)
       expect([
         [
-          { changeset: [[0, 5], 'A'], revision: 6 },
-          { changeset: [[0, 6], 'B'], revision: 7 },
+          { changeset: [[0, 5], 'A'], revision: 7 },
+          { changeset: [[0, 6], 'B'], revision: 8 },
         ],
         [
-          { changeset: [[0, 5], 'B'], revision: 6 },
-          { changeset: [[0, 5], 'A', 6], revision: 7 },
+          { changeset: [[0, 5], 'B'], revision: 7 },
+          { changeset: [[0, 5], 'A', 6], revision: 8 },
         ],
       ]).toContainEqual(
         (await getCollabTextRecords(dbNote))
