@@ -43,7 +43,7 @@ export function SessionExpiredPromptSignInOnce() {
     ? user.sessionExpired && !user.sessionExpiredPromptedToSignIn
     : false;
 
-  if (user && user.sessionExpired && user.sessionExpiredPromptedToSignIn) {
+  if (user?.sessionExpired && user.sessionExpiredPromptedToSignIn) {
     logger?.debug('alreadyPrompted', userId);
   }
 
