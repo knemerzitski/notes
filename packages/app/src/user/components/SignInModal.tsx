@@ -45,7 +45,7 @@ export function SignInModal({
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       id: userId!,
     },
-    fetchPolicy: 'cache-only'
+    fetchPolicy: 'cache-only',
   });
 
   const user = data?.signedInUser;

@@ -1,11 +1,18 @@
 import { Box, css, styled, Toolbar } from '@mui/material';
 
+import { gql } from '../../__generated__';
 import { TopRightUsersInfoPopoverButton } from '../../user/components/TopRightUsersInfoPopoverButton';
 
 import { AppStatusIcon } from '../../utils/components/AppStatusIcon';
 
 import { RouteSearchNotesInputDebounced } from './RouteSearchNotesDebounced';
 import { ToggleAppDrawerButton } from './ToggleAppDrawerButton';
+
+const _MobileHeaderToolbar_UserFragment = gql(`
+  fragment MobileHeaderToolbar_UserFragment on User {
+    ...TopRightUsersInfoPopoverButton_UserFragment
+  }
+`);
 
 export function MobileHeaderToolbar() {
   return (

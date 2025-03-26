@@ -31,7 +31,9 @@ const EditableDisplayName_Query = gql(`
       ...EditableDisplayName_UserFragment
     }
   }
+`);
 
+const _EditableDisplayName_UserFragment = gql(`
   fragment EditableDisplayName_UserFragment on User {
     id
     profile {

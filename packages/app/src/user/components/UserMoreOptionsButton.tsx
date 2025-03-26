@@ -40,7 +40,7 @@ export function UserMoreOptionsButton({
     variables: {
       id: userId,
     },
-    fetchPolicy: 'cache-only'
+    fetchPolicy: 'cache-only',
   });
 
   const user = data?.signedInUser;

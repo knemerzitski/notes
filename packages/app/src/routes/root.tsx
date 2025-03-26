@@ -29,6 +29,9 @@ const RouteRoot_Query = gql(`
     $dialogNoteBy: NoteByInput!, $ifDialog: Boolean!,
     $sharingNoteBy: NoteByInput!, $ifSharing: Boolean!
   ) {
+    signedInUser(by: $userBy) {
+      ...AppBarDrawerLayout_UserFragment
+    }
     noteDialog: signedInUser(by: $userBy) @include(if: $ifDialog) {
       id
       note(by: $dialogNoteBy) {
@@ -89,14 +92,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       return;
     }
 
-    const ifDialog = ctx.deps.noteId != null;
-    const ifSharing = ctx.deps.sharingNoteId != null;
-
-    const mustQuery = ifDialog || ifSharing;
-
-    if (!mustQuery) {
-      return;
-    }
+    const emptyNoteId = '0123456789abcdef';
 
     return {
       query: apolloClient
@@ -107,15 +103,13 @@ export const Route = createRootRouteWithContext<RouterContext>()({
               id: userId,
             },
             dialogNoteBy: {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              id: (ctx.deps.noteId ?? ctx.deps.sharingNoteId)!,
+              id: ctx.deps.noteId ?? emptyNoteId,
             },
             sharingNoteBy: {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              id: (ctx.deps.sharingNoteId ?? ctx.deps.noteId)!,
+              id: ctx.deps.sharingNoteId ?? emptyNoteId,
             },
-            ifDialog,
-            ifSharing,
+            ifDialog: ctx.deps.noteId != null,
+            ifSharing: ctx.deps.sharingNoteId != null,
           },
           fetchPolicy,
         })

@@ -1,8 +1,15 @@
 import { css, Popover, PopoverProps, styled } from '@mui/material';
 
+import { gql } from '../../__generated__';
 import { TopCornerCloseButton } from '../../utils/components/TopCornerCloseButton';
 
 import { UsersInfo } from './UsersInfo';
+
+const _UsersInfoPopover_UserFragment = gql(`
+  fragment UsersInfoPopover_UserFragment on User {
+    ...UsersInfo_UserFragment
+  }
+`);
 
 export function UsersInfoPopover({
   open,

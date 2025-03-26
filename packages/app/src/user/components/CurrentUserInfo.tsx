@@ -19,6 +19,12 @@ const CurrentUserInfo_Query = gql(`
   }
 `);
 
+const _CurrentUserInfo_UserFragment = gql(`
+  fragment CurrentUserInfo_UserFragment on User {
+    ...EditableDisplayName_UserFragment
+  }
+`);
+
 export function CurrentUserInfo() {
   const { data } = useQuery(CurrentUserInfo_Query, {
     fetchPolicy: 'cache-only',

@@ -1,10 +1,17 @@
 import { IconButtonProps } from '@mui/material';
 import { useId, useState, MouseEvent, forwardRef } from 'react';
 
+import { gql } from '../../__generated__';
 import { OnCloseProvider } from '../../utils/context/on-close';
 
 import { CurrentUserButton } from './CurrentUserButton';
 import { UsersInfoPopover } from './UsersInfoPopover';
+
+const _UsersInfoPopoverButton_UserFragment = gql(`
+  fragment UsersInfoPopoverButton_UserFragment on User {
+    ...UsersInfoPopover_UserFragment
+  }
+`);
 
 export const UsersInfoPopoverButton = forwardRef<
   HTMLButtonElement,
