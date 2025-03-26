@@ -8,8 +8,8 @@ import { useStatsLink } from '../../graphql/context/stats-link';
 import { useUserId } from '../../user/context/user-id';
 
 const UseAppStatus_Query = gql(`
-  query UseAppStatus_Query {
-    currentSignedInUser {
+  query UseAppStatus_Query($userBy: UserByInput!) {
+    signedInUser(by: $userBy) {
       id
       local {
         id
@@ -78,18 +78,28 @@ export function useAppStatus(options?: {
     userHasUnsavedNotesRef.current =
       (client.readQuery({
         query: UseAppStatus_Query,
-      })?.currentSignedInUser.local.unsavedCollabServices.length ?? 0) > 0;
+        variables: {
+          userBy: {
+            id: userId,
+          },
+        },
+      })?.signedInUser.local.unsavedCollabServices.length ?? 0) > 0;
     let prevUserHasUnsavedNotes = userHasUnsavedNotesRef.current;
 
     const queryObservable = client.watchQuery({
       query: UseAppStatus_Query,
+      variables: {
+        userBy: {
+          id: userId,
+        },
+      },
       fetchPolicy: 'cache-only',
     });
 
     const querySubscription = queryObservable.subscribe({
       next(value) {
         userHasUnsavedNotesRef.current =
-          value.data.currentSignedInUser.local.unsavedCollabServices.length > 0;
+          value.data.signedInUser.local.unsavedCollabServices.length > 0;
         updateStatus();
       },
     });

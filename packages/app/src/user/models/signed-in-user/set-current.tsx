@@ -17,7 +17,6 @@ export function setCurrentUser(
   userId: Maybe<User['id']>,
   cache: Pick<ApolloCache<unknown>, 'writeQuery'>
 ) {
-  // TODO reload queries, need client for that?
   cache.writeQuery({
     query: SetCurrentUser_Query,
     data: {
@@ -28,7 +27,7 @@ export function setCurrentUser(
             __typename: 'User',
             id: userId,
           }
-        : // Allow setting currentSignedInUser to null, field policy will guarantee a valid value
+        : // Allow setting currentSignedInUser to null, field policy will guarantee a valid value is returned
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (null as any),
     },

@@ -4,7 +4,7 @@ import { ListProps } from '@mui/material';
 import { gql } from '../../__generated__';
 import { ColumnList } from '../../utils/components/ColumnList';
 
-import { UserIdProvider } from '../context/user-id';
+import { UserIdProvider, useUserId } from '../context/user-id';
 
 import { UserListItem } from './UsersListItem';
 
@@ -13,18 +13,17 @@ const UsersList_Query = gql(`
     signedInUsers {
       id
     }
-    currentSignedInUser {
-      id
-    }
   }
 `);
 
 export function UsersList({ listProps }: { listProps?: ListProps }) {
+  const userId = useUserId();
+
   const { data } = useQuery(UsersList_Query, { fetchPolicy: 'cache-only' });
   if (!data) return null;
 
   const userIds = data.signedInUsers.map((user) => user.id);
-  const selectedUserId = data.currentSignedInUser.id;
+  const selectedUserId = userId;
 
   return (
     <ColumnList disablePadding {...listProps} aria-label="users list">
