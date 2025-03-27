@@ -23,7 +23,7 @@ export function handleNoteError(
   errors: readonly GraphQLError[] | undefined
 ): boolean {
   if (isErrorCode(errors, GraphQLErrorCode.NOT_FOUND)) {
-    deleteNote({ userNoteLinkId: getUserNoteLinkId(noteId, userId) }, cache);
+    deleteNote(getUserNoteLinkId(noteId, userId), cache);
     return true;
   }
 

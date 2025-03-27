@@ -4,7 +4,7 @@ import { deleteNote } from '../models/note/delete';
 
 export const DeleteNotePayload = mutationDefinition(
   gql(`
-  fragment DeleteNotePayload on DeleteNotePayload{
+  fragment DeleteNotePayload on DeleteNotePayload {
     userNoteLinkId
   }
 `),
@@ -13,11 +13,6 @@ export const DeleteNotePayload = mutationDefinition(
       return;
     }
 
-    deleteNote(
-      {
-        userNoteLinkId: data.userNoteLinkId,
-      },
-      cache
-    );
+    deleteNote(data.userNoteLinkId, cache);
   }
 );

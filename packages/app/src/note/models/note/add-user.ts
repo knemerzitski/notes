@@ -6,7 +6,7 @@ import { parseUserNoteLinkId } from '../../utils/id';
 
 const AddUserToNote_Query = gql(`
   query AddUserToNote_Query($by: NoteByInput!) {
-    note(by: $by){
+    note(by: $by) {
       id
       users {
         id
@@ -18,7 +18,7 @@ const AddUserToNote_Query = gql(`
 export function addUserToNote(
   userNoteLinkId: UserNoteLink['id'],
   by: NoteByInput,
-  cache: ApolloCache<unknown>
+  cache: Pick<ApolloCache<unknown>, 'writeQuery'>
 ) {
   cache.writeQuery({
     query: AddUserToNote_Query,

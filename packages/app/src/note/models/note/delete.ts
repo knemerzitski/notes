@@ -1,20 +1,23 @@
 import { ApolloCache } from '@apollo/client';
 
-import { UserNoteLinkByInput } from '../../../__generated__/graphql';
+import { UserNoteLink } from '../../../__generated__/graphql';
 import { cacheGc } from '../../../graphql/utils/cache-gc';
-import { getUserNoteLinkIdFromByInput } from '../../utils/id';
 import { setNotePendingStatus } from '../local-note/set-status';
 import { removeNoteFromConnection } from '../note-connection/remove';
 import { updateUnsavedCollabService } from '../update-unsaved-collab-service';
 
+import { removeUserFromNote } from './remove-user';
+
 export function deleteNote(
-  by: UserNoteLinkByInput,
+  userNoteLinkId: UserNoteLink['id'],
   cache: Pick<
     ApolloCache<unknown>,
     'readQuery' | 'updateQuery' | 'writeQuery' | 'identify' | 'gc' | 'evict' | 'modify'
   >
 ) {
-  const userNoteLinkId = getUserNoteLinkIdFromByInput(by, cache);
+  // Manually removing user from note to not leave a
+  // dangling reference as evict and gc will make userLink unreachable
+  removeUserFromNote(userNoteLinkId, cache);
 
   removeNoteFromConnection(
     {
@@ -22,8 +25,20 @@ export function deleteNote(
     },
     cache
   );
-  setNotePendingStatus(by, null, cache);
-  updateUnsavedCollabService(by, true, cache);
+  setNotePendingStatus(
+    {
+      userNoteLinkId,
+    },
+    null,
+    cache
+  );
+  updateUnsavedCollabService(
+    {
+      userNoteLinkId,
+    },
+    true,
+    cache
+  );
 
   cache.evict({
     id: cache.identify({
