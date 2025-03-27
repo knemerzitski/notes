@@ -18,6 +18,7 @@ import { Logger } from '../../../../utils/src/logging';
 
 import { getFragmentData, gql } from '../../__generated__';
 import { Note, SearchNotesConnectionGridQueryQuery } from '../../__generated__/graphql';
+import { useDefaultPerPageCount } from '../../device-preferences/hooks/useDefaultPerPageCount';
 import { useUserId } from '../../user/context/user-id';
 import { useIsSessionExpired } from '../../user/hooks/useIsSessionExpired';
 import { PassChildren } from '../../utils/components/PassChildren';
@@ -53,7 +54,7 @@ interface NextFetchInfo {
 }
 
 export function SearchNotesConnectionGrid({
-  perPageCount = 20,
+  perPageCount,
   infiniteLoadingDelay = 500,
   searchText,
   NoListComponent = PassChildren,
@@ -74,6 +75,9 @@ export function SearchNotesConnectionGrid({
   NoListComponent?: ComponentType<{ children: ReactNode }>;
 }) {
   const logger = useLogger('SearchNotesConnectionGrid');
+
+  const defaultPerPageCount = useDefaultPerPageCount();
+  perPageCount = perPageCount ?? defaultPerPageCount;
 
   const userId = useUserId();
   const isParentLoading = useIsLoading();

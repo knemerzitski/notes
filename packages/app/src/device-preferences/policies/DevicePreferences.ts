@@ -21,6 +21,9 @@ export const DevicePreferences: CreateTypePolicyFn = function () {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return existing;
       },
+      perPageCount(existing: number | undefined) {
+        return existing ?? 20;
+      },
     },
   };
 };

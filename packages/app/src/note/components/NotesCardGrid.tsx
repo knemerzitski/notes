@@ -48,7 +48,12 @@ export const NotesCardGrid = forwardRef(function NotesCardGrid(
         </NoteIdProvider>
       ))}
       {[...new Array<undefined>(loadingCount)].map((_value, index) => (
-        <SkeletonStyled key={index} variant="rounded" animation="wave" />
+        <SkeletonStyled
+          key={index}
+          variant="rounded"
+          animation="wave"
+          aria-label="skeleton"
+        />
       ))}
     </BoxStyled>
   );

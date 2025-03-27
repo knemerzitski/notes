@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { boolean, optional, string, type } from 'superstruct';
 
 import { gql } from '../__generated__';
+import { getDefaultPerPageCount } from '../device-preferences/utils/per-page-count';
 import { SearchMain } from '../note/components/SearchMain';
 import { useIsLoaderDataFulfilled } from '../router/hooks/useIsLoaderDataFulfilled';
 import { loaderUserFetchLogic } from '../router/utils/loader-user-fetch-logic';
@@ -59,7 +60,7 @@ export const Route = createFileRoute('/_root_layout/search')({
               id: userId,
             },
             searchText: ctx.deps.text,
-            first: 20,
+            first: getDefaultPerPageCount(apolloClient.cache),
           },
           fetchPolicy,
         })

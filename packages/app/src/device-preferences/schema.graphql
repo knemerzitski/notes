@@ -32,6 +32,10 @@ type DevicePreferences {
   TODO desc
   """
   desktop: DesktopDevicePreferences!
+  """
+  How many items are show per page in a list. Applies to all lists as a default.
+  """
+  defaultPerPageCount: Int!
 }
 
 """

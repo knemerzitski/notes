@@ -128,6 +128,10 @@ function preserveUnknownIndexEdgesToFunction<TNode>(
   return () => false;
 }
 
+function isEmptyString(value: Maybe<string>) {
+  return value == null || value === '';
+}
+
 // As proof of the flexibility of field policies, this function generates
 // one that handles Relay-style pagination, without Apollo Client knowing
 // anything about connections, edges, cursors, or pageInfo objects.
@@ -138,10 +142,14 @@ export function relayStylePagination<TNode extends Reference = Reference>(
   const rootRead = rootOptions?.read;
   const isOrderedSet = rootOptions?.isOrderedSet ?? false;
   const rootPreserveEdgeInPosition = rootOptions?.preserveEdgeInPosition;
-  const rootGetCursor = rootOptions?.getCursor;
   const preserveUnknownIndexEdges = preserveUnknownIndexEdgesToFunction(
     rootOptions?.preserveUnknownIndexEdges
   );
+
+  const getCursor = rootOptions?.getCursor
+    ? rootOptions.getCursor
+    : (edge: TRelayEdge<TNode> | undefined) => edge?.cursor;
+
   return {
     keyArgs,
     read(existing, options) {
@@ -154,11 +162,15 @@ export function relayStylePagination<TNode extends Reference = Reference>(
       }
 
       let edges: TRelayEdge<TNode>[];
-      let firstEdgeCursor: Maybe<string> =
-        rootGetCursor?.(existing.edges[0], options) ?? null;
-      let lastEdgeCursor: Maybe<string> =
-        rootGetCursor?.(existing.edges[existing.edges.length - 1], options) ?? null;
-      if (!firstEdgeCursor || !lastEdgeCursor) {
+      let firstEdgeCursor: Maybe<string> = getCursor(existing.edges[0], options);
+      let lastEdgeCursor: Maybe<string> = getCursor(
+        existing.edges[existing.edges.length - 1],
+        options
+      );
+      if (isEmptyString(firstEdgeCursor) || isEmptyString(lastEdgeCursor)) {
+        firstEdgeCursor = null;
+        lastEdgeCursor = null;
+
         edges = [];
         for (const edge of existing.edges) {
           // Edges themselves could be Reference objects, so it's important
@@ -271,13 +283,17 @@ export function relayStylePagination<TNode extends Reference = Reference>(
           // This comparison does not need to use readField("cursor", edge),
           // because we stored the cursor field of any Reference edges as an
           // extra property of the Reference object.
-          const index = prefix.findIndex((edge) => edge.cursor === args.after);
+          const index = prefix.findIndex(
+            (edge) => getCursor(edge, options) === args.after
+          );
           if (index >= 0) {
             prefix = prefix.slice(0, index + 1);
             // suffix = []; // already true
           }
         } else if (args?.before != null) {
-          const index = prefix.findIndex((edge) => edge.cursor === args.before);
+          const index = prefix.findIndex(
+            (edge) => getCursor(edge, options) === args.before
+          );
           suffix = index < 0 ? prefix : prefix.slice(index);
           prefix = [];
         } else if (incoming.edges) {
@@ -288,7 +304,9 @@ export function relayStylePagination<TNode extends Reference = Reference>(
         }
       } else {
         if (args?.after != null) {
-          const index = existingEdges.findIndex((edge) => edge.cursor === args.after);
+          const index = existingEdges.findIndex(
+            (edge) => getCursor(edge, options) === args.after
+          );
           if (index >= 0) {
             prefix = existingEdges.slice(0, index + 1);
             incomingEdges = weavedReplace(
@@ -299,7 +317,9 @@ export function relayStylePagination<TNode extends Reference = Reference>(
             // suffix = []; // already true
           }
         } else if (args?.before != null) {
-          const index = existingEdges.findIndex((edge) => edge.cursor === args.before);
+          const index = existingEdges.findIndex(
+            (edge) => getCursor(edge, options) === args.before
+          );
           if (index >= 0) {
             suffix = prefix.slice(index);
             prefix = [];

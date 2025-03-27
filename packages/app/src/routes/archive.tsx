@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 
 import { gql } from '../__generated__';
+import { getDefaultPerPageCount } from '../device-preferences/utils/per-page-count';
 import { ArchiveMain } from '../note/components/ArchiveMain';
 import { useIsLoaderDataFulfilled } from '../router/hooks/useIsLoaderDataFulfilled';
 import { loaderUserFetchLogic } from '../router/utils/loader-user-fetch-logic';
@@ -36,7 +37,7 @@ export const Route = createFileRoute('/_root_layout/archive')({
             userBy: {
               id: userId,
             },
-            archive_first: 20,
+            archive_first: getDefaultPerPageCount(apolloClient.cache),
           },
           fetchPolicy,
         })

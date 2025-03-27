@@ -22,6 +22,7 @@ import {
   NoteCategory,
   NotesConnectionGridQueryQuery,
 } from '../../__generated__/graphql';
+import { useDefaultPerPageCount } from '../../device-preferences/hooks/useDefaultPerPageCount';
 import { useUserId } from '../../user/context/user-id';
 import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
 import { useIsSessionExpired } from '../../user/hooks/useIsSessionExpired';
@@ -76,7 +77,7 @@ interface NextFetchInfo {
 }
 
 export function NotesConnectionGrid({
-  perPageCount = 20,
+  perPageCount,
   infiniteLoadingDelay = 500,
   category = NoteCategory.DEFAULT,
   emptyListElement = null,
@@ -100,6 +101,9 @@ export function NotesConnectionGrid({
   emptyListElement?: ReactNode;
 }) {
   const logger = useLogger('NotesConnectionGrid');
+
+  const defaultPerPageCount = useDefaultPerPageCount();
+  perPageCount = perPageCount ?? defaultPerPageCount;
 
   const client = useApolloClient();
   const userId = useUserId();
@@ -174,7 +178,10 @@ export function NotesConnectionGrid({
       },
       category,
     },
+    initialFetchPolicy: 'cache-only',
     fetchPolicy: 'cache-only',
+    nextFetchPolicy:
+      isParentLoading && isOnline && !isSessionExpired ? 'standby' : 'cache-only',
   });
 
   const delayedFetchMore = useCallback(async () => {
@@ -503,12 +510,20 @@ function getLoadingInfo({
       };
     }
 
-    // Initally had no ids and parent filled it, loading by parent is done
-    // Loading all in a page
-    return {
-      loadingCount: Math.max(0, perPageCount - ids.length),
-      loadingIds: ids.slice(0, perPageCount),
-    };
+    if (ids.length > 0) {
+      // If any note is present then don't add loadingCount
+      return {
+        loadingCount: 0,
+        loadingIds: ids.slice(0, perPageCount),
+      };
+    } else {
+      // Initally had no ids and parent filled it, loading by parent is done
+      // Loading all in a page
+      return {
+        loadingCount: perPageCount,
+        loadingIds: EMPTY_ARRAY,
+      };
+    }
   }
 
   return {
