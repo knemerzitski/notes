@@ -57,7 +57,7 @@
     "@vitest/coverage-v8": "^2.0.0",
     "apollo-link-logger": "^2.0.1",
     "apollo-link-serialize": "npm:@knemerzitski/apollo-link-serialize@^5.1.1",
-    "apollo3-cache-persist": "npm:@knemerzitski/apollo3-cache-persist@^0.16.0",
+    "apollo3-cache-persist": "npm:@knemerzitski/apollo3-cache-persist@0.17.1",
     "cypress": "^13.6.3",
     "cypress-vite": "^1.6.0",
     "debug": "^4.4.0",
