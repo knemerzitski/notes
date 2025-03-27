@@ -39,7 +39,9 @@ export function removeUserMessages(
       overwrite: true,
     },
     (data) => {
-      if (!data?.signedInUser) return;
+      if (!data?.signedInUser) {
+        return;
+      }
 
       return {
         ...data,
