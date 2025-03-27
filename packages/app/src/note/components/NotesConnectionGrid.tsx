@@ -373,7 +373,7 @@ export function NotesConnectionGrid({
     return emptyListElement;
   }
 
-  const showLoadingCountAndNoteIds = isOnline && !isSessionExpired;
+  const showLoadingCountAndNoteIds = !isLocalOnlyUser && isOnline && !isSessionExpired;
 
   const isSortableCategory = !!toMovableNoteCategory(category);
 
