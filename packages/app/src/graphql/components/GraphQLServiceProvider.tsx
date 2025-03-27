@@ -9,11 +9,11 @@ import { PersistLinkProvider } from '../context/persist-link';
 import { StatsLinkProvider } from '../context/stats-link';
 import { GraphQLService } from '../types';
 
+import { CacheStatus } from './CacheStatus';
 import { ConfirmLeaveOnPendingPersistCache } from './ConfirmLeaveOnPendingPersistCache';
 
 import { RestorePersistedCache } from './RestorePersistedCache';
 import { ResumePersistedOngoingOperations } from './ResumePersistedOngoingOperations';
-import { CacheStatus } from './CacheStatus';
 
 export function GraphQLServiceProvider({
   service,
