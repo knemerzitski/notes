@@ -35,6 +35,8 @@ Cypress.Commands.add('goOffline', () => {
 
     isOnline = false;
     win.dispatchEvent(new win.Event('offline'));
+
+    cy.log('goOffline');
   });
 });
 
@@ -46,5 +48,7 @@ Cypress.Commands.add('goOnline', () => {
 
     isOnline = true;
     win.dispatchEvent(new win.Event('online'));
+
+    cy.log('goOnline');
   });
 });

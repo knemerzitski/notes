@@ -6,7 +6,7 @@ import { Maybe } from '../../../../utils/src/types';
 
 type ProvidedCachePersistor = Pick<
   CachePersistor<NormalizedCacheObject>,
-  'persist' | 'isPending'
+  'persist' | 'isPending' | 'eventBus'
 >;
 
 const CachePersistorContext = createContext<ProvidedCachePersistor | null>(null);

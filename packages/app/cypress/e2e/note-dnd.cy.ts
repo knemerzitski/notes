@@ -75,8 +75,15 @@ function shouldAppStatusEqual(value: AppStatus[] | AppStatus) {
   return cy.get('[aria-label="app status"]').should(haveData('status', value));
 }
 
+function shouldHavePersistedCache() {
+  return cy.get('[aria-label="cache status"]').should(haveData('pending', 'false'));
+}
+
 function shouldAppBeSync() {
   return shouldAppStatusEqual(['refresh', 'synchronized']);
+}
+function shouldAppBeOffline() {
+  return shouldAppStatusEqual(['offline']);
 }
 
 function shouldHaveOrder(orderedValues: string[]) {
@@ -139,9 +146,11 @@ function arrowDnD(noteContent: string, commands: ('right' | 'left' | 'up' | 'dow
     beforeEach(() => {
       cy.visit('/');
 
+      shouldAppBeSync();
+
       if (network === 'offline') {
-        shouldAppBeSync();
         cy.goOffline();
+        shouldAppBeOffline();
       }
     });
 
@@ -151,13 +160,17 @@ function arrowDnD(noteContent: string, commands: ('right' | 'left' | 'up' | 'dow
 
     function shouldOnlineSync(expectedFn: () => void) {
       if (reload) {
+        shouldHavePersistedCache();
         cy.visit('/');
+        if (network === 'offline') {
+          shouldAppBeOffline();
+        } else {
+          shouldAppBeSync();
+        }
         expectedFn();
       }
 
-      if (network === 'offline') {
-        cy.goOnline();
-      }
+      cy.goOnline();
       // Extra check without optimistic response
       shouldAppBeSync();
       expectedFn();

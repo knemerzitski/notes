@@ -13,6 +13,7 @@ import { ConfirmLeaveOnPendingPersistCache } from './ConfirmLeaveOnPendingPersis
 
 import { RestorePersistedCache } from './RestorePersistedCache';
 import { ResumePersistedOngoingOperations } from './ResumePersistedOngoingOperations';
+import { CacheStatus } from './CacheStatus';
 
 export function GraphQLServiceProvider({
   service,
@@ -29,6 +30,7 @@ export function GraphQLServiceProvider({
         <PersistLinkProvider persistLink={service.links.persistLink}>
           <StatsLinkProvider statsLink={service.links.statsLink}>
             <CachePersistorProvider persistor={service.persistor}>
+              <CacheStatus />
               <CacheRestorerProvider restorer={service.restorer}>
                 <ConfirmLeaveOnPendingPersistCache triggerPersist={true} />
                 <RestorePersistedCache fallback={restoringCacheFallback}>
