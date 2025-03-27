@@ -1,79 +1,35 @@
-import { useState, useEffect, useRef } from 'react';
-
-import { useLogger } from '../../utils/context/logger';
+import { useState, useRef } from 'react';
 
 export function useIsLoaderDataFulfilled<TKey extends string>(
   Route: {
     useLoaderData: (args: {
       select: (match: Record<TKey, unknown>) => unknown;
-    }) => Record<TKey, Promise<unknown>>;
+    }) => unknown;
   },
   key: TKey
 ) {
-  const logger = useLogger('useIsLoaderDataFulfilled');
+  const valueRef = useRef<unknown>(null);
 
-  const latestPromiseRef = useRef<Promise<unknown> | null>(null);
-  const matchCounterRef = useRef(0);
-
-  const [loaded, setLoaded] = useState<{
-    isLoaded: boolean;
-    promise: Promise<unknown> | null;
-  }>({
-    isLoaded: false,
-    promise: null,
-  });
+  const [isLoaded, setIsLoaded] = useState(false);
 
   Route.useLoaderData({
     select(match) {
-      const promise = match[key] as Promise<unknown>;
-      if (latestPromiseRef.current !== promise) {
-        latestPromiseRef.current = promise;
-        matchCounterRef.current++;
+      const value = match[key];
+      if (valueRef.current === value) {
+        return;
       }
-      return matchCounterRef.current;
+      valueRef.current = value;
+      setIsLoaded(false);
+
+      void Promise.resolve(value).finally(() => {
+        if (valueRef.current === value) {
+          setIsLoaded(true);
+        }
+      });
+
+      return;
     },
   });
 
-  const newPromise = latestPromiseRef.current;
-
-  useEffect(() => {
-    if (loaded.promise !== newPromise) {
-      logger?.debug('promiseChanged', {
-        isLoaded: false,
-        promise: newPromise,
-      });
-      setLoaded({
-        isLoaded: false,
-        promise: newPromise,
-      });
-    }
-  }, [logger, loaded.promise, newPromise]);
-
-  useEffect(() => {
-    const promise = loaded.promise;
-    if (!promise) {
-      return;
-    }
-
-    let ignoreFinally = false;
-    logger?.debug('attachFinally');
-    void promise.finally(() => {
-      if (ignoreFinally) {
-        return;
-      }
-
-      logger?.debug('attachFinally.invoked');
-      setLoaded({
-        promise,
-        isLoaded: true,
-      });
-    });
-
-    return () => {
-      logger?.debug('attachFinally.unmount');
-      ignoreFinally = true;
-    };
-  }, [logger, loaded.promise]);
-
-  return loaded.isLoaded;
+  return isLoaded;
 }
