@@ -27,7 +27,10 @@ export function openNoteSubscription({
     <GraphQLServiceProvider service={graphQLService}>
       <CurrentUserIdProvider>
         <NoteIdProvider noteId={noteId}>
-          <OpenNoteSubscription listener={mutationEvents.next.bind(mutationEvents)} />
+          <OpenNoteSubscription
+            listener={mutationEvents.next.bind(mutationEvents)}
+            minRequiredUsers={0}
+          />
         </NoteIdProvider>
       </CurrentUserIdProvider>
     </GraphQLServiceProvider>

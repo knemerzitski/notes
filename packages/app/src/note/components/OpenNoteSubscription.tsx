@@ -1,4 +1,4 @@
-import { useApolloClient } from '@apollo/client';
+import { useApolloClient, useQuery } from '@apollo/client';
 
 import { useEffect } from 'react';
 
@@ -26,14 +26,65 @@ const OpenNoteSubscription_Subscription = gql(`
   }  
 `);
 
-export function OpenNoteSubscription(props: Parameters<typeof Subscription>[0]) {
+const OpenNoteSubscription_Query = gql(`
+  query OpenNoteSubscription_Query($userBy: UserByInput!, $noteBy: NoteByInput!) {
+    signedInUser(by: $userBy) {
+      id
+      note(by: $noteBy) {
+        id
+        users {
+          id
+        }
+      }
+    }
+  }
+`);
+
+export function OpenNoteSubscription(props: Parameters<typeof IfHasMultipleUsers>[0]) {
   const isLocalOnlyNote = useIsLocalOnlyNote();
 
   if (isLocalOnlyNote) {
     return null;
   }
 
-  return <Subscription {...props} />;
+  return <IfHasMultipleUsers {...props} />;
+}
+
+function IfHasMultipleUsers({
+  minRequiredUsers = 2,
+  ...restProps
+}: Parameters<typeof Subscription>[0] & {
+  /**
+   * Minimum amount of users required in a note to start OpenNoteSubscription
+   * @default 2
+   */
+  minRequiredUsers?: number;
+}) {
+  const userId = useUserId();
+  const noteId = useNoteId();
+
+  const { data } = useQuery(OpenNoteSubscription_Query, {
+    fetchPolicy: 'cache-only',
+    variables: {
+      userBy: {
+        id: userId,
+      },
+      noteBy: {
+        id: noteId,
+      },
+    },
+  });
+
+  if (!data) {
+    return null;
+  }
+
+  const haveEnoughUsers = data.signedInUser.note.users.length >= minRequiredUsers;
+  if (!haveEnoughUsers) {
+    return null;
+  }
+
+  return <Subscription {...restProps} />;
 }
 
 function Subscription({
