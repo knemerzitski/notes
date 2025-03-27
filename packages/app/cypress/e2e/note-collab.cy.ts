@@ -589,7 +589,7 @@ function haveData(name: string, value: string[] | string) {
 
 function shouldHaveRevision(revision: number) {
   noteDialog()
-    .find('[aria-label="collab-service"]')
+    .find('[aria-label="collab service status"]')
     .should(haveData('revision', String(revision)));
 }
 

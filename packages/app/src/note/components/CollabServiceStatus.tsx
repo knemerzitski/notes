@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 
 import { useCollabService } from '../hooks/useCollabService';
 
-export function CollabServiceInfo() {
+export function CollabServiceStatus() {
   const collabService = useCollabService(true);
   const [_renderCounter, setRenderCounter] = useState(0);
 
@@ -24,7 +24,7 @@ export function CollabServiceInfo() {
   return (
     <NoLayoutDiv
       aria-hidden="true"
-      aria-label="collab-service"
+      aria-label="collab service status"
       data-revision={collabService.headRevision}
     />
   );

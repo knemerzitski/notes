@@ -2,7 +2,7 @@ import { gql } from '../../__generated__';
 
 import { CollabContentInput } from './CollabContentInput';
 import { CollabService } from './CollabService';
-import { CollabServiceInfo } from './CollabServiceInfo';
+import { CollabServiceStatus } from './CollabServiceStatus';
 import { CollabTitleInput } from './CollabTitleInput';
 
 const _CollabInputs_NoteFragment = gql(`
@@ -22,7 +22,7 @@ export function CollabInputs({
   return (
     <>
       <CollabService visible={true} />
-      <CollabServiceInfo />
+      <CollabServiceStatus />
       <CollabTitleInput {...CollabTitleInputProps} />
       <CollabContentInput {...CollabContentInputProps} />
     </>
