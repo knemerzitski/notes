@@ -20,7 +20,9 @@ export function useIsCachePending() {
   useEffect(
     () =>
       cachePersistor.eventBus.on(['persisted', 'persistError', 'cancelled'], () => {
-        setIsPending(false);
+        setTimeout(() => {
+          setIsPending(false);
+        });
       }),
     [cachePersistor]
   );
