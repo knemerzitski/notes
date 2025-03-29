@@ -69,6 +69,8 @@ export interface SelectionChangeset {
 export interface SimpleTextEvents {
   handledExternalChanges: readonly Readonly<{ changeset: Changeset; revision: number }>[];
   valueChanged: string;
+  appliedUndo: undefined;
+  appliedRedo: undefined;
   selectionChanged: Readonly<SelectionRange>;
 }
 

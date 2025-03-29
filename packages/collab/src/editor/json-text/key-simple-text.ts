@@ -77,6 +77,18 @@ export class KeySimpleText implements SimpleText {
     }
   }
 
+  serviceAppliedRedo() {
+    if (this.prevView.value !== this.view.value) {
+      this._eventBus.emit('appliedRedo');
+    }
+  }
+
+  serviceAppliedUndo() {
+    if (this.prevView.value !== this.view.value) {
+      this._eventBus.emit('appliedUndo');
+    }
+  }
+
   /**
    * Transfrom selection Editor -> CollabService
    */

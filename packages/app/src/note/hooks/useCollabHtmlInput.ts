@@ -146,6 +146,16 @@ export function useCollabHtmlInput(
     });
   }, [editor, logger]);
 
+  // Request focus when undo or redo
+  useEffect(
+    () =>
+      editor.eventBus.on(['appliedRedo', 'appliedUndo'], ({ type }) => {
+        logger?.debug(`eventBus.${type}`);
+        inputRef.current?.focus();
+      }),
+    [editor, logger]
+  );
+
   // User typed/deleted something or undo/redo
   useEffect(() => {
     return editor.eventBus.on('selectionChanged', (selection) => {

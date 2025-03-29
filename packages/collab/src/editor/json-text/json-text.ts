@@ -38,6 +38,8 @@ export class JsonText<K extends string, S extends StringRecordStruct> {
         CollabServiceEvents,
         | 'viewChanged'
         | 'appliedTypingOperation'
+        | 'appliedRedo'
+        | 'appliedUndo'
         | 'handledExternalChanges'
         | 'processingMessages'
         | 'headRevisionChanged'
@@ -129,6 +131,16 @@ export class JsonText<K extends string, S extends StringRecordStruct> {
       service.eventBus.on('appliedTypingOperation', ({ operation: { selection } }) => {
         textViewsList.forEach((textView) => {
           textView.serviceSelectionChanged(selection);
+        });
+      }),
+      service.eventBus.on('appliedRedo', () => {
+        textViewsList.forEach((textView) => {
+          textView.serviceAppliedRedo();
+        });
+      }),
+      service.eventBus.on('appliedUndo', () => {
+        textViewsList.forEach((textView) => {
+          textView.serviceAppliedUndo();
         });
       }),
       service.eventBus.on('processingMessages', () => {
