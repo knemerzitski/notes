@@ -1162,7 +1162,7 @@ describe('with history', () => {
     shouldContentHaveValue('123');
 
     user1.editor.content.insert('a');
-    shouldContentHaveValue('123a');
+    shouldContentHaveValue('a123');
 
     undoButton().click();
     shouldContentHaveValue('123');

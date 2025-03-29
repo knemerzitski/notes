@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
@@ -20,6 +23,12 @@ function setServiceText(service: CollabService, value: string) {
       type: 'merge',
     }
   );
+}
+
+function processEventsCalls(calls: any[][]) {
+  return calls
+    .filter((call) => !['appliedRedo', 'appliedUndo'].includes(call[0].type))
+    .map((call) => [call[0].type, call[0].event]);
 }
 
 describe('one text', () => {
@@ -145,6 +154,13 @@ describe('one text', () => {
   });
 
   it('emits external change json with escaped characters', () => {
+    if (service.submittedRecord) {
+      service.submittedChangesAcknowledged({
+        ...service.submitChanges()!,
+        revision: service.headRevision + 1,
+      });
+    }
+
     const content = multiJsonText.getText(TextType.CONTENT);
 
     const contentEvents = vi.fn();
@@ -173,20 +189,25 @@ describe('one text', () => {
       a"
     `);
 
-    expect(
-      contentEvents.mock.calls.map((call) => [call[0].type, call[0].event])
-    ).toStrictEqual([
+    expect(processEventsCalls(contentEvents.mock.calls)).toStrictEqual([
       ['valueChanged', '\n'],
       ['selectionChanged', { start: 1, end: 1 }],
       ['valueChanged', '\na'],
       [
         'handledExternalChanges',
-        [{ changeset: Changeset.parseValue([0, 'a']), revision: 2 }],
+        [{ changeset: Changeset.parseValue([0, 'a']), revision: service.headRevision }],
       ],
     ]);
   });
 
   it('emits external change json with escaped characters 2', () => {
+    if (service.submittedRecord) {
+      service.submittedChangesAcknowledged({
+        ...service.submitChanges()!,
+        revision: service.headRevision + 1,
+      });
+    }
+
     const content = multiJsonText.getText(TextType.CONTENT);
 
     const contentEvents = vi.fn();
@@ -217,15 +238,18 @@ describe('one text', () => {
       b"
     `);
 
-    expect(
-      contentEvents.mock.calls.map((call) => [call[0].type, call[0].event])
-    ).toStrictEqual([
+    expect(processEventsCalls(contentEvents.mock.calls)).toStrictEqual([
       ['valueChanged', '\n\n'],
       ['selectionChanged', { start: 2, end: 2 }],
       ['valueChanged', '\n\na\nb'],
       [
         'handledExternalChanges',
-        [{ changeset: Changeset.parseValue([[0, 1], 'a\nb']), revision: 2 }],
+        [
+          {
+            changeset: Changeset.parseValue([[0, 1], 'a\nb']),
+            revision: service.headRevision,
+          },
+        ],
       ],
     ]);
   });
@@ -398,9 +422,7 @@ describe('two texts', () => {
       revision: 6,
     });
 
-    expect(
-      contentEvents.mock.calls.map((call) => [call[0].type, call[0].event])
-    ).toStrictEqual([
+    expect(processEventsCalls(contentEvents.mock.calls)).toStrictEqual([
       ['valueChanged', 'hi'],
       ['selectionChanged', { start: 2, end: 2 }],
       [
@@ -423,9 +445,7 @@ describe('two texts', () => {
       ],
     ]);
 
-    expect(
-      titleEvents.mock.calls.map((call) => [call[0].type, call[0].event])
-    ).toStrictEqual([
+    expect(processEventsCalls(titleEvents.mock.calls)).toStrictEqual([
       ['valueChanged', 'hello'],
       [
         'handledExternalChanges',
@@ -496,9 +516,7 @@ describe('two texts', () => {
       revision: 6,
     });
 
-    expect(
-      contentEvents.mock.calls.map((call) => [call[0].type, call[0].event])
-    ).toStrictEqual([
+    expect(processEventsCalls(contentEvents.mock.calls)).toStrictEqual([
       ['valueChanged', 'hi'],
       ['selectionChanged', { start: 2, end: 2 }],
       [
@@ -525,9 +543,7 @@ describe('two texts', () => {
       ],
     ]);
 
-    expect(
-      titleEvents.mock.calls.map((call) => [call[0].type, call[0].event])
-    ).toStrictEqual([
+    expect(processEventsCalls(titleEvents.mock.calls)).toStrictEqual([
       ['valueChanged', 'hello'],
       [
         'handledExternalChanges',
@@ -576,9 +592,7 @@ describe('two texts', () => {
       ),
     });
 
-    expect(
-      contentEvents.mock.calls.map((call) => [call[0].type, call[0].event])
-    ).toStrictEqual([
+    expect(processEventsCalls(contentEvents.mock.calls)).toStrictEqual([
       ['valueChanged', '\nAabc'],
       [
         'handledExternalChanges',
@@ -621,9 +635,7 @@ describe('two texts', () => {
       ),
     });
 
-    expect(
-      contentEvents.mock.calls.map((call) => [call[0].type, call[0].event])
-    ).toStrictEqual([
+    expect(processEventsCalls(contentEvents.mock.calls)).toStrictEqual([
       ['valueChanged', '\n\nAa\nBbc'],
       [
         'handledExternalChanges',
@@ -665,9 +677,7 @@ describe('two texts', () => {
       changeset: Changeset.from(RetainStrip.create(0, 11), RetainStrip.create(15, 36)),
     });
 
-    expect(
-      contentEvents.mock.calls.map((call) => [call[0].type, call[0].event])
-    ).toStrictEqual([
+    expect(processEventsCalls(contentEvents.mock.calls)).toStrictEqual([
       ['valueChanged', '\nabc\n'],
       [
         'handledExternalChanges',
@@ -790,7 +800,7 @@ it('serialize service modified by multiJsonText without errors', () => {
 
   expect(service2.serialize()).toEqual({
     client: {
-      local: ['{"c":"foobar","t":""}'],
+      local: [[0, 5], 'foobar', [6, 14]],
     },
     history: {
       records: [
@@ -818,6 +828,16 @@ it('serialize service modified by multiJsonText without errors', () => {
       serverTailTextTransformToRecordsTailText: null,
       recordsTailText: ['{"c":"","t":""}'],
     },
-    submittedRecord: null,
+    submittedRecord: {
+      afterSelection: {
+        start: 0,
+      },
+      beforeSelection: {
+        start: 0,
+      },
+      changeset: ['{"c":"","t":""}'],
+      revision: 0,
+      userGeneratedId: expect.any(String),
+    },
   });
 });

@@ -27,6 +27,13 @@ beforeEach(() => {
   editor = noteState.fields[FieldName.CONTENT].editor;
   service = noteState.service;
 
+  if (service.submittedRecord) {
+    service.submittedChangesAcknowledged({
+      changeset: service.client.submitted,
+      revision: service.headRevision + 1,
+    });
+  }
+
   cy.mount(<InputEditing />);
 });
 
