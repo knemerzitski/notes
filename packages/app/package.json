@@ -70,7 +70,7 @@
     "graphql-ws": "^5.16.0",
     "jsdom": "^24.0.0",
     "map-obj": "^5.0.2",
-    "mitt": "npm:@knemerzitski/mitt@^3.0.4",
+    "mitt": "npm:@knemerzitski/mitt@^4.0.0",
     "nanoid": "^5.0.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

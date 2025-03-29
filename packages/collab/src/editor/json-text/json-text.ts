@@ -1,14 +1,11 @@
+import { PickReadEmitter } from 'mitt';
+
 import { Logger } from '../../../../utils/src/logging';
 
 import { Changeset } from '../../changeset';
 import { CollabService, CollabServiceEvents } from '../../client/collab-service';
 import { SelectionRange } from '../../client/selection-range';
-import {
-  SelectionChangeset,
-  LimitedEmitter,
-  SimpleText,
-  SimpleTextOperationOptions,
-} from '../../types';
+import { SelectionChangeset, SimpleText, SimpleTextOperationOptions } from '../../types';
 
 import { KeySimpleText } from './key-simple-text';
 import { StructJsonFormatter } from './struct-json-formatter';
@@ -37,19 +34,14 @@ export class JsonText<K extends string, S extends StringRecordStruct> {
       CollabService,
       'viewText' | 'pushSelectionChangeset' | 'headRevision'
     > & {
-      eventBus: Pick<
-        LimitedEmitter<
-          Pick<
-            CollabServiceEvents,
-            | 'viewChanged'
-            | 'appliedTypingOperation'
-            | 'handledExternalChanges'
-            | 'processingMessages'
-            | 'headRevisionChanged'
-            | 'userRecordsFilterNewestRecordIterable'
-          >
-        >,
-        'on'
+      eventBus: PickReadEmitter<
+        CollabServiceEvents,
+        | 'viewChanged'
+        | 'appliedTypingOperation'
+        | 'handledExternalChanges'
+        | 'processingMessages'
+        | 'headRevisionChanged'
+        | 'userRecordsFilterNewestRecordIterable'
       >;
     },
     options?: {

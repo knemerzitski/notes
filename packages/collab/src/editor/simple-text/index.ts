@@ -1,10 +1,9 @@
-import mitt, { Emitter } from 'mitt';
+import mitt, { Emitter, PickReadEmitter } from 'mitt';
 
 import { CollabService, CollabServiceEvents } from '../../client/collab-service';
 import { SelectionRange } from '../../client/selection-range';
 
 import {
-  LimitedEmitter,
   SharedSimpleTextEvents,
   SimpleText,
   SimpleTextEvents,
@@ -32,14 +31,9 @@ export class SimpleTextEditor implements SimpleText {
 
   constructor(
     service: Pick<CollabService, 'viewText' | 'pushSelectionChangeset'> & {
-      eventBus: Pick<
-        LimitedEmitter<
-          Pick<
-            CollabServiceEvents,
-            'viewChanged' | 'appliedTypingOperation' | 'handledExternalChanges'
-          >
-        >,
-        'on'
+      eventBus: PickReadEmitter<
+        CollabServiceEvents,
+        'viewChanged' | 'appliedTypingOperation' | 'handledExternalChanges'
       >;
     }
   ) {

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import mitt from 'mitt';
 import { afterEach, assert, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -171,7 +173,9 @@ describe('one text', () => {
       a"
     `);
 
-    expect(contentEvents.mock.calls).toStrictEqual([
+    expect(
+      contentEvents.mock.calls.map((call) => [call[0].type, call[0].event])
+    ).toStrictEqual([
       ['valueChanged', '\n'],
       ['selectionChanged', { start: 1, end: 1 }],
       ['valueChanged', '\na'],
@@ -213,7 +217,9 @@ describe('one text', () => {
       b"
     `);
 
-    expect(contentEvents.mock.calls).toStrictEqual([
+    expect(
+      contentEvents.mock.calls.map((call) => [call[0].type, call[0].event])
+    ).toStrictEqual([
       ['valueChanged', '\n\n'],
       ['selectionChanged', { start: 2, end: 2 }],
       ['valueChanged', '\n\na\nb'],
@@ -392,7 +398,9 @@ describe('two texts', () => {
       revision: 6,
     });
 
-    expect(contentEvents.mock.calls).toStrictEqual([
+    expect(
+      contentEvents.mock.calls.map((call) => [call[0].type, call[0].event])
+    ).toStrictEqual([
       ['valueChanged', 'hi'],
       ['selectionChanged', { start: 2, end: 2 }],
       [
@@ -415,7 +423,9 @@ describe('two texts', () => {
       ],
     ]);
 
-    expect(titleEvents.mock.calls).toStrictEqual([
+    expect(
+      titleEvents.mock.calls.map((call) => [call[0].type, call[0].event])
+    ).toStrictEqual([
       ['valueChanged', 'hello'],
       [
         'handledExternalChanges',
@@ -486,7 +496,9 @@ describe('two texts', () => {
       revision: 6,
     });
 
-    expect(contentEvents.mock.calls).toStrictEqual([
+    expect(
+      contentEvents.mock.calls.map((call) => [call[0].type, call[0].event])
+    ).toStrictEqual([
       ['valueChanged', 'hi'],
       ['selectionChanged', { start: 2, end: 2 }],
       [
@@ -513,7 +525,9 @@ describe('two texts', () => {
       ],
     ]);
 
-    expect(titleEvents.mock.calls).toStrictEqual([
+    expect(
+      titleEvents.mock.calls.map((call) => [call[0].type, call[0].event])
+    ).toStrictEqual([
       ['valueChanged', 'hello'],
       [
         'handledExternalChanges',
@@ -562,7 +576,9 @@ describe('two texts', () => {
       ),
     });
 
-    expect(contentEvents.mock.calls).toStrictEqual([
+    expect(
+      contentEvents.mock.calls.map((call) => [call[0].type, call[0].event])
+    ).toStrictEqual([
       ['valueChanged', '\nAabc'],
       [
         'handledExternalChanges',
@@ -605,7 +621,9 @@ describe('two texts', () => {
       ),
     });
 
-    expect(contentEvents.mock.calls).toStrictEqual([
+    expect(
+      contentEvents.mock.calls.map((call) => [call[0].type, call[0].event])
+    ).toStrictEqual([
       ['valueChanged', '\n\nAa\nBbc'],
       [
         'handledExternalChanges',
@@ -647,7 +665,9 @@ describe('two texts', () => {
       changeset: Changeset.from(RetainStrip.create(0, 11), RetainStrip.create(15, 36)),
     });
 
-    expect(contentEvents.mock.calls).toStrictEqual([
+    expect(
+      contentEvents.mock.calls.map((call) => [call[0].type, call[0].event])
+    ).toStrictEqual([
       ['valueChanged', '\nabc\n'],
       [
         'handledExternalChanges',

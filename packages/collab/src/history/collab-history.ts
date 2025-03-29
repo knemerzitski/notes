@@ -1,4 +1,4 @@
-import mitt, { Emitter } from 'mitt';
+import mitt, { Emitter, PickReadEmitter } from 'mitt';
 import {
   array,
   assign,
@@ -32,7 +32,6 @@ import { TextMemoRecords } from '../records/text-memo-records';
 import {
   SimpleTextOperationOptions,
   SelectionChangeset,
-  LimitedEmitter,
   ServerRecordsFacade,
 } from '../types';
 
@@ -177,10 +176,7 @@ export interface CollabHistoryOptions {
   logger?: Logger;
   eventBus?: Emitter<CollabHistoryEvents>;
   service?: {
-    eventBus: Pick<
-      LimitedEmitter<Pick<CollabServiceEvents, 'handledExternalChange'>>,
-      'on'
-    >;
+    eventBus: PickReadEmitter<CollabServiceEvents, 'handledExternalChange'>;
   };
   client?: CollabClient;
   records?: ReadonlyHistoryRecord[];

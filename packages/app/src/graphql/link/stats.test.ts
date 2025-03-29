@@ -111,115 +111,147 @@ it('calls events with correct stats', async () => {
   expect(onFn.mock.calls).toMatchInlineSnapshot(`
     [
       [
-        "byType",
         {
-          "ongoingCount": 1,
-          "type": "query",
+          "event": {
+            "ongoingCount": 1,
+            "type": "query",
+          },
+          "type": "byType",
         },
       ],
       [
-        "byName",
         {
-          "ongoingCount": 1,
-          "operationName": "Foo",
+          "event": {
+            "ongoingCount": 1,
+            "operationName": "Foo",
+          },
+          "type": "byName",
         },
       ],
       [
-        "byType",
         {
-          "ongoingCount": 0,
-          "type": "query",
+          "event": {
+            "ongoingCount": 0,
+            "type": "query",
+          },
+          "type": "byType",
         },
       ],
       [
-        "byName",
         {
-          "ongoingCount": 0,
-          "operationName": "Foo",
+          "event": {
+            "ongoingCount": 0,
+            "operationName": "Foo",
+          },
+          "type": "byName",
         },
       ],
       [
-        "byType",
         {
-          "ongoingCount": 1,
-          "type": "mutation",
+          "event": {
+            "ongoingCount": 1,
+            "type": "mutation",
+          },
+          "type": "byType",
         },
       ],
       [
-        "byName",
         {
-          "ongoingCount": 1,
-          "operationName": "Foo",
+          "event": {
+            "ongoingCount": 1,
+            "operationName": "Foo",
+          },
+          "type": "byName",
         },
       ],
       [
-        "byType",
         {
-          "ongoingCount": 0,
-          "type": "mutation",
+          "event": {
+            "ongoingCount": 0,
+            "type": "mutation",
+          },
+          "type": "byType",
         },
       ],
       [
-        "byName",
         {
-          "ongoingCount": 0,
-          "operationName": "Foo",
+          "event": {
+            "ongoingCount": 0,
+            "operationName": "Foo",
+          },
+          "type": "byName",
         },
       ],
       [
-        "byType",
         {
-          "ongoingCount": 1,
-          "type": "mutation",
+          "event": {
+            "ongoingCount": 1,
+            "type": "mutation",
+          },
+          "type": "byType",
         },
       ],
       [
-        "byName",
         {
-          "ongoingCount": 1,
-          "operationName": "Foo",
+          "event": {
+            "ongoingCount": 1,
+            "operationName": "Foo",
+          },
+          "type": "byName",
         },
       ],
       [
-        "byType",
         {
-          "ongoingCount": 0,
-          "type": "mutation",
+          "event": {
+            "ongoingCount": 0,
+            "type": "mutation",
+          },
+          "type": "byType",
         },
       ],
       [
-        "byName",
         {
-          "ongoingCount": 0,
-          "operationName": "Foo",
+          "event": {
+            "ongoingCount": 0,
+            "operationName": "Foo",
+          },
+          "type": "byName",
         },
       ],
       [
-        "byType",
         {
-          "ongoingCount": 1,
-          "type": "mutation",
+          "event": {
+            "ongoingCount": 1,
+            "type": "mutation",
+          },
+          "type": "byType",
         },
       ],
       [
-        "byName",
         {
-          "ongoingCount": 1,
-          "operationName": "Foo",
+          "event": {
+            "ongoingCount": 1,
+            "operationName": "Foo",
+          },
+          "type": "byName",
         },
       ],
       [
-        "byType",
         {
-          "ongoingCount": 0,
-          "type": "mutation",
+          "event": {
+            "ongoingCount": 0,
+            "type": "mutation",
+          },
+          "type": "byType",
         },
       ],
       [
-        "byName",
         {
-          "ongoingCount": 0,
-          "operationName": "Foo",
+          "event": {
+            "ongoingCount": 0,
+            "operationName": "Foo",
+          },
+          "type": "byName",
         },
       ],
     ]

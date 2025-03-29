@@ -368,13 +368,12 @@ export class CollabService {
     this.userRecords = options?.userRecords ?? null;
 
     this.eventsOff.push(
-      this._client.eventBus.on('*', (type, e) => {
+      this._client.eventBus.on('*', ({ type, event }) => {
         if (type !== 'handledExternalChange') {
-          // @ts-expect-error Event payload type cannot be inferred
-          this._eventBus.emit(type, e);
+          this._eventBus.emit(type, event);
         } else {
           this._eventBus.emit(type, {
-            ...(e as CollabClientEvents['handledExternalChange']),
+            ...event,
             revision: this.recordsBuffer.currentVersion,
           });
         }
@@ -382,8 +381,8 @@ export class CollabService {
     );
 
     this.eventsOff.push(
-      this._history.eventBus.on('*', (type, e) => {
-        this._eventBus.emit(type, e);
+      this._history.eventBus.on('*', (payload) => {
+        this._eventBus.emit(payload);
       })
     );
 

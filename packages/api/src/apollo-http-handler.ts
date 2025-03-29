@@ -96,7 +96,7 @@ export function createApolloHttpHandlerDefaultParams(
       const ongoingPromises: Promise<unknown>[] = [];
 
       // When request auth changes, update connection one too
-      currentRequestAuthModel.eventBus.on('*', (type, event) => {
+      currentRequestAuthModel.eventBus.on('*', ({ type, event }) => {
         if (!requestWsConnectionId) {
           return;
         }

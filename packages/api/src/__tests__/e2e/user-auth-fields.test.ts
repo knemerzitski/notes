@@ -211,7 +211,7 @@ function createEditorApi(op: ReturnType<typeof createGraphQLOperations>) {
   // signedInEvents.on('error', () => {
   //   noteOpened.reject();
   // });
-  signedInEvents.on('*', (type, payload) => {
+  signedInEvents.on('*', ({ type, event: payload }) => {
     events.push({
       source: 'signedInEvents',
       type,
@@ -221,7 +221,7 @@ function createEditorApi(op: ReturnType<typeof createGraphQLOperations>) {
 
   function openNote() {
     const eventBus = op.subscribeNoteEditorEvents();
-    eventBus.on('*', (type, payload) => {
+    eventBus.on('*', ({ type, event: payload }) => {
       events.push({
         source: 'noteEditorEvents',
         type,

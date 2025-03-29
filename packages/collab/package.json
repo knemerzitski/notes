@@ -17,7 +17,7 @@
   "dependencies": {
     "@vitest/coverage-v8": "^2.1.6",
     "map-obj": "^5.0.2",
-    "mitt": "npm:@knemerzitski/mitt@^3.0.4",
+    "mitt": "npm:@knemerzitski/mitt@^4.0.0",
     "nanoid": "^5.0.7",
     "superstruct": "npm:@knemerzitski/superstruct@^2.2.5",
     "vitest": "^2.1.4",
