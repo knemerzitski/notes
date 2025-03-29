@@ -76,6 +76,8 @@ function shouldAppStatusEqual(value: AppStatus[] | AppStatus) {
 }
 
 function shouldHavePersistedCache() {
+  // eslint-disable-next-line cypress/no-unnecessary-waiting
+  cy.wait(0); // Wait for next tick before checking
   return cy.get('[aria-label="cache status"]').should(haveData('pending', 'false'));
 }
 

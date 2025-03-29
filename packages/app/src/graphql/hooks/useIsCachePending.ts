@@ -10,7 +10,9 @@ export function useIsCachePending() {
   useEffect(
     () =>
       cachePersistor.eventBus.on(['pending'], () => {
-        setIsPending(true);
+        setTimeout(() => {
+          setIsPending(true);
+        });
       }),
     [cachePersistor]
   );
