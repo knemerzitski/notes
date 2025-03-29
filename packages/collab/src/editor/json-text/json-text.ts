@@ -32,7 +32,7 @@ export class JsonText<K extends string, S extends StringRecordStruct> {
     formatter: StructJsonFormatter<K, S>,
     service: Pick<
       CollabService,
-      'viewText' | 'pushSelectionChangeset' | 'headRevision'
+      'viewText' | 'pushSelectionChangeset' | 'headRevision' | 'submitChanges'
     > & {
       eventBus: PickReadEmitter<
         CollabServiceEvents,
@@ -109,6 +109,10 @@ export class JsonText<K extends string, S extends StringRecordStruct> {
         });
         const view = this.viewsCache.newView(this.localPushCounter > 0);
         if (this.localPushCounter === 0) {
+          this.logger?.debug('outsideChange.beforeSyncView', {
+            serviceViewText: service.viewText,
+            jsonViewText: view.viewText,
+          });
           // Change happened outside this context, must ensure text is in sync with object structure
           if (this.syncView(view)) {
             // viewText had invalid structure
@@ -159,7 +163,13 @@ export class JsonText<K extends string, S extends StringRecordStruct> {
       }),
     ];
 
-    this.syncView(this.viewsCache.view);
+    this.logger?.debug('constructor.beforeSyncView', {
+      serviceViewText: service.viewText,
+    });
+    this.syncView(this.viewsCache.view, {
+      submit: true,
+      type: 'permanent',
+    });
   }
 
   /**
@@ -188,7 +198,13 @@ export class JsonText<K extends string, S extends StringRecordStruct> {
     }
   }
 
-  private syncView(view: ViewTextMemo<K, S>) {
+  private syncView(
+    view: ViewTextMemo<K, S>,
+    options?: {
+      submit?: boolean;
+      type?: 'permanent' | 'merge';
+    }
+  ) {
     if (this.service.viewText !== view.viewText) {
       this.logger?.debug('syncView', {
         view,
@@ -200,9 +216,16 @@ export class JsonText<K extends string, S extends StringRecordStruct> {
           afterSelection: SelectionRange.ZERO,
         },
         {
-          type: 'permanent',
+          type: options?.type,
         }
       );
+      if (options?.submit) {
+        const submittedRecord = this.service.submitChanges();
+        this.logger?.debug('syncView:submit', {
+          sumbmit: submittedRecord,
+          viewText: this.service.viewText,
+        });
+      }
       return true;
     } else {
       return false;
