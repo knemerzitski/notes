@@ -4,17 +4,55 @@ import { useDebouncedCallback, Options } from 'use-debounce';
 import { CollabService } from '../../../../collab/src/client/collab-service';
 
 import { useCollabService } from '../hooks/useCollabService';
+import { useHaveOtherUsersOpenedNote } from '../hooks/useHaveOtherUsersOpenedNote';
 
-export function LocalChangesToSubmittedRecordDebounced(
-  props?: Parameters<typeof ServiceDefined>[0]
-) {
+export function LocalChangesToSubmittedRecordDebounced({
+  singleUser = {
+    wait: 3000,
+    options: {
+      maxWait: 5000,
+    },
+  },
+  multiUser = {
+    wait: 450,
+  },
+  ...restProps
+}: Omit<ToggleSingleOrMultipleUsersProps, 'service'>) {
   const service = useCollabService(true);
 
   if (!service) {
     return null;
   }
 
-  return <ServiceDefined {...props} service={service} />;
+  return (
+    <ToggleSingleOrMultipleUsers
+      singleUser={singleUser}
+      multiUser={multiUser}
+      {...restProps}
+      service={service}
+    />
+  );
+}
+
+type ToggleSingleOrMultipleUsersProps = Parameters<typeof ToggleSingleOrMultipleUsers>[0];
+
+function ToggleSingleOrMultipleUsers({
+  service,
+  singleUser,
+  multiUser,
+}: {
+  service: CollabService;
+  singleUser?: Omit<ServiceDefinedProps, 'service'>;
+  multiUser?: Omit<ServiceDefinedProps, 'service'>;
+}) {
+  const haveOtherUsersOpenedNote = useHaveOtherUsersOpenedNote();
+
+  return (
+    <ServiceDefined
+      {...(haveOtherUsersOpenedNote ? multiUser : singleUser)}
+      service={service}
+    />
+  );
 }
 
 function canSubmit(
@@ -23,14 +61,16 @@ function canSubmit(
   return !service.haveSubmittedChanges() && service.haveLocalChanges();
 }
 
+type ServiceDefinedProps = Parameters<typeof ServiceDefined>[0];
+
 function ServiceDefined({
   service,
-  wait = 1000,
+  wait = 2000,
   options,
 }: {
   service: CollabService;
   /**
-   * @default 1000 milliseconds
+   * @default 2000 milliseconds
    */
   wait?: number;
   options?: Options;
