@@ -5,31 +5,38 @@ import { CollabService } from '../../../../collab/src/client/collab-service';
 
 import { useCollabService } from '../hooks/useCollabService';
 
+export function LocalChangesToSubmittedRecordDebounced(
+  props?: Parameters<typeof ServiceDefined>[0]
+) {
+  const service = useCollabService(true);
+
+  if (!service) {
+    return null;
+  }
+
+  return <ServiceDefined {...props} service={service} />;
+}
+
 function canSubmit(
   service: Pick<CollabService, 'haveSubmittedChanges' | 'haveLocalChanges'>
 ) {
   return !service.haveSubmittedChanges() && service.haveLocalChanges();
 }
 
-export function LocalChangesToSubmittedRecordDebounced({
+function ServiceDefined({
+  service,
   wait = 1000,
   options,
 }: {
+  service: CollabService;
   /**
    * @default 1000 milliseconds
    */
   wait?: number;
   options?: Options;
 }) {
-  const maybeService = useCollabService(true);
-
   const debouncedSubmitChanges = useDebouncedCallback(
     () => {
-      if (!maybeService) {
-        return;
-      }
-      const service = maybeService;
-
       if (canSubmit(service)) {
         service.submitChanges();
       }
@@ -39,11 +46,6 @@ export function LocalChangesToSubmittedRecordDebounced({
   );
 
   useEffect(() => {
-    if (!maybeService) {
-      return;
-    }
-    const service = maybeService;
-
     function attemptSubmit() {
       if (canSubmit(service)) {
         debouncedSubmitChanges();
@@ -61,7 +63,7 @@ export function LocalChangesToSubmittedRecordDebounced({
       eventsOff();
       debouncedSubmitChanges.flush();
     };
-  }, [debouncedSubmitChanges, maybeService]);
+  }, [debouncedSubmitChanges, service]);
 
   return null;
 }
