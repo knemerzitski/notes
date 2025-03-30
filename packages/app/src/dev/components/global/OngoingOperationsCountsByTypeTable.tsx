@@ -13,25 +13,25 @@ import { useEffect, useState } from 'react';
 import { useStatsLink } from '../../../graphql/context/stats-link';
 import { useUserId } from '../../../user/context/user-id';
 
-function copyStats(statsLink: ReturnType<typeof useStatsLink>, userId: string) {
-  return {
-    query: statsLink.getUserOngoing(userId).byType(OperationTypeNode.QUERY),
-    mutation: statsLink.getUserOngoing(userId).byType(OperationTypeNode.MUTATION),
-    subscription: statsLink.getUserOngoing(userId).byType(OperationTypeNode.SUBSCRIPTION),
-  };
-}
-
 export function OngoingOperationsCountsByTypeTable() {
   const statsLink = useStatsLink();
   const userId = useUserId();
 
-  const [stats, setStats] = useState(() => copyStats(statsLink, userId));
+  const [countByType, setCountByType] = useState<Record<OperationTypeNode, number>>({
+    query: 0,
+    mutation: 0,
+    subscription: 0,
+  });
 
   useEffect(() => {
-    setStats(copyStats(statsLink, userId));
-    return statsLink.getUserEventBus(userId).on('byType', () => {
-      setStats(copyStats(statsLink, userId));
-    });
+    return statsLink.subscribeToOngoingDocumentsCountByType(
+      (countByType) => {
+        setCountByType({ ...countByType });
+      },
+      {
+        filterUserId: (testUserId) => testUserId == null || testUserId === userId,
+      }
+    );
   }, [statsLink, userId]);
 
   return (
@@ -51,9 +51,9 @@ export function OngoingOperationsCountsByTypeTable() {
         </TableHead>
         <TableBody>
           <TableRow>
-            <TableCell>{stats.query}</TableCell>
-            <TableCell>{stats.mutation}</TableCell>
-            <TableCell>{stats.subscription}</TableCell>
+            <TableCell>{countByType.query}</TableCell>
+            <TableCell>{countByType.mutation}</TableCell>
+            <TableCell>{countByType.subscription}</TableCell>
           </TableRow>
         </TableBody>
       </Table>

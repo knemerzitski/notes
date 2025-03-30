@@ -1,5 +1,4 @@
 import { useApolloClient } from '@apollo/client';
-import { OperationTypeNode } from 'graphql';
 import { useState, useRef, useEffect } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
@@ -72,9 +71,6 @@ export function useAppStatus(options?: {
       });
     }
 
-    const noUserEventBus = statsLink.getUserEventBus();
-    const userEventBus = statsLink.getUserEventBus(userId);
-
     userHasUnsavedNotesRef.current =
       (client.readQuery({
         query: UseAppStatus_Query,
@@ -104,21 +100,21 @@ export function useAppStatus(options?: {
       },
     });
 
-    ongoingCountRef.current = getOngoingQueryAndMutationCount(userId, statsLink);
+    ongoingCountRef.current = 0;
     let prevOngoingCount = ongoingCountRef.current;
 
-    const noUserUnsub = noUserEventBus.on('byType', () => {
-      ongoingCountRef.current = getOngoingQueryAndMutationCount(userId, statsLink);
-      updateStatus();
-    });
-    const userUnsub = userEventBus.on('byType', () => {
-      ongoingCountRef.current = getOngoingQueryAndMutationCount(userId, statsLink);
-      updateStatus();
-    });
+    const statsLinkUnsubscribe = statsLink.subscribeToOngoingDocumentsCountByType(
+      ({ query, mutation }) => {
+        ongoingCountRef.current = query + mutation;
+        updateStatus();
+      },
+      {
+        filterUserId: (testUserId) => testUserId == null || testUserId === userId,
+      }
+    );
 
     return () => {
-      noUserUnsub();
-      userUnsub();
+      statsLinkUnsubscribe();
       querySubscription.unsubscribe();
     };
   }, [statsLink, userId, setStatusRefreshDebounced, client]);
@@ -157,22 +153,4 @@ export function useAppStatus(options?: {
   }, [setStatusRefreshDebounced]);
 
   return status;
-}
-
-function getOngoingQueryAndMutationCount(
-  userId: string | undefined,
-  statsLink: ReturnType<typeof useStatsLink>
-) {
-  let count = 0;
-  const noUser = statsLink.getUserOngoing(userId);
-  count +=
-    noUser.byType(OperationTypeNode.QUERY) + noUser.byType(OperationTypeNode.MUTATION);
-
-  if (userId && userId !== '') {
-    const user = statsLink.getUserOngoing(userId);
-    count +=
-      user.byType(OperationTypeNode.QUERY) + user.byType(OperationTypeNode.MUTATION);
-  }
-
-  return count;
 }

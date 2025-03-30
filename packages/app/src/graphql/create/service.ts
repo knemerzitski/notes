@@ -9,8 +9,6 @@ import {
 import { isQueryOperation } from '@apollo/client/utilities';
 import { CachePersistor, PersistentStorage } from 'apollo3-cache-persist';
 
-import { OperationTypeNode } from 'graphql';
-
 import { Logger } from '../../../../utils/src/logging';
 
 import { CustomTypePoliciesContextInitializer } from '../../graphql-service';
@@ -169,15 +167,18 @@ export function createGraphQLService({
     return isQueryOperation(operation.query);
   });
   queryGate.close();
-  const offQueryGateOpen = links.pick.statsLink.getGlobalEventBus().on('*', () => {
-    const hasNoMutations =
-      links.pick.statsLink.getGlobalOngoing().byType(OperationTypeNode.MUTATION) == 0;
-    if (hasNoMutations) {
-      // No longer need to listen to stats events
-      offQueryGateOpen();
-      queryGate.open();
+  const offQueryGateOpen = links.pick.statsLink.subscribeToOngoingDocumentsCountByType(
+    ({ mutation }) => {
+      const hasNoMutations = mutation == 0;
+      if (hasNoMutations) {
+        // No longer need to listen to stats events
+        setTimeout(() => {
+          offQueryGateOpen();
+        });
+        queryGate.dispose();
+      }
     }
-  });
+  );
 
   const defaultContext: DefaultContext = {
     getUserGate,

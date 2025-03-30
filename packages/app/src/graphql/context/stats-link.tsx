@@ -4,7 +4,13 @@ import { Maybe } from '../../../../utils/src/types';
 
 import { StatsLink } from '../link/stats';
 
-type ProvidedStatsLink = Pick<StatsLink, 'getUserEventBus' | 'getUserOngoing'>;
+type ProvidedStatsLink = Pick<
+  StatsLink,
+  | 'subscribeToOngoingDocumentsByName'
+  | 'subscribeToOngoingDocumentsCountByType'
+  | 'subscribeToOngoingDocumentCount'
+  | 'getOngoingDocumentCount'
+>;
 
 const StatsLinkContext = createContext<ProvidedStatsLink | null>(null);
 

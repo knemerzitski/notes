@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ApolloClient, gql, InMemoryCache } from '@apollo/client';
 import { MockedResponse, MockLink } from '@apollo/client/testing';
@@ -70,7 +71,7 @@ it('calls events with correct stats', async () => {
   const statsLink = new StatsLink();
 
   const onFn = vi.fn();
-  statsLink.getUserEventBus(undefined).on('*', onFn);
+  statsLink.subscribeToOngoingDocumentsCountByType((s) => onFn({ ...s }));
 
   const client = new ApolloClient({
     cache: new InMemoryCache(),
@@ -112,146 +113,65 @@ it('calls events with correct stats', async () => {
     [
       [
         {
-          "event": {
-            "ongoingCount": 1,
-            "type": "query",
-          },
-          "type": "byType",
+          "mutation": 0,
+          "query": 0,
+          "subscription": 0,
         },
       ],
       [
         {
-          "event": {
-            "ongoingCount": 1,
-            "operationName": "Foo",
-          },
-          "type": "byName",
+          "mutation": 0,
+          "query": 1,
+          "subscription": 0,
         },
       ],
       [
         {
-          "event": {
-            "ongoingCount": 0,
-            "type": "query",
-          },
-          "type": "byType",
+          "mutation": 0,
+          "query": 0,
+          "subscription": 0,
         },
       ],
       [
         {
-          "event": {
-            "ongoingCount": 0,
-            "operationName": "Foo",
-          },
-          "type": "byName",
+          "mutation": 1,
+          "query": 0,
+          "subscription": 0,
         },
       ],
       [
         {
-          "event": {
-            "ongoingCount": 1,
-            "type": "mutation",
-          },
-          "type": "byType",
+          "mutation": 0,
+          "query": 0,
+          "subscription": 0,
         },
       ],
       [
         {
-          "event": {
-            "ongoingCount": 1,
-            "operationName": "Foo",
-          },
-          "type": "byName",
+          "mutation": 1,
+          "query": 0,
+          "subscription": 0,
         },
       ],
       [
         {
-          "event": {
-            "ongoingCount": 0,
-            "type": "mutation",
-          },
-          "type": "byType",
+          "mutation": 0,
+          "query": 0,
+          "subscription": 0,
         },
       ],
       [
         {
-          "event": {
-            "ongoingCount": 0,
-            "operationName": "Foo",
-          },
-          "type": "byName",
+          "mutation": 1,
+          "query": 0,
+          "subscription": 0,
         },
       ],
       [
         {
-          "event": {
-            "ongoingCount": 1,
-            "type": "mutation",
-          },
-          "type": "byType",
-        },
-      ],
-      [
-        {
-          "event": {
-            "ongoingCount": 1,
-            "operationName": "Foo",
-          },
-          "type": "byName",
-        },
-      ],
-      [
-        {
-          "event": {
-            "ongoingCount": 0,
-            "type": "mutation",
-          },
-          "type": "byType",
-        },
-      ],
-      [
-        {
-          "event": {
-            "ongoingCount": 0,
-            "operationName": "Foo",
-          },
-          "type": "byName",
-        },
-      ],
-      [
-        {
-          "event": {
-            "ongoingCount": 1,
-            "type": "mutation",
-          },
-          "type": "byType",
-        },
-      ],
-      [
-        {
-          "event": {
-            "ongoingCount": 1,
-            "operationName": "Foo",
-          },
-          "type": "byName",
-        },
-      ],
-      [
-        {
-          "event": {
-            "ongoingCount": 0,
-            "type": "mutation",
-          },
-          "type": "byType",
-        },
-      ],
-      [
-        {
-          "event": {
-            "ongoingCount": 0,
-            "operationName": "Foo",
-          },
-          "type": "byName",
+          "mutation": 0,
+          "query": 0,
+          "subscription": 0,
         },
       ],
     ]

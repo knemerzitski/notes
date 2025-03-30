@@ -1,69 +1,176 @@
-import { ApolloLink, Operation, NextLink, FetchResult } from '@apollo/client';
 import {
-  Observable,
-  Observer,
+  ApolloLink,
+  Operation,
+  NextLink,
+  FetchResult,
+  TypedDocumentNode,
+  DocumentNode,
+} from '@apollo/client';
+import {
   getMainDefinition,
   getOperationName,
+  Observable,
+  Observer,
 } from '@apollo/client/utilities';
 import { OperationTypeNode, Kind } from 'graphql';
-import mitt, { Emitter } from 'mitt';
 
-import { CountMap } from '../../../../utils/src/map/count-map';
-import { DefinedMap } from '../../../../utils/src/map/defined-map';
+import _isEqual from 'lodash.isequal';
+import mitt, { ReadEmitter } from 'mitt';
 
+import { User } from '../../__generated__/graphql';
 import { findOperationUserIds } from '../utils/find-operation-user-id';
 
-interface StatsOngoingEvents {
-  byType: {
-    type: OperationTypeNode;
-    ongoingCount: number;
-  };
-  byName: {
-    operationName: string;
-    ongoingCount: number;
-  };
-}
-
-interface StatsOngoing {
-  byType(type: OperationTypeNode): number;
-  getTypes(): OperationTypeNode[];
-
-  byName(operationName: string): number;
-  getNames(): string[];
-}
-
 /**
- * Keeps track of ongoing operations by type and name
+ * Keeps track of ongoing operations
  */
 export class StatsLink extends ApolloLink {
-  private readonly globalOngoing;
-  private readonly ongoingByUser;
-  private readonly definedOngoingByUser;
+  private readonly ongoingOperations = new ObservableSet<Operation>();
 
-  constructor() {
-    super();
-    this.globalOngoing = new OngoingData();
-    this.ongoingByUser = new Map<string, OngoingData>();
-    this.definedOngoingByUser = new DefinedMap(
-      this.ongoingByUser,
-      () => new OngoingData()
+  /**
+   *
+   * @param query Document to look for
+   * @param filterVariables Optionally filter document by its variables
+   * @returns
+   */
+  getOngoingDocumentCount<TVariables, TData>(
+    query: DocumentNode | TypedDocumentNode<TData, TVariables>,
+    options?: {
+      variables?: TVariables;
+    }
+  ): number {
+    return [...this.ongoingOperations].reduce(
+      (sum, op) =>
+        sum + (hasOperationSameQueryAndVariables(op, query, options?.variables) ? 1 : 0),
+      0
     );
   }
 
-  getGlobalOngoing(): StatsOngoing {
-    return this.globalOngoing;
+  subscribeToOngoingDocumentCount<TVariables, TData>(
+    query: DocumentNode | TypedDocumentNode<TData, TVariables>,
+    callback: (ongoingCount: number) => void,
+    options?: {
+      variables?: TVariables;
+    }
+  ) {
+    let ongoingCount = this.getOngoingDocumentCount(query, options);
+    callback(ongoingCount);
+
+    return this.ongoingOperations.eventBus.on(
+      ['added', 'removed'],
+      ({ type, event: { value: op } }) => {
+        if (!hasOperationSameQueryAndVariables(op, query, options?.variables)) {
+          return;
+        }
+        ongoingCount += type === 'added' ? 1 : -1;
+        callback(ongoingCount);
+      }
+    );
   }
 
-  getGlobalEventBus(): Pick<Emitter<StatsOngoingEvents>, 'on' | 'off'> {
-    return this.globalOngoing.eventBus;
+  subscribeToOngoingDocumentsCountByType(
+    callback: (stats: Readonly<Record<OperationTypeNode, number>>) => void,
+    options?: {
+      filterUserId?: (userId: User['id'] | undefined) => boolean;
+    }
+  ) {
+    const filterUserId = options?.filterUserId;
+
+    const stats: Record<OperationTypeNode, number> = {
+      query: 0,
+      mutation: 0,
+      subscription: 0,
+    };
+
+    // Initial counting
+    [...this.ongoingOperations].forEach((op) => {
+      if (!isUserOperation(op, filterUserId)) {
+        return;
+      }
+
+      const type = getOperationType(op);
+      if (!type) {
+        return;
+      }
+
+      stats[type] += 1;
+    });
+    callback(stats);
+
+    return this.ongoingOperations.eventBus.on(
+      ['added', 'removed'],
+      ({ type: eventType, event: { value: op } }) => {
+        if (!isUserOperation(op, filterUserId)) {
+          return;
+        }
+
+        const opType = getOperationType(op);
+        if (!opType) {
+          return;
+        }
+
+        stats[opType] += eventType === 'added' ? 1 : -1;
+        callback(stats);
+      }
+    );
   }
 
-  getUserOngoing(userId?: string): StatsOngoing {
-    return this.definedOngoingByUser.get(userId ?? '');
-  }
+  subscribeToOngoingDocumentsByName(
+    callback: (names: Iterable<string>) => void,
+    options?: {
+      filterUserId?: (userId: User['id'] | undefined) => boolean;
+    }
+  ) {
+    const filterUserId = options?.filterUserId;
 
-  getUserEventBus(userId?: string): Pick<Emitter<StatsOngoingEvents>, 'on' | 'off'> {
-    return this.definedOngoingByUser.get(userId ?? '').eventBus;
+    const map = new Map<string, number>();
+
+    function inc(name: string) {
+      const count = map.get(name);
+      if (count == null) {
+        map.set(name, 1);
+      } else {
+        map.set(name, count + 1);
+      }
+    }
+
+    function dec(name: string) {
+      const count = map.get(name);
+      if (count == null) {
+        throw new Error(`Unexpected decrement not ongoing operation ${name}`);
+      }
+
+      if (count > 1) {
+        map.set(name, count - 1);
+      } else {
+        map.delete(name);
+      }
+    }
+
+    // Initial counting
+    [...this.ongoingOperations].forEach((op) => {
+      if (!isUserOperation(op, filterUserId)) {
+        return;
+      }
+
+      inc(op.operationName);
+    });
+    callback(map.keys());
+
+    return this.ongoingOperations.eventBus.on(
+      ['added', 'removed'],
+      ({ type: eventType, event: { value: op } }) => {
+        if (!isUserOperation(op, filterUserId)) {
+          return;
+        }
+
+        if (eventType === 'added') {
+          inc(op.operationName);
+        } else {
+          dec(op.operationName);
+        }
+        callback(map.keys());
+      }
+    );
   }
 
   public override request(
@@ -74,118 +181,88 @@ export class StatsLink extends ApolloLink {
       return null;
     }
 
-    const definition = getMainDefinition(operation.query);
-    if (definition.kind !== Kind.OPERATION_DEFINITION) {
-      return forward(operation);
-    }
-    const type = definition.operation;
-    const operationName = getOperationName(operation.query) ?? 'unknown';
-
-    const userIds: string[] = [];
-    try {
-      userIds.push(...findOperationUserIds(operation));
-    } catch (err) {
-      console.error(err);
-      throw err;
-    }
-    if (userIds.length === 0) {
-      // Operation without user is marked with empty string
-      userIds.push('');
-    }
-
-    for (const userId of userIds) {
-      const userOngoing = this.definedOngoingByUser.get(userId);
-
-      userOngoing.byTypeMap[type]++;
-      userOngoing.operationCountMap.increment(operationName);
-      this.globalOngoing.byTypeMap[type]++;
-      this.globalOngoing.operationCountMap.increment(operationName);
-
-      userOngoing.eventBus.emit('byType', {
-        type,
-        ongoingCount: userOngoing.byTypeMap[type],
-      });
-      userOngoing.eventBus.emit('byName', {
-        operationName,
-        ongoingCount: userOngoing.operationCountMap.get(operationName),
-      });
-    }
-
-    this.globalOngoing.eventBus.emit('byType', {
-      type,
-      ongoingCount: this.globalOngoing.byTypeMap[type],
-    });
-    this.globalOngoing.eventBus.emit('byName', {
-      operationName,
-      ongoingCount: this.globalOngoing.operationCountMap.get(operationName),
-    });
+    this.ongoingOperations.add(operation);
 
     const observable = forward(operation);
 
     return new Observable<FetchResult>((observer: Observer<FetchResult>) => {
       const sub = observable.subscribe(observer);
       return () => {
-        for (const userId of userIds) {
-          const userOngoing = this.definedOngoingByUser.get(userId);
-
-          userOngoing.byTypeMap[type]--;
-          userOngoing.operationCountMap.decrement(operationName);
-          this.globalOngoing.byTypeMap[type]--;
-          this.globalOngoing.operationCountMap.decrement(operationName);
-
-          userOngoing.eventBus.emit('byType', {
-            type,
-            ongoingCount: userOngoing.byTypeMap[type],
-          });
-          userOngoing.eventBus.emit('byName', {
-            operationName,
-            ongoingCount: userOngoing.operationCountMap.get(operationName),
-          });
-        }
-
-        this.globalOngoing.eventBus.emit('byType', {
-          type,
-          ongoingCount: this.globalOngoing.byTypeMap[type],
-        });
-        this.globalOngoing.eventBus.emit('byName', {
-          operationName,
-          ongoingCount: this.globalOngoing.operationCountMap.get(operationName),
-        });
-
+        this.ongoingOperations.remove(operation);
         sub.unsubscribe();
       };
     });
   }
 }
 
-class OngoingData implements StatsOngoing {
-  readonly eventBus = mitt<StatsOngoingEvents>();
-
-  private readonly _operationCountMap = new Map<string, number>();
-  readonly operationCountMap = new CountMap(this._operationCountMap);
-  readonly byTypeMap: Record<OperationTypeNode, number> = {
-    query: 0,
-    mutation: 0,
-    subscription: 0,
-  };
-
-  byType(type: OperationTypeNode): number {
-    return this.byTypeMap[type];
+function hasOperationSameQueryAndVariables<TVariables, TData>(
+  operation: Pick<Operation, 'variables' | 'operationName'>,
+  query: DocumentNode | TypedDocumentNode<TData, TVariables>,
+  variables?: TVariables
+): boolean {
+  if (operation.operationName !== getOperationName(query)) {
+    return false;
   }
 
-  getTypes(): OperationTypeNode[] {
-    return [
-      OperationTypeNode.QUERY,
-      OperationTypeNode.MUTATION,
-      OperationTypeNode.SUBSCRIPTION,
-    ];
+  if (variables != null && !_isEqual(variables, operation.variables)) {
+    return false;
   }
 
-  byName(operationName: string): number {
-    return this._operationCountMap.get(operationName) ?? 0;
+  return true;
+}
+
+function isUserOperation(
+  op: Operation,
+  filterUserId: ((userId: User['id'] | undefined) => boolean) | undefined
+) {
+  if (!filterUserId) {
+    return true;
   }
 
-  getNames(): string[] {
-    return [...this._operationCountMap.keys()];
+  const isValidUser = findOperationUserIds(op).some(filterUserId);
+
+  return isValidUser;
+}
+
+function getOperationType(op: Operation) {
+  const definition = getMainDefinition(op.query);
+  if (definition.kind !== Kind.OPERATION_DEFINITION) {
+    return;
+  }
+
+  return definition.operation;
+}
+
+interface ObservableSetEvents<T> {
+  added: Readonly<{
+    value: T;
+  }>;
+  removed: Readonly<{
+    value: T;
+  }>;
+}
+
+class ObservableSet<T> implements Iterable<T> {
+  private _eventBus;
+  get eventBus(): ReadEmitter<ObservableSetEvents<T>> {
+    return this._eventBus;
+  }
+
+  constructor(private readonly set = new Set<T>()) {
+    this._eventBus = mitt<ObservableSetEvents<T>>();
+  }
+
+  add(value: T) {
+    this.set.add(value);
+    this._eventBus.emit('added', { value });
+  }
+
+  remove(value: T) {
+    this.set.delete(value);
+    this._eventBus.emit('removed', { value });
+  }
+
+  [Symbol.iterator](): Iterator<T> {
+    return this.set.values();
   }
 }

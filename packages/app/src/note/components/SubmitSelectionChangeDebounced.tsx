@@ -9,6 +9,7 @@ import { RevisionChangeset } from '../../../../collab/src/records/record';
 import { EMPTY_ARRAY } from '../../../../utils/src/array/empty';
 
 import { gql } from '../../__generated__';
+import { OpenNoteSubscriptionSubscriptionDocument } from '../../__generated__/graphql';
 import { useStatsLink } from '../../graphql/context/stats-link';
 import { useUserId } from '../../user/context/user-id';
 import { useLogger } from '../../utils/context/logger';
@@ -23,8 +24,6 @@ import {
   getUserHeadTextSelection,
   RevisionSelectionRange,
 } from '../utils/selection';
-
-import { openNoteSubscriptionOperationName } from './OpenNoteSubscription';
 
 const SubmitSelectionChangeDebounced_UserNoteLinkFragment = gql(`
   fragment SubmitSelectionChangeDebounced_UserNoteLinkFragment on UserNoteLink {
@@ -156,8 +155,18 @@ export function SubmitSelectionChangeDebounced({
 
       // Ensure user is subscribed to `openNoteEvents`
       const isSubscribed =
-        statsLink.getUserOngoing(userId).byName(openNoteSubscriptionOperationName) > 0;
-      // TODO wait for a bit for sub to be ready, opennotesub will respond, so in cache will have open value..
+        statsLink.getOngoingDocumentCount(OpenNoteSubscriptionSubscriptionDocument, {
+          variables: {
+            input: {
+              authUser: {
+                id: userId,
+              },
+              note: {
+                id: noteId,
+              },
+            },
+          },
+        }) > 0;
       if (!isSubscribed) {
         // Will retry when subscribed
         logger?.debug('notSubscribed');
@@ -213,20 +222,32 @@ export function SubmitSelectionChangeDebounced({
   );
 
   // Don't submit until subscribed to `openNoteEvents`
-  useEffect(() => {
-    const eventBus = statsLink.getUserEventBus(userId);
+  useEffect(
+    () =>
+      statsLink.subscribeToOngoingDocumentCount(
+        OpenNoteSubscriptionSubscriptionDocument,
+        (ongoingCount) => {
+          const isSubscribed = ongoingCount > 0;
+          if (isSubscribed) {
+            debouncedSubmitSelection();
+          }
+        },
+        {
+          variables: {
+            input: {
+              authUser: {
+                id: userId,
+              },
+              note: {
+                id: noteId,
+              },
+            },
+          },
+        }
+      ),
 
-    return eventBus.on('byName', ({ operationName, ongoingCount }) => {
-      if (operationName !== openNoteSubscriptionOperationName) {
-        return;
-      }
-
-      const isSubscribed = ongoingCount > 0;
-      if (isSubscribed) {
-        debouncedSubmitSelection();
-      }
-    });
-  }, [statsLink, userId, debouncedSubmitSelection]);
+    [statsLink, userId, noteId, debouncedSubmitSelection]
+  );
 
   // Submit when note is open
   useEffect(() => {

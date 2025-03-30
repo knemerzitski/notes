@@ -2,7 +2,6 @@ import { useQuery } from '@apollo/client';
 import { IconButton, IconButtonProps, Tooltip } from '@mui/material';
 
 import { useNavigate } from '@tanstack/react-router';
-import { OperationTypeNode } from 'graphql';
 import { forwardRef, useEffect, useRef } from 'react';
 
 import { gql } from '../../__generated__';
@@ -46,23 +45,20 @@ export const AppStatusRefreshButton = forwardRef<
   const isLocalOnlyUser = data?.signedInUser.localOnly ?? false;
 
   // Prevent refetching queries from spam click
-  const fetcingQueriesRef = useRef(getOngoingQueryCount(userId, statsLink) > 0);
+  const fetcingQueriesRef = useRef(true);
 
-  useEffect(() => {
-    fetcingQueriesRef.current = getOngoingQueryCount(userId, statsLink) > 0;
-
-    const noUserUnsub = statsLink.getUserEventBus().on('byType', () => {
-      fetcingQueriesRef.current = getOngoingQueryCount(userId, statsLink) > 0;
-    });
-    const userUnsub = statsLink.getUserEventBus(userId).on('byType', () => {
-      fetcingQueriesRef.current = getOngoingQueryCount(userId, statsLink) > 0;
-    });
-
-    return () => {
-      noUserUnsub();
-      userUnsub();
-    };
-  }, [statsLink, userId]);
+  useEffect(
+    () =>
+      statsLink.subscribeToOngoingDocumentsCountByType(
+        ({ query }) => {
+          fetcingQueriesRef.current = query > 0;
+        },
+        {
+          filterUserId: (testUserId) => testUserId == null || testUserId === userId,
+        }
+      ),
+    [statsLink, userId]
+  );
 
   // Local user cannot fetch from server
   if (isLocalOnlyUser) {
@@ -112,19 +108,3 @@ export const AppStatusRefreshButton = forwardRef<
     </IconButton>
   );
 });
-
-function getOngoingQueryCount(
-  userId: string | undefined,
-  statsLink: ReturnType<typeof useStatsLink>
-) {
-  let count = 0;
-  const noUser = statsLink.getUserOngoing(userId);
-  count += noUser.byType(OperationTypeNode.QUERY);
-
-  if (userId && userId !== '') {
-    const user = statsLink.getUserOngoing(userId);
-    count += user.byType(OperationTypeNode.QUERY);
-  }
-
-  return count;
-}

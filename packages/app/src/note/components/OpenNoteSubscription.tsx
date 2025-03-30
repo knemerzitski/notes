@@ -14,8 +14,6 @@ import { useIsLocalOnlyNote } from '../hooks/useIsLocalOnlyNote';
 import { setOpenedNoteActive } from '../models/opened-note/set-active';
 import { getUserNoteLinkId } from '../utils/id';
 
-export const openNoteSubscriptionOperationName = 'OpenNoteSubscription_Subscription';
-
 const OpenNoteSubscription_Subscription = gql(`
   subscription OpenNoteSubscription_Subscription($input: OpenNoteEventsInput!) {
     openNoteEvents(input: $input) {
