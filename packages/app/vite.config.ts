@@ -43,7 +43,6 @@ export default async ({ mode, isPreview }: ConfigEnv) => {
 
   return defineConfig({
     plugins: [
-      react(),
       ...(enableGeneratePlugins
         ? [
             // Use generate plugins only when not running Cypress E2E tests
@@ -97,6 +96,7 @@ export default async ({ mode, isPreview }: ConfigEnv) => {
             }),
           ]
         : []),
+      react(),
     ],
     build: {
       outDir: process.env.VITE_APP_OUT_DIR ?? 'out',
