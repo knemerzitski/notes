@@ -11,11 +11,9 @@ import { boolean, coerce, number, optional, string, type } from 'superstruct';
 import { gql } from '../__generated__';
 import { AppBarDrawerLayout } from '../layout/components/AppBarDrawerLayout';
 import { RedirectLinkSharedNote } from '../note/components/RedirectLinkSharedNote';
-import { RedirectNoteNotFound } from '../note/components/RedirectNoteNotFound';
 import { RedirectToMobileNote } from '../note/components/RedirectToMobileNote';
 import { RouteNoteDialog } from '../note/components/RouteNoteDialog';
 import { RouteNoteSharingDialog } from '../note/components/RouteNoteSharingDialog';
-import { NoteIdProvider } from '../note/context/note-id';
 import { RootRoute } from '../root-route';
 import { RouterContext } from '../router';
 import { loaderUserFetchLogic } from '../router/utils/loader-user-fetch-logic';
@@ -156,23 +154,14 @@ function Root() {
     <Modules>
       <Outlet />
 
-      {noteId && (
-        <NoteIdProvider noteId={noteId}>
-          <RedirectNoteNotFound
-            navigateOptions={{
-              to: '.',
-              search: (prev) => ({
-                ...prev,
-                noteId: undefined,
-              }),
-            }}
-          >
-            <RouteNoteDialog key={dialogKey} />
-          </RedirectNoteNotFound>
-        </NoteIdProvider>
-      )}
+      {noteId && <RouteNoteDialog noteId={noteId} key={`noteDialog-${dialogKey}`} />}
 
-      {sharingNoteId && <RouteNoteSharingDialog key={dialogKey} noteId={sharingNoteId} />}
+      {sharingNoteId && (
+        <RouteNoteSharingDialog
+          key={`noteSharingDialog-${dialogKey}`}
+          noteId={sharingNoteId}
+        />
+      )}
 
       {signIn && <RouteSignInDialog />}
     </Modules>

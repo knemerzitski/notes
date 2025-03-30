@@ -5,11 +5,12 @@ import { gql } from '../../__generated__';
 import { useGetCanGoBack } from '../../router/context/get-can-go-back';
 import { OnCloseProvider } from '../../utils/context/on-close';
 import { noteEditDialogId } from '../../utils/element-id';
-import { useNoteId } from '../context/note-id';
+import { NoteIdProvider, useNoteId } from '../context/note-id';
 
 import { useOnNoteNotEditable } from '../hooks/useOnNoteNotEditable';
 
 import { NoteDialog } from './NoteDialog';
+import { RedirectNoteNotFound } from './RedirectNoteNotFound';
 
 const _RouteNoteDialog_NoteFragment = gql(`
   fragment RouteNoteDialog_NoteFragment on Note {
@@ -17,10 +18,28 @@ const _RouteNoteDialog_NoteFragment = gql(`
   }
 `);
 
+export function RouteNoteDialog({ noteId }: { noteId: string }) {
+  return (
+    <NoteIdProvider noteId={noteId}>
+      <RedirectNoteNotFound
+        navigateOptions={{
+          to: '.',
+          search: (prev) => ({
+            ...prev,
+            noteId: undefined,
+          }),
+        }}
+      >
+        <MyDialog />
+      </RedirectNoteNotFound>
+    </NoteIdProvider>
+  );
+}
+
 /**
  * Note dialog that is based on query search ?noteId=...
  */
-export function RouteNoteDialog() {
+function MyDialog() {
   const noteId = useNoteId();
 
   const [open, setOpen] = useState(true);
