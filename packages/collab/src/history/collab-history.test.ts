@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { expect, it } from 'vitest';
 
 import { LocalServerRecords } from '../__tests__/helpers/server-records';
 import { Changeset } from '../changeset';
-import { CollabClient } from '../client/collab-client';
 import { SelectionRange } from '../client/selection-range';
 
 import { UserRecords } from '../client/user-records';
@@ -10,11 +10,12 @@ import { UserRecords } from '../client/user-records';
 import { RevisionRecords } from '../records/revision-records';
 
 import { CollabHistory, HistoryRecord, HistoryRecordArrayStruct } from './collab-history';
+import { CollabServiceRecord } from '../client/collab-service';
 
 it('restores records from user records while having external change', () => {
   const userRecords = new UserRecords({
     serverRecords: new LocalServerRecords({
-      records: new RevisionRecords({
+      records: new RevisionRecords<CollabServiceRecord>({
         tailText: {
           // a
           changeset: Changeset.parseValue(['a']),
@@ -71,39 +72,45 @@ it('restores records from user records while having external change', () => {
     userId: 'A',
   });
 
-  const client = new CollabClient({
-    server: Changeset.parseValue(['abcde']),
-  });
   const history = new CollabHistory({
-    client,
-    recordsTailText: Changeset.parseValue(['abcd']),
-    serverTailRevision: 6,
+    serverTailRecord: {
+      changeset: Changeset.parseValue(['abcd']),
+      revision: 6,
+    },
     lastExecutedIndex: {
       server: 0,
       submitted: 0,
-      local: 0,
+      execute: 0,
     },
-    serverTailTextTransformToRecordsTailText: null,
+    serverToLocalHistoryTransform: null,
     records: [
       {
         // abcde
+        type: 'execute',
         changeset: Changeset.parseValue([[0, 3], 'e']),
         afterSelection: SelectionRange.from(5),
         beforeSelection: SelectionRange.from(4),
+        serverRecord: {
+          revision: 7,
+          changeset: Changeset.parseValue([[0, 3], 'e']),
+        },
       },
     ],
   });
 
   // "abcdef"
-  client.handleExternalChange(Changeset.parseValue([[0, 4], 'f']));
+  history.handleExternalChange({
+    revision: 8,
+    changeset: Changeset.parseValue([[0, 4], 'f']),
+  });
+
   history.restoreFromUserRecords(userRecords, 1);
 });
 
+// TODO copied to collab2
 it('undo/redo with external changes', () => {
-  const client = new CollabClient();
-  const history = new CollabHistory({
-    client,
-  });
+  const history = new CollabHistory();
+  const client = history;
 
   history.pushSelectionChangeset({
     changeset: Changeset.parseValue(['a']),
@@ -124,18 +131,30 @@ it('undo/redo with external changes', () => {
   //abc
   expect(client.view.joinInsertions()).toMatchInlineSnapshot(`"abc"`);
 
-  client.handleExternalChange(Changeset.parseValue(['X']));
+  client.handleExternalChange({
+    revision: 1,
+    changeset: Changeset.parseValue(['X']),
+  });
   //Xabc
   expect(client.view.joinInsertions()).toMatchInlineSnapshot(`"Xabc"`);
 
   client.submitChanges();
-  client.submittedChangesAcknowledged();
+  client.submittedChangesAcknowledged({
+    revision: 2,
+    changeset: history.submitted,
+  });
 
-  client.handleExternalChange(Changeset.parseValue([0, 'Y', [1, 3]]));
+  client.handleExternalChange({
+    revision: 3,
+    changeset: Changeset.parseValue([0, 'Y', [1, 3]]),
+  });
   //XYabc
   expect(client.view.joinInsertions()).toMatchInlineSnapshot(`"XYabc"`);
 
-  client.handleExternalChange(Changeset.parseValue([[0, 4], '2']));
+  client.handleExternalChange({
+    revision: 4,
+    changeset: Changeset.parseValue([[0, 4], '2']),
+  });
   //XYabc2
   expect(client.view.joinInsertions()).toMatchInlineSnapshot(`"XYabc2"`);
 
@@ -146,7 +165,10 @@ it('undo/redo with external changes', () => {
   //XYabcd2
   expect(client.view.joinInsertions()).toMatchInlineSnapshot(`"XYabcd2"`);
 
-  client.handleExternalChange(Changeset.parseValue([[0, 4], '1', 5]));
+  client.handleExternalChange({
+    revision: 5,
+    changeset: Changeset.parseValue([[0, 4], '1', 5]),
+  });
   //XYabc1d2
   expect(client.view.joinInsertions()).toMatchInlineSnapshot(`"XYabc1d2"`);
 
@@ -191,11 +213,10 @@ it('undo/redo with external changes', () => {
   expect(client.view.joinInsertions()).toMatchInlineSnapshot(`"XYabc1d2"`);
 });
 
+// TODO copied to collab2
 it('undo changes', () => {
-  const client = new CollabClient();
-  const history = new CollabHistory({
-    client,
-  });
+  const history = new CollabHistory();
+  const client = history;
 
   history.pushSelectionChangeset({
     changeset: Changeset.parseValue(['a']),
@@ -234,6 +255,7 @@ it('restored re-serializes to same value', () => {
           start: 2,
         },
         changeset: [[0, 1], 'c', [2, 3]],
+        type: 'execute',
       },
       {
         afterSelection: {
@@ -243,23 +265,23 @@ it('restored re-serializes to same value', () => {
           start: 4,
         },
         changeset: [[0, 3], 'e', 4],
+        type: 'execute',
       },
     ],
     lastExecutedIndex: {
-      local: 1,
+      execute: 1,
       server: 1,
       submitted: 1,
     },
-    serverTailTextTransformToRecordsTailText: [[0, 1], 'df'],
-    serverTailRevision: 4,
-    recordsTailText: ['abdf'],
+    serverToLocalHistoryTransform: null,
+    serverTailRecord: {
+      changeset: ['abdf'],
+      revision: 4,
+    },
   };
 
   const parsedHistory = new CollabHistory({
     ...CollabHistory.parseValue(serializedHistoryOptions),
-    client: new CollabClient({
-      server: Changeset.parseValue(['abcdef']),
-    }),
   });
 
   const againSerializedHistoryOptions = parsedHistory.serialize(true);
@@ -270,11 +292,13 @@ it('restored re-serializes to same value', () => {
 it('serializes selection correctly', () => {
   const records: HistoryRecord[] = [
     {
+      type: 'execute',
       changeset: Changeset.EMPTY,
       afterSelection: SelectionRange.from(1),
       beforeSelection: SelectionRange.from(0),
     },
     {
+      type: 'execute',
       changeset: Changeset.EMPTY,
       afterSelection: SelectionRange.from(2),
       beforeSelection: SelectionRange.from(1),
@@ -291,40 +315,46 @@ it('serializes selection correctly', () => {
           "start": 0,
         },
         "changeset": [],
+        "type": "execute",
       },
       {
         "afterSelection": {
           "start": 2,
         },
         "changeset": [],
+        "type": "execute",
       },
     ]
   `);
 });
 
 it('does not merge record at serverIndex', () => {
-  const client = new CollabClient({
-    server: Changeset.parseValue(['abcde']),
-  });
   const history = new CollabHistory({
-    client,
-    recordsTailText: Changeset.parseValue(['abcd']),
-    serverTailRevision: 6,
+    serverTailRecord: {
+      changeset: Changeset.parseValue(['abcd']),
+      revision: 6,
+    },
     lastExecutedIndex: {
       server: 0,
       submitted: 0,
-      local: 0,
+      execute: 0,
     },
-    serverTailTextTransformToRecordsTailText: null,
+    serverToLocalHistoryTransform: null,
     records: [
       {
         // abcde
+        type: 'execute',
         changeset: Changeset.parseValue([[0, 3], 'e']),
         afterSelection: SelectionRange.from(5),
         beforeSelection: SelectionRange.from(4),
+        serverRecord: {
+          changeset: Changeset.parseValue([[0, 3], 'e']),
+          revision: 7,
+        },
       },
     ],
   });
+  const client = history;
 
   history.pushSelectionChangeset(
     {
@@ -338,7 +368,10 @@ it('does not merge record at serverIndex', () => {
   );
   // 0abcde
 
-  client.handleExternalChange(Changeset.parseValue([[0, 4], 'f']));
+  client.handleExternalChange({
+    revision: 8,
+    changeset: Changeset.parseValue([[0, 4], 'f']),
+  });
   // "0abcdef"
 
   history.pushSelectionChangeset({

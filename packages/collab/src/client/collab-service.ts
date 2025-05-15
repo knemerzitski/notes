@@ -1,4 +1,4 @@
-import mitt, { Emitter } from 'mitt';
+import mitt, { Emitter, ReadEmitter } from 'mitt';
 import { nanoid } from 'nanoid';
 
 import {
@@ -37,18 +37,11 @@ import {
 } from '../records/record';
 import { SimpleTextOperationOptions, SelectionChangeset } from '../types';
 
-import {
-  CollabClient,
-  CollabClientEvents,
-  CollabClientOptions,
-  CollabClientOptionsStruct,
-} from './collab-client';
 import { SubmittedRecord } from './submitted-record';
 import { UserRecords, UserRecordsEvents } from './user-records';
 
-export type CollabServiceEvents = Omit<CollabClientEvents, 'handledExternalChange'> &
+export type CollabServiceEvents = Omit<CollabHistoryEvents, 'handledExternalChange'> &
   Omit<OrderedMessageBufferEvents<UnprocessedRecord>, 'processingMessages'> &
-  CollabHistoryEvents &
   CustomCollabServiceEvents;
 
 type CollabServiceProcessingEvents = Omit<
@@ -58,7 +51,7 @@ type CollabServiceProcessingEvents = Omit<
   messagesProcessed: {
     hadExternalChanges: boolean;
   };
-} & Pick<CollabClientEvents, 'handledExternalChange'>;
+} & Pick<CollabHistoryEvents, 'handledExternalChange'>;
 
 interface CustomCollabServiceEvents {
   headRevisionChanged: Readonly<{
@@ -87,12 +80,12 @@ interface CustomCollabServiceEvents {
   processingMessages: Readonly<{
     eventBus: Emitter<CollabServiceProcessingEvents>;
   }>;
-  handledExternalChange: CollabClientEvents['handledExternalChange'] &
+  handledExternalChange: CollabHistoryEvents['handledExternalChange'] &
     Readonly<{
       revision: number;
     }>;
   handledExternalChanges: readonly Readonly<{
-    event: CollabClientEvents['handledExternalChange'];
+    event: CollabHistoryEvents['handledExternalChange'];
     revision: number;
   }>[];
   submittedRecord: Readonly<{
@@ -142,10 +135,9 @@ const UnprocessedRecordStruct = union([
 export type UnprocessedRecord = Infer<typeof UnprocessedRecordStruct>;
 
 const CollabServiceOptionsStruct = object({
-  client: omit(CollabClientOptionsStruct, ['submitted']), // instead of omit make it optional?
   submittedRecord: nullable(SubmittedRevisionRecordStruct),
   recordsBuffer: optional(OrderedMessageBufferParamsStruct(UnprocessedRecordStruct)),
-  history: omit(CollabHistoryOptionsStruct, ['serverTailRevision']),
+  history: CollabHistoryOptionsStruct,
 });
 
 type UnprocessedRecordsBuffer = OrderedMessageBuffer<typeof UnprocessedRecordStruct>;
@@ -163,8 +155,7 @@ export interface CollabServiceOptions {
   recordsBuffer?:
     | UnprocessedRecordsBuffer
     | Omit<UnprocessedRecordsBufferOptions, 'messageMapper'>;
-  client?: CollabClient | CollabClientOptions;
-  history?: CollabHistory | Omit<CollabHistoryOptions, 'client' | 'service'>;
+  history?: CollabHistory | Omit<CollabHistoryOptions, 'service'>;
   submittedRecord?: SubmittedRecord;
 }
 
@@ -180,7 +171,7 @@ export class CollabService {
   public readonly logger;
 
   private readonly _eventBus: Emitter<CollabServiceEvents>;
-  get eventBus(): Pick<Emitter<CollabServiceEvents>, 'on' | 'off'> {
+  get eventBus(): ReadEmitter<CollabServiceEvents> {
     return this._eventBus;
   }
 
@@ -233,7 +224,6 @@ export class CollabService {
 
   private recordsBuffer: UnprocessedRecordsBuffer;
 
-  private _client: CollabClient;
   private _history: CollabHistory;
 
   private _submittedRecord: SubmittedRecord | null = null;
@@ -245,25 +235,28 @@ export class CollabService {
     return this.recordsBuffer.currentVersion;
   }
 
-  get client(): Pick<CollabClient, 'server' | 'submitted' | 'local' | 'view'> {
-    return this._client;
+  get client(): Pick<CollabHistory, 'server' | 'submitted' | 'local' | 'view'> {
+    return this._history;
   }
 
-  get history(): Pick<CollabHistory, 'localIndex' | 'records' | 'serverTailRevision'> {
+  get history(): Pick<
+    CollabHistory,
+    'undoableRecordsCount' | 'records' | 'serverTailRevision'
+  > {
     return this._history;
   }
 
   get headText(): RevisionChangeset {
     return {
       revision: this.recordsBuffer.currentVersion,
-      changeset: this._client.server,
+      changeset: this._history.server,
     };
   }
 
   private _viewText: string | null = null;
   get viewText() {
     if (this._viewText === null) {
-      this._viewText = this._client.view.joinInsertions();
+      this._viewText = this._history.view.joinInsertions();
     }
     return this._viewText;
   }
@@ -279,8 +272,8 @@ export class CollabService {
       recordsBuffer: {
         version: headText.revision,
       },
-      client: {
-        server: headText.changeset,
+      history: {
+        serverTailRecord: headText,
       },
     };
   };
@@ -290,31 +283,14 @@ export class CollabService {
   constructor(options?: CollabServiceOptions) {
     this.logger = options?.logger;
 
-    const headText: RevisionChangeset = {
-      changeset: options?.client?.server ?? Changeset.EMPTY,
-      revision:
-        options?.recordsBuffer instanceof OrderedMessageBuffer
-          ? options.recordsBuffer.currentVersion
-          : (options?.recordsBuffer?.version ?? 0),
-    };
+    const headRevision =
+      options?.recordsBuffer instanceof OrderedMessageBuffer
+        ? options.recordsBuffer.currentVersion
+        : (options?.recordsBuffer?.version ?? 0);
 
     this.eventsOff = [];
 
     this.generateSubmitId = options?.generateSubmitId ?? (() => nanoid(6));
-
-    // Local, submitted, server changesets
-    this._client =
-      options?.client instanceof CollabClient
-        ? options.client
-        : new CollabClient({
-            ...options?.client,
-            logger: options?.logger?.extend('client'),
-          });
-    this.eventsOff.push(
-      this._client.eventBus.on('viewChanged', () => {
-        this._viewText = null;
-      })
-    );
 
     // Submitted record
     this._submittedRecord = options?.submittedRecord ?? null;
@@ -324,7 +300,7 @@ export class CollabService {
       options?.recordsBuffer instanceof OrderedMessageBuffer
         ? options.recordsBuffer
         : new OrderedMessageBuffer({
-            version: headText.revision,
+            version: headRevision,
             ...options?.recordsBuffer,
             messageMapper: {
               struct: UnprocessedRecordStruct,
@@ -337,11 +313,20 @@ export class CollabService {
       this.recordsBuffer.eventBus.on('nextMessage', (message) => {
         if (message.type == 'SUBMITTED_ACKNOWLEDGED') {
           this._submittedRecord = null;
-          this._client.submittedChangesAcknowledged();
+          this._history.submittedChangesAcknowledged({
+            revision: message.record.revision,
+            changeset: message.record.changeset,
+          });
         } else {
-          // message.type === UnprocessedRecordType.ExternalChange
-          const event = this._client.handleExternalChange(message.record.changeset);
-          this._submittedRecord?.processExternalChangeEvent(event);
+          const submittedRecord = this._submittedRecord;
+          // message.type === UnprocessedRecordType.EXTERNAL_CHANGE
+          const event = this._history.handleExternalChange({
+            revision: message.record.revision,
+            changeset: message.record.changeset,
+          });
+          if (submittedRecord && event) {
+            submittedRecord.processExternalChangeEvent(event);
+          }
         }
       })
     );
@@ -355,20 +340,22 @@ export class CollabService {
         ? options.history
         : new CollabHistory({
             logger: options?.logger?.extend('history'),
-            recordsTailText: options?.history?.recordsTailText ?? headText.changeset,
-            serverTailRevision: headText.revision,
             ...options?.history,
             service: {
               eventBus: this._eventBus,
             },
-            client: this._client,
           });
+    this.eventsOff.push(
+      this._history.eventBus.on('viewChanged', () => {
+        this._viewText = null;
+      })
+    );
 
     // Records of a specific user
     this.userRecords = options?.userRecords ?? null;
 
     this.eventsOff.push(
-      this._client.eventBus.on('*', ({ type, event }) => {
+      this._history.eventBus.on('*', ({ type, event }) => {
         if (type !== 'handledExternalChange') {
           this._eventBus.emit(type, event);
         } else {
@@ -377,12 +364,6 @@ export class CollabService {
             revision: this.recordsBuffer.currentVersion,
           });
         }
-      })
-    );
-
-    this.eventsOff.push(
-      this._history.eventBus.on('*', (payload) => {
-        this._eventBus.emit(payload);
       })
     );
 
@@ -401,10 +382,10 @@ export class CollabService {
 
         let hadExternalChanges = false;
         const externalChangePayloads: {
-          event: CollabClientEvents['handledExternalChange'];
+          event: CollabHistoryEvents['handledExternalChange'];
           revision: number;
         }[] = [];
-        const unsubHandledExternalChange = this._client.eventBus.on(
+        const unsubHandledExternalChange = this._history.eventBus.on(
           'handledExternalChange',
           (e) => {
             processingBus.emit('handledExternalChange', e);
@@ -439,7 +420,7 @@ export class CollabService {
       this.recordsBuffer.eventBus.on('messagesProcessed', () => {
         this._eventBus.emit('headRevisionChanged', {
           revision: this.headRevision,
-          changeset: this._client.server,
+          changeset: this._history.server,
         });
       })
     );
@@ -464,13 +445,12 @@ export class CollabService {
    * Completely resets service state and clears all data.
    */
   reset() {
-    this._client.reset();
     this._history.reset();
     this.recordsBuffer.reset();
 
     this._eventBus.emit('headRevisionChanged', {
       revision: this.headRevision,
-      changeset: this._client.server,
+      changeset: this._history.server,
     });
     this._eventBus.emit('replacedHeadText', {
       headText: this.headText,
@@ -491,17 +471,14 @@ export class CollabService {
       throw new Error('Cannot replace headText. Have submitted changes.');
     }
 
-    this._client.reset({
-      server: headText.changeset,
-    });
     this._history.reset({
-      serverTailRevision: headText.revision,
+      serverTailRecord: headText,
     });
     this.recordsBuffer.setVersion(headText.revision);
 
     this._eventBus.emit('headRevisionChanged', {
       revision: this.headRevision,
-      changeset: this._client.server,
+      changeset: this._history.server,
     });
     this._eventBus.emit('replacedHeadText', {
       headText: this.headText,
@@ -513,11 +490,11 @@ export class CollabService {
   }
 
   haveSubmittedChanges() {
-    return this._client.haveSubmittedChanges();
+    return this._history.haveSubmittedChanges();
   }
 
   haveLocalChanges() {
-    return this._client.haveLocalChanges();
+    return this._history.haveLocalChanges();
   }
 
   haveChanges() {
@@ -525,7 +502,7 @@ export class CollabService {
   }
 
   canSubmitChanges() {
-    return this._client.canSubmitChanges();
+    return this._history.canSubmitChanges();
   }
 
   /**
@@ -535,14 +512,14 @@ export class CollabService {
    * Either due to existing submitted changes or no local changes exist.
    */
   submitChanges(): SubmittedRevisionRecord | undefined | null {
-    if (this._client.submitChanges()) {
+    if (this._history.submitChanges()) {
       const historySelection = this._history.getSubmitSelection();
 
       this._submittedRecord = new SubmittedRecord({
         ...historySelection,
         userGeneratedId: this.generateSubmitId(),
         revision: this.headRevision,
-        changeset: this._client.submitted,
+        changeset: this._history.submitted,
       });
 
       this._eventBus.emit('submittedRecord', { submittedRecord: this._submittedRecord });
@@ -620,7 +597,6 @@ export class CollabService {
 
   serialize(historyKeepServerEntries = false) {
     return CollabServiceOptionsStruct.maskRaw({
-      client: this._client.serialize(),
       submittedRecord: this._submittedRecord,
       recordsBuffer: this.recordsBuffer.serialize(),
       history: this._history.serialize(historyKeepServerEntries),
@@ -629,22 +605,11 @@ export class CollabService {
 
   static parseValue(
     value: unknown
-  ): Pick<
-    CollabServiceOptions,
-    'client' | 'submittedRecord' | 'recordsBuffer' | 'history'
-  > {
+  ): Pick<CollabServiceOptions, 'submittedRecord' | 'recordsBuffer' | 'history'> {
     const options = CollabServiceOptionsStruct.create(value);
 
     return {
       ...options,
-      client: {
-        ...options.client,
-        submitted: options.submittedRecord?.changeset,
-      },
-      history: {
-        ...options.history,
-        serverTailRevision: options.recordsBuffer?.version,
-      },
       submittedRecord: options.submittedRecord
         ? new SubmittedRecord(options.submittedRecord)
         : undefined,

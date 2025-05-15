@@ -2,27 +2,16 @@ import { Logger } from '../../../utils/src/logging';
 
 import { Changeset } from '../changeset';
 import { swapChangesets } from '../changeset/swap-changesets';
-import { CollabClient } from '../client/collab-client';
 import { SelectionRange } from '../client/selection-range';
-import { TextMemoRecords } from '../records/text-memo-records';
-import {
-  getOrChangeset,
-  getOrRevision,
-  OrRevisionChangeset,
-} from '../utils/revision-changeset';
-
+import { RevisionChangeset } from '../records/record';
 import { CollabHistoryModification, ReadonlyHistoryRecord } from './collab-history';
 
 export interface ExternalChangeModificationContext {
+  readonly serverTailRecord: RevisionChangeset;
+  readonly serverToLocalHistoryTransform: Changeset;
+  readonly records: readonly ReadonlyHistoryRecord[];
+  readonly tailText: Changeset;
   readonly serverIndex: number;
-  readonly client: Pick<CollabClient, 'server'>;
-  readonly serverTailTextTransformToRecordsTailText: Changeset | null;
-  readonly records: Pick<
-    TextMemoRecords<ReadonlyHistoryRecord>,
-    'at' | 'getTextAt' | 'length'
-  > & {
-    readonly tailText: Changeset;
-  };
   readonly modification: (changes: CollabHistoryModification) => void;
 }
 
@@ -33,7 +22,7 @@ export interface ExternalChangeModificationContext {
  * If external change deletes everything, whole history is lost.
  */
 export function externalChangeModification(
-  orRevisionChangeset: OrRevisionChangeset,
+  changeset: Changeset,
   history: ExternalChangeModificationContext,
   options?: {
     logger?: Logger;
@@ -41,16 +30,12 @@ export function externalChangeModification(
 ) {
   const logger = options?.logger;
 
-  const changeset = getOrChangeset(orRevisionChangeset);
-
   // [0, serverIndex]
   const modRecordsBefore: ReadonlyHistoryRecord[] = [];
   // [serverIndex + 1, history.records.length - 1]
   const modRecordAfter: ReadonlyHistoryRecord[] = [];
 
-  let newTailText: Changeset;
-  let newServerTailRevision: number | undefined;
-  let newServerTailTextTransformToRecordsTailText: Changeset | undefined | null;
+  let newServerToLocalHistoryTransform: Changeset | undefined | null;
 
   const serverIndex = history.serverIndex;
   logger?.debug('serverIndex', serverIndex);
@@ -65,11 +50,10 @@ export function externalChangeModification(
       const modRecord = {
         ...record,
       };
-      // TODO check variable names
       modRecordsBefore.push(modRecord);
 
       const [nextSwapTransform, newRecordChangset] = swapChangesets(
-        history.records.getTextAt(i - 1).length,
+        (history.records[i - 1]?.changeset ?? history.tailText).length,
         record.changeset,
         currentSwapTransform
       );
@@ -95,34 +79,11 @@ export function externalChangeModification(
 
     modRecordsBefore.reverse();
 
-    const currentTransform = history.serverTailTextTransformToRecordsTailText;
-
-    newTailText = history.records.tailText.compose(currentSwapTransform);
-
-    newServerTailTextTransformToRecordsTailText = currentTransform
-      ? currentTransform.compose(currentSwapTransform)
-      : currentSwapTransform;
-    if (currentTransform) {
-      logger?.debug('newServerTailTextTransformToRecordsTailText', {
-        newServerTailTextTransformToRecordsTailText:
-          newServerTailTextTransformToRecordsTailText.toString(),
-        currentTransform: currentTransform.toString(),
-        composed: currentTransform.compose(currentSwapTransform).toString(),
-      });
-    } else {
-      logger?.debug('newServerTailTextTransformToRecordsTailText', {
-        newServerTailTextTransformToRecordsTailText:
-          newServerTailTextTransformToRecordsTailText.toString(),
-        swapChangeset: currentSwapTransform.toString(),
-      });
-    }
+    newServerToLocalHistoryTransform =
+      history.serverToLocalHistoryTransform.compose(currentSwapTransform);
   } else {
-    newTailText = history.client.server;
-    const revision = getOrRevision(orRevisionChangeset);
-    if (revision != null) {
-      newServerTailRevision = revision;
-      newServerTailTextTransformToRecordsTailText = null;
-    }
+    newServerToLocalHistoryTransform =
+      history.serverToLocalHistoryTransform.compose(changeset);
   }
 
   let followComposition = changeset;
@@ -158,13 +119,15 @@ export function externalChangeModification(
   }
 
   history.modification({
-    serverTailRevision: newServerTailRevision,
-    serverTailTextTransformToRecordsTailText: newServerTailTextTransformToRecordsTailText,
-    recordsTailText: newTailText,
+    serverToLocalHistoryTransform: newServerToLocalHistoryTransform,
     recordsSplice: {
       start: 0,
       deleteCount: history.records.length,
       records: [...modRecordsBefore, ...modRecordAfter],
     },
   });
+
+  return {
+    viewComposable: followComposition,
+  };
 }

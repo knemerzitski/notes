@@ -8,6 +8,8 @@ import { RevisionRecords } from '../records/revision-records';
 
 import { createHelperCollabEditingEnvironment } from './helpers/server-client';
 
+// TODO copied to collab2
+
 let helper: ReturnType<typeof createHelperCollabEditingEnvironment<'A' | 'B'>>;
 
 beforeEach(() => {

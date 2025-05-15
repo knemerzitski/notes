@@ -1,4 +1,4 @@
-import mitt, { Emitter } from 'mitt';
+import mitt, { Emitter, ReadEmitter } from 'mitt';
 import { coerce, Infer, instance, object, record, string, unknown } from 'superstruct';
 
 import { ObjectIdStrStruct } from '../../mongodb/models/object-id';
@@ -35,7 +35,7 @@ const AuthenticatedContextsModelStruct = object({
 
 export class AuthenticatedContextsModel {
   private readonly _eventBus: Emitter<AuthenticatedContextsModelEvents> = mitt();
-  get eventBus(): Pick<Emitter<AuthenticatedContextsModelEvents>, 'on' | 'off'> {
+  get eventBus(): ReadEmitter<AuthenticatedContextsModelEvents> {
     return this._eventBus;
   }
 

@@ -1,11 +1,10 @@
 import mapObject, { mapObjectSkip } from 'map-obj';
 import mitt from 'mitt';
-import { assert, expect } from 'vitest';
+import { expect } from 'vitest';
 
 import { createLogger } from '../../../../utils/src/logging';
 import { OrderedMessageBuffer } from '../../../../utils/src/ordered-message-buffer';
 
-import { CollabClient } from '../../client/collab-client';
 import {
   CollabService,
   CollabServiceEvents,
@@ -26,6 +25,8 @@ import {
   getValueWithSelection,
   parseTextWithMultipleSelections,
 } from './text-with-selection';
+import debug from 'debug';
+import { logAll } from '../../../../utils/src/log-all';
 
 export function createHelperCollabEditingEnvironment<TClientName extends string>(
   options: {
@@ -108,38 +109,27 @@ function createClientHelper<TName extends string>(
   server: LocalServerRecords<ServerRevisionRecord>,
   getOtherServices: () => Record<TName, CollabService>
 ) {
-  const {
-    client: clientOptions,
-    history: historyOptions,
-    ...editorOptions
-  } = currentOptions;
-
-  const client =
-    clientOptions instanceof CollabClient
-      ? clientOptions
-      : new CollabClient({
-          server: server.tailText.changeset,
-          logger: createLogger(`${name}:client`, {
-            format: 'object',
-          }),
-          ...clientOptions,
-        });
+  const { history: historyOptions, ...editorOptions } = currentOptions;
 
   const serviceEventBus = editorOptions.eventBus ?? mitt<CollabServiceEvents>();
+
+  const optionsTailRevision =
+    editorOptions.recordsBuffer instanceof OrderedMessageBuffer
+      ? editorOptions.recordsBuffer.currentVersion
+      : editorOptions.recordsBuffer?.version;
 
   const history =
     historyOptions instanceof CollabHistory
       ? historyOptions
       : new CollabHistory({
-          serverTailRevision:
-            editorOptions.recordsBuffer instanceof OrderedMessageBuffer
-              ? editorOptions.recordsBuffer.currentVersion
-              : editorOptions.recordsBuffer?.version,
+          serverTailRecord:
+            optionsTailRevision != null
+              ? server.getTextAt(optionsTailRevision)
+              : server.tailText,
           logger: createLogger(`${name}:history`, {
             format: 'object',
           }),
           ...historyOptions,
-          client,
           service: {
             eventBus: serviceEventBus,
           },
@@ -161,12 +151,11 @@ function createClientHelper<TName extends string>(
       serverRecords: server,
       userId,
     }),
-    client,
     history,
   });
 
   return {
-    client,
+    client: history,
     history,
     name,
     ...createCollabServiceHelper(service),
@@ -179,8 +168,16 @@ function createClientHelper<TName extends string>(
     ),
     resetHistory() {
       history.reset({
-        serverTailRevision: service.headRevision,
+        serverTailRecord: service.headText,
       });
+    },
+    logHistoryState: (message: string) => {
+      debug.enable(`${name}:history:*`);
+      history.logState(message);
+      debug.disable();
+    },
+    enableDebug: () => {
+      debug.enable(`${name}:history:*`);
     },
   };
 }
@@ -219,6 +216,9 @@ function createRevisionTailRecordsHelper(
   localRecords: LocalServerRecords<ServerRevisionRecord>
 ) {
   return {
+    logRecords: () => {
+      logAll(localRecords.records.items);
+    },
     localRecords,
     headText: () => localRecords.getHeadText().changeset.joinInsertions(),
   };
@@ -233,7 +233,9 @@ function createCollabServiceAndRevisionTailRecordsHelper<TClientName extends str
 ) {
   function submitChanges() {
     const submittedRecord = service.submitChanges();
-    assert(submittedRecord != null);
+    if (!submittedRecord) {
+      throw new Error('Attempted to submit without changes');
+    }
 
     const otherServices = getOtherServices();
     const allOtherNames = Object.keys(otherServices) as TClientName[];

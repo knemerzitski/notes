@@ -88,7 +88,6 @@ export class ViewTextMemosCache<K extends string, S extends StringRecordStruct> 
 
     const last = this.views[this.views.length - 1];
     if (last && last.revision === revision) {
-      this.logger?.debug('pushView.replaceLast', item);
       this.views[this.views.length - 1] = item;
     } else {
       this.logger?.debug('pushView.push', item);

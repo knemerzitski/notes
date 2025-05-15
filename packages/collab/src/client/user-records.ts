@@ -1,4 +1,4 @@
-import mitt, { Emitter } from 'mitt';
+import mitt, { Emitter, ReadEmitter } from 'mitt';
 
 import { ServerRecordsFacade, ServerRecordsFacadeEvents } from '../types';
 
@@ -13,7 +13,7 @@ export interface UserRecordsEvents {
 
 export class UserRecords {
   private readonly _eventBus: Emitter<UserRecordsEvents> = mitt();
-  get eventBus(): Pick<Emitter<UserRecordsEvents>, 'on' | 'off'> {
+  get eventBus(): ReadEmitter<UserRecordsEvents> {
     return this._eventBus;
   }
 

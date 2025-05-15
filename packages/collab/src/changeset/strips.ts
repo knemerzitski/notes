@@ -126,9 +126,9 @@ export class Strips {
       if (strip instanceof RetainStrip) {
         const { overlap, position } = rangeRelation(
           strip.startIndex,
-          strip.endIndex,
+          strip.endIndex + 1,
           start,
-          end - 1
+          end
         );
         if (overlap) {
           isOverlapping = true;

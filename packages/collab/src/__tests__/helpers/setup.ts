@@ -10,6 +10,8 @@ import {
   Strip,
 } from '../../changeset';
 
+// TODO use this setup in other tests too, separate file for importing
+
 /**
  * Display Changeset as a stylized string
  */

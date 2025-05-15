@@ -12,6 +12,7 @@ import { CollabService } from '../../client/collab-service';
 
 import { defineCreateJsonTextFromService } from './create-service-json-text';
 import { JsonTextEvents } from './types';
+import { createLogger } from '../../../../utils/src/logging';
 
 function setServiceText(service: CollabService, value: string) {
   service.pushSelectionChangeset(
@@ -292,7 +293,9 @@ describe('two texts', () => {
   let multiJsonText: ReturnType<typeof createMultiJsonTextByService>;
 
   beforeEach(() => {
-    service = new CollabService();
+    service = new CollabService({
+      logger: createLogger('service', { format: 'object' }),
+    });
     multiJsonText = createMultiJsonTextByService(service);
   });
 
@@ -588,7 +591,7 @@ describe('two texts', () => {
       changeset: Changeset.from(
         RetainStrip.create(0, 14),
         InsertStrip.create('A'),
-        RetainStrip.create(14, 30)
+        RetainStrip.create(15, 30)
       ),
     });
 
@@ -732,43 +735,94 @@ describe('two texts', () => {
       `"(0 -> 36)["{"CONTENT":"\\n \\n aAbBc","TITLE":""}"]"`
     );
 
-    expect(service.serialize(true)).toStrictEqual({
-      client: {
-        local: [[0, 19], 'A', [20, 35]],
-        server: ['{"CONTENT":"\\n \\n aAbBc","TITLE":""}'],
-      },
-      history: {
-        records: [
-          {
-            afterSelection: {
-              start: 20,
-            },
-            beforeSelection: {
-              start: 19,
-            },
-            changeset: [[0, 18], 'A', [19, 34]],
+    expect(service.serialize(true)).toMatchInlineSnapshot(`
+      {
+        "history": {
+          "lastExecutedIndex": {
+            "execute": 1,
+            "server": 0,
+            "submitted": 0,
           },
-          {
-            afterSelection: {
-              start: 21,
+          "records": [
+            {
+              "afterSelection": {
+                "start": 20,
+              },
+              "beforeSelection": {
+                "start": 19,
+              },
+              "changeset": [
+                [
+                  0,
+                  18,
+                ],
+                "A",
+                [
+                  19,
+                  34,
+                ],
+              ],
+              "serverRecord": {
+                "changeset": [
+                  [
+                    0,
+                    18,
+                  ],
+                  "A",
+                  19,
+                  "B",
+                  [
+                    20,
+                    33,
+                  ],
+                ],
+                "revision": 3,
+              },
+              "type": "execute",
             },
-            changeset: [[0, 19], 'A', [20, 35]],
+            {
+              "afterSelection": {
+                "start": 21,
+              },
+              "changeset": [
+                [
+                  0,
+                  19,
+                ],
+                "A",
+                [
+                  20,
+                  35,
+                ],
+              ],
+              "type": "execute",
+            },
+          ],
+          "serverTailRecord": {
+            "changeset": [
+              "{"CONTENT":"\\n \\n abc","TITLE":""}",
+            ],
+            "revision": 1,
           },
-        ],
-        lastExecutedIndex: {
-          local: 1,
-          server: 0,
-          submitted: 0,
+          "serverToLocalHistoryTransform": [
+            [
+              0,
+              19,
+            ],
+            "B",
+            [
+              20,
+              33,
+            ],
+          ],
         },
-        serverTailTextTransformToRecordsTailText: [[0, 19], 'B', [20, 33]],
-        recordsTailText: ['{"CONTENT":"\\n \\n abBc","TITLE":""}'],
-      },
-      recordsBuffer: {
-        messages: [],
-        version: 3,
-      },
-      submittedRecord: null,
-    });
+        "recordsBuffer": {
+          "messages": [],
+          "version": 3,
+        },
+        "submittedRecord": null,
+      }
+    `);
   });
 });
 
@@ -781,7 +835,9 @@ it('serialize service modified by multiJsonText without errors', () => {
     Object.values(TextType)
   );
 
-  const service = new CollabService();
+  const service = new CollabService({
+    generateSubmitId: () => 'aaa',
+  });
   const multiJsonText = createMultiJsonTextByService(service);
 
   const text = multiJsonText.getText(TextType.CONTENT);
@@ -790,7 +846,13 @@ it('serialize service modified by multiJsonText without errors', () => {
     end: 0,
   });
 
-  const service2 = new CollabService(CollabService.parseValue(service.serialize()));
+  const service2 = new CollabService({
+    ...CollabService.parseValue(service.serialize()),
+    logger: createLogger('service', {
+      format: 'object',
+    }),
+  });
+
   const multiJsonText2 = createMultiJsonTextByService(service2);
   const text2 = multiJsonText2.getText(TextType.CONTENT);
   text2.insert('bar', {
@@ -798,46 +860,85 @@ it('serialize service modified by multiJsonText without errors', () => {
     end: 3,
   });
 
-  expect(service2.serialize()).toEqual({
-    client: {
-      local: [[0, 5], 'foobar', [6, 14]],
-    },
-    history: {
-      records: [
-        {
-          afterSelection: {
-            start: 9,
-          },
-          beforeSelection: {
-            start: 6,
-          },
-          changeset: [[0, 5], 'foo', [6, 14]],
+  expect(service2.serialize()).toMatchInlineSnapshot(`
+    {
+      "history": {
+        "lastExecutedIndex": {
+          "execute": 2,
+          "server": -1,
+          "submitted": 0,
         },
-        {
-          afterSelection: {
-            start: 12,
+        "records": [
+          {
+            "afterSelection": {
+              "start": 0,
+            },
+            "beforeSelection": {
+              "start": 0,
+            },
+            "changeset": [
+              "{"c":"","t":""}",
+            ],
+            "type": "permanent",
           },
-          changeset: [[0, 8], 'bar', [9, 17]],
+          {
+            "afterSelection": {
+              "start": 9,
+            },
+            "beforeSelection": {
+              "start": 6,
+            },
+            "changeset": [
+              [
+                0,
+                5,
+              ],
+              "foo",
+              [
+                6,
+                14,
+              ],
+            ],
+            "type": "execute",
+          },
+          {
+            "afterSelection": {
+              "start": 12,
+            },
+            "changeset": [
+              [
+                0,
+                8,
+              ],
+              "bar",
+              [
+                9,
+                17,
+              ],
+            ],
+            "type": "execute",
+          },
+        ],
+        "serverTailRecord": {
+          "changeset": [],
+          "revision": 0,
         },
-      ],
-      lastExecutedIndex: {
-        local: 1,
-        server: -1,
-        submitted: -1,
+        "serverToLocalHistoryTransform": null,
       },
-      serverTailTextTransformToRecordsTailText: null,
-      recordsTailText: ['{"c":"","t":""}'],
-    },
-    submittedRecord: {
-      afterSelection: {
-        start: 0,
+      "recordsBuffer": undefined,
+      "submittedRecord": {
+        "afterSelection": {
+          "start": 0,
+        },
+        "beforeSelection": {
+          "start": 0,
+        },
+        "changeset": [
+          "{"c":"","t":""}",
+        ],
+        "revision": 0,
+        "userGeneratedId": "aaa",
       },
-      beforeSelection: {
-        start: 0,
-      },
-      changeset: ['{"c":"","t":""}'],
-      revision: 0,
-      userGeneratedId: expect.any(String),
-    },
-  });
+    }
+  `);
 });

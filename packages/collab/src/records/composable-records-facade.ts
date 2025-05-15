@@ -17,6 +17,7 @@ export interface ComposableRecords<
   clear(): void;
 }
 
+// TODO rename class to TransactionalRecords?
 /**
  * Ensures that any records passing through this facade will be composable
  */
@@ -51,143 +52,120 @@ export class ComposableRecordsFacade<TRecord extends BaseComposableRecord> {
     this.logState('constructor');
   }
 
-  push(record: TRecord) {
-    const lastRecord = this.records.at(this.records.length - 1);
-    if (lastRecord) {
-      lastRecord.changeset.assertIsComposable(record.changeset);
+  private isTransactionInProgress = false;
+  startTransaction() {
+    if (this.isTransactionInProgress) {
+      throw new Error('Transaction already in progress');
     }
+    this.isTransactionInProgress = true;
 
-    this.records.push(record);
-    this.logState('push', {
-      args: {
-        record,
+    let isThisTransactionDone = false;
+
+    this.logState('transaction');
+    const savedState = {
+      records: (() => {
+        const ls = new Array<TRecord>(this.records.length);
+        for (let i = 0; i < this.records.length; i++) {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          ls[i] = this.records.at(i)!;
+        }
+        return ls;
+      })(),
+      tailText: this.records.tailText,
+    };
+
+    const disposeTransaction = () => {
+      if (isThisTransactionDone) {
+        return;
+      }
+      isThisTransactionDone = true;
+
+      this.isTransactionInProgress = false;
+    };
+
+    const rollbackTransaction = () => {
+      if (isThisTransactionDone) {
+        return;
+      }
+      disposeTransaction();
+
+      this.logState('transaction:rollback');
+      this.records.splice(0, this.records.length, ...savedState.records);
+      this.records.tailText = savedState.tailText;
+      this.logState('transaction:rollback:completed');
+    };
+
+    return {
+      completeTransaction: () => {
+        if (isThisTransactionDone) {
+          return;
+        }
+
+        try {
+          if (this.records.tailText.hasRetainStrips()) {
+            throw new Error(`Invalid tailText ${String(this.records.tailText)}`);
+          }
+
+          // Tail to first record
+          const firstRecord = this.records.at(0);
+          if (firstRecord) {
+            this.records.tailText.assertIsComposable(firstRecord.changeset);
+          }
+
+          // First record up to last record
+          for (let i = 1; i < this.records.length; i++) {
+            const r0 = this.records.at(i - 1);
+            const r1 = this.records.at(i);
+            if (r0 && r1) {
+              r0.changeset.assertIsComposable(r1.changeset);
+            }
+          }
+
+          this.logState('transaction:completed');
+          disposeTransaction();
+        } catch (err) {
+          this.logger?.error('transaction:error', err);
+          rollbackTransaction();
+          throw err;
+        }
       },
-    });
+      rollbackTransaction,
+    };
   }
 
+  push(record: TRecord) {
+    this.records.push(record);
+  }
+
+  // TODO rename to deleteAfterAndPush
   /**
    * Delete records [deleteStartIndex, record.length - 1]
    * and then push the record
    */
   deleteFromThenPush(deleteStartIndex: number, record: TRecord) {
     if (deleteStartIndex <= 0) {
-      const tailText = this.records.tailText;
-      tailText.assertIsComposable(record.changeset);
-
       this.records.clear();
       this.records.push(record);
     } else {
-      const recordBeforeDelete = this.records.at(deleteStartIndex - 1);
-      if (recordBeforeDelete) {
-        recordBeforeDelete.changeset.assertIsComposable(record.changeset);
-      }
-
       this.records.splice(
         deleteStartIndex,
         this.records.length - deleteStartIndex,
         record
       );
     }
-
-    this.logState('deleteFromThenPush', {
-      args: {
-        deleteStartIndex,
-        recordChangeset: record.changeset.toString(),
-      },
-    });
   }
 
   replaceTailText(tailText: Changeset) {
-    if (tailText.hasRetainStrips()) {
-      throw new Error(`Invalid tailText ${String(tailText)}`);
-    }
-
-    const firstRecord = this.records.at(0);
-    if (firstRecord) {
-      tailText.assertIsComposable(firstRecord.changeset);
-    }
-
-    this.records.tailText = tailText;
-
-    this.logState('replaceTailText', {
-      args: {
-        tailText,
-      },
-    });
-  }
-
-  replaceTailTextAndSplice(
-    tailText: Changeset,
-    start: number,
-    deleteCount: number,
-    ...records: TRecord[]
-  ) {
-    if (tailText.hasRetainStrips()) {
-      throw new Error(`Invalid tailText ${String(tailText)}`);
-    }
-
-    const firstRecord = this.records.at(start - 1) ?? records[0];
-    if (firstRecord) {
-      tailText.assertIsComposable(firstRecord.changeset);
-    }
-
-    this.logState('replaceTailTextAndSplice', {
-      args: {
-        tailText,
-        note: 'look for splice entry for more info',
-      },
-    });
-
-    this.splice(start, deleteCount, ...records);
     this.records.tailText = tailText;
   }
 
   splice(start: number, deleteCount: number, ...records: TRecord[]) {
-    const leftRecord = this.records.at(start - 1);
-    const firstInsertRecord = records[0];
-    const lastInsertRecord = records[records.length - 1];
-    const rightRecord = this.records.at(start + deleteCount);
-
-    if (firstInsertRecord && leftRecord) {
-      leftRecord.changeset.assertIsComposable(firstInsertRecord.changeset);
-    }
-
-    if (lastInsertRecord && rightRecord) {
-      lastInsertRecord.changeset.assertIsComposable(rightRecord.changeset);
-    }
-
-    for (let i = 1; i < records.length; i++) {
-      const r0 = records[i - 1];
-      const r1 = records[i];
-      if (r0 && r1) {
-        r0.changeset.assertIsComposable(r1.changeset);
-      }
-    }
-
     this.records.splice(start, deleteCount, ...records);
-
-    this.logState('splice', {
-      args: {
-        start,
-        deleteCount,
-        records: records.map((r) => r.changeset.toString()),
-      },
-    });
   }
 
   clear(tailText: Changeset) {
-    if (tailText.hasRetainStrips()) {
-      throw new Error(`Invalid tailText ${String(tailText)}`);
-    }
-
     this.records.tailText = tailText;
     this.records.clear();
-
-    this.logState('clear', {
-      args: {
-        tailText: tailText.toString(),
-      },
-    });
   }
 
   private logState(message: string, data?: Record<string, unknown>) {

@@ -1,9 +1,10 @@
 import { Changeset } from '../changeset';
+import { CollabHistoryEvents } from '../history/collab-history';
 import { SubmittedRevisionRecord } from '../records/record';
 
-import { CollabClientEvents as CollabClientEvents } from './collab-client';
 import { SelectionRange } from './selection-range';
 
+// TODO this should be part of history?, extra properties on a history record as between server and submitted record cannot be touched
 export class SubmittedRecord implements SubmittedRevisionRecord {
   readonly userGeneratedId: string;
 
@@ -27,7 +28,7 @@ export class SubmittedRecord implements SubmittedRevisionRecord {
     externalChange,
     before,
     after,
-  }: CollabClientEvents['handledExternalChange']) {
+  }: CollabHistoryEvents['handledExternalChange']) {
     this.changeset = after.submitted;
 
     this.beforeSelection = SelectionRange.closestRetainedPosition(

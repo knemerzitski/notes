@@ -3,7 +3,6 @@ import { Logger } from '../../../utils/src/logging';
 import { Changeset } from '../changeset';
 import { swapChangesets } from '../changeset/swap-changesets';
 import { SelectionRange } from '../client/selection-range';
-import { TextMemoRecords } from '../records/text-memo-records';
 
 import {
   CollabHistoryModification,
@@ -12,13 +11,9 @@ import {
 } from './collab-history';
 
 export interface PermanentChangeModificationContext {
-  readonly serverTailTextTransformToRecordsTailText: Changeset | null;
-  readonly records: Pick<
-    TextMemoRecords<ReadonlyHistoryRecord>,
-    'at' | 'getTextAt' | 'length'
-  > & {
-    readonly tailText: Changeset;
-  };
+  readonly serverToLocalHistoryTransform: Changeset;
+  readonly records: readonly ReadonlyHistoryRecord[];
+  readonly tailText: Changeset;
   readonly modification: (changes: CollabHistoryModification) => void;
 }
 
@@ -27,6 +22,8 @@ export interface PermanentChangeModificationContext {
  */
 export function permanentChangeModification(
   changeset: Changeset,
+  start: number,
+  end: number,
   history: PermanentChangeModificationContext,
   options?: {
     logger?: Logger;
@@ -41,7 +38,7 @@ export function permanentChangeModification(
   let currentSwapTransform = changeset;
 
   const modifiedRecords: ReadonlyHistoryRecord[] = [];
-  for (let i = history.records.length - 1; i >= 0; i--) {
+  for (let i = end - 1; i >= start; i--) {
     const record = history.records.at(i);
     if (!record) {
       continue;
@@ -52,7 +49,7 @@ export function permanentChangeModification(
     };
 
     const [nextSwapTransform, newRecordChangeset] = swapChangesets(
-      history.records.getTextAt(i - 1).length,
+      (history.records[i - 1]?.changeset ?? history.tailText).length,
       record.changeset,
       currentSwapTransform
     );

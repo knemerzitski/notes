@@ -1,4 +1,4 @@
-import mitt, { Emitter } from 'mitt';
+import mitt, { Emitter, ReadEmitter } from 'mitt';
 
 import { Maybe } from '../../../../utils/src/types';
 
@@ -17,7 +17,7 @@ export class LocalServerRecords<TRecord extends RevisionRecord>
   implements ServerRecordsFacade<TRecord>
 {
   private readonly _eventBus: Emitter<ServerRecordsFacadeEvents<TRecord>> = mitt();
-  get eventBus(): Pick<Emitter<ServerRecordsFacadeEvents<TRecord>>, 'on' | 'off'> {
+  get eventBus(): ReadEmitter<ServerRecordsFacadeEvents<TRecord>> {
     return this._eventBus;
   }
 

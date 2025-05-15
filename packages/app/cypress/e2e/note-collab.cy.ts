@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { faker } from '@faker-js/faker';
-import mitt from 'mitt';
+import mitt, { ReadEmitter } from 'mitt';
 
 import { CollabService } from '../../../collab/src/client/collab-service';
 import { SelectionRange } from '../../../collab/src/client/selection-range';
@@ -71,33 +71,26 @@ type TextOperation = (
       offset: SelectionRange;
     }
 ) & {
+  simpleField: SimpleTextField;
   options?: TextOperationOptions;
 };
 
 class SimpleTextField implements FieldEditor {
-  private _eventBus = mitt<{
+  readonly eventBus = mitt<{
     selectionChanged: undefined;
-    doneExecutingOperations: undefined;
   }>();
-  get eventBus(): Pick<typeof this._eventBus, 'on' | 'off'> {
-    return this._eventBus;
-  }
 
-  private selection = SelectionRange.ZERO;
-  private selectionRevision: number;
-
-  private isExeceutingOperations = false;
-  private operationQueue: TextOperation[] = [];
-  private prevOperationTime = 0;
+  selection = SelectionRange.ZERO;
+  selectionRevision: number;
 
   get value() {
     return this.field.value;
   }
 
   constructor(
-    private readonly field: SimpleText,
+    readonly field: SimpleText,
     private readonly service: CollabService,
-    private readonly submitChanges: () => Promise<void>
+    private readonly queue: SimpleTextFieldsOperationsQueue
   ) {
     this.field.eventBus.on('selectionChanged', (newSelection) => {
       this.selection = newSelection;
@@ -127,7 +120,8 @@ class SimpleTextField implements FieldEditor {
     if (options?.noSubmit) {
       this.field.insert(value, this.selection);
     } else {
-      this.pushOperation({
+      this.queue.pushOperation({
+        simpleField: this,
         type: 'insert',
         value,
         options,
@@ -153,7 +147,8 @@ class SimpleTextField implements FieldEditor {
     if (options?.noSubmit) {
       this.field.delete(count, this.selection);
     } else {
-      this.pushOperation({
+      this.queue.pushOperation({
+        simpleField: this,
         type: 'delete',
         count,
         options,
@@ -173,7 +168,8 @@ class SimpleTextField implements FieldEditor {
   }
 
   select(start: number, end?: number, options?: Omit<TextOperationOptions, 'noSubmit'>) {
-    this.pushOperation({
+    this.queue.pushOperation({
+      simpleField: this,
       type: 'selectOffset',
       offset: SelectionRange.subtract(SelectionRange.from(start, end), this.selection),
       options,
@@ -181,16 +177,44 @@ class SimpleTextField implements FieldEditor {
   }
 
   selectOffset(offset: number, options?: Omit<TextOperationOptions, 'noSubmit'>) {
-    this.pushOperation({
+    this.queue.pushOperation({
+      simpleField: this,
       type: 'selectOffset',
       offset: SelectionRange.from(offset),
       options,
     });
   }
 
+  getServiceSelection() {
+    return {
+      revision: this.selectionRevision,
+      selection: this.field.transformToServiceSelection(this.selection),
+    };
+  }
+}
+
+class SimpleTextFieldsOperationsQueue {
+  private _eventBus = mitt<{
+    doneExecutingOperations: undefined;
+  }>();
+  get eventBus(): ReadEmitter<{
+    doneExecutingOperations: undefined;
+  }> {
+    return this._eventBus;
+  }
+
+  private isExeceutingOperations = false;
+  private queue: TextOperation[] = [];
+  private prevOperationTime = 0;
+
+  constructor(
+    private readonly service: CollabService,
+    private readonly submitChanges: () => Promise<void>
+  ) {}
+
   executingOperations() {
     return new Promise<void>((res) => {
-      if (this.operationQueue.length === 0) {
+      if (this.queue.length === 0) {
         res();
       } else {
         const off = this._eventBus.on('doneExecutingOperations', () => {
@@ -201,8 +225,8 @@ class SimpleTextField implements FieldEditor {
     });
   }
 
-  private pushOperation(op: TextOperation) {
-    this.operationQueue.push(op);
+  pushOperation(op: TextOperation) {
+    this.queue.push(op);
     void this.executeAllQueuedOperations();
   }
 
@@ -217,7 +241,7 @@ class SimpleTextField implements FieldEditor {
     this.isExeceutingOperations = true;
     try {
       let op: TextOperation | undefined;
-      while ((op = this.operationQueue.shift()) !== undefined) {
+      while ((op = this.queue.shift()) !== undefined) {
         const delay = op.options?.delay ?? 0;
 
         const timeElapsed = Date.now() - this.prevOperationTime;
@@ -245,18 +269,18 @@ class SimpleTextField implements FieldEditor {
         this.prevOperationTime = Date.now();
 
         if (op.type === 'insert') {
-          this.field.insert(op.value, this.selection);
+          op.simpleField.field.insert(op.value, op.simpleField.selection);
           await this.submitChanges();
         } else if (op.type === 'delete') {
-          this.field.delete(op.count, this.selection);
+          op.simpleField.field.delete(op.count, op.simpleField.selection);
           await this.submitChanges();
           // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         } else if (op.type === 'selectOffset') {
-          const newSelection = SelectionRange.add(this.selection, op.offset);
-          if (!SelectionRange.isEqual(this.selection, newSelection)) {
-            this.selection = newSelection;
-            this.selectionRevision = this.service.headRevision;
-            this._eventBus.emit('selectionChanged');
+          const newSelection = SelectionRange.add(op.simpleField.selection, op.offset);
+          if (!SelectionRange.isEqual(op.simpleField.selection, newSelection)) {
+            op.simpleField.selection = newSelection;
+            op.simpleField.selectionRevision = this.service.headRevision;
+            op.simpleField.eventBus.emit('selectionChanged');
           }
         }
       }
@@ -264,13 +288,6 @@ class SimpleTextField implements FieldEditor {
       this.isExeceutingOperations = false;
       this._eventBus.emit('doneExecutingOperations');
     }
-  }
-
-  getServiceSelection() {
-    return {
-      revision: this.selectionRevision,
-      selection: this.field.transformToServiceSelection(this.selection),
-    };
   }
 }
 
@@ -371,16 +388,14 @@ beforeEach(() => {
       });
     };
 
+    const queue = new SimpleTextFieldsOperationsQueue(collabService, _submitChanges);
+
     const bgEditor = {
-      title: new SimpleTextField(
-        fields[NoteTextFieldName.TITLE],
-        collabService,
-        _submitChanges
-      ),
+      title: new SimpleTextField(fields[NoteTextFieldName.TITLE], collabService, queue),
       content: new SimpleTextField(
         fields[NoteTextFieldName.CONTENT],
         collabService,
-        _submitChanges
+        queue
       ),
     };
 
@@ -392,9 +407,7 @@ beforeEach(() => {
         content: new CyElementField(contentField),
       },
       bgEditor,
-      bgQueuedChangesSubmitted: async () => {
-        await Promise.all(Object.values(bgEditor).map((e) => e.executingOperations()));
-      },
+      bgQueuedChangesSubmitted: () => queue.executingOperations(),
       submitChanges: _submitChanges,
       graphQLService,
       collabService: {
@@ -460,16 +473,14 @@ beforeEach(() => {
         });
       };
 
+      const queue = new SimpleTextFieldsOperationsQueue(collabService, _submitChanges);
+
       const testEditorByName = {
-        title: new SimpleTextField(
-          fields[NoteTextFieldName.TITLE],
-          collabService,
-          _submitChanges
-        ),
+        title: new SimpleTextField(fields[NoteTextFieldName.TITLE], collabService, queue),
         content: new SimpleTextField(
           fields[NoteTextFieldName.CONTENT],
           collabService,
-          _submitChanges
+          queue
         ),
       };
 
@@ -489,11 +500,7 @@ beforeEach(() => {
           fields,
         },
         editor: testEditorByName,
-        ongoingChangesPromise: async () => {
-          await Promise.all(
-            Object.values(testEditorByName).map((e) => e.executingOperations())
-          );
-        },
+        ongoingChangesPromise: () => queue.executingOperations(),
         submitChanges: _submitChanges,
         submitSelection: async () => {
           const testEditor = lastSelectedTestEditor;
@@ -1169,14 +1176,21 @@ describe('with history', () => {
   });
 });
 
-describe('with generated actions', () => {
+// /user2:|error/
+describe.only('with generated actions', () => {
   const config = {
-    seed: 65431,
-    testCount: 8,
-    actionsPerTest: {
-      min: 8,
-      max: 27,
-    },
+    tests: [
+      // TODO fix this tests causes error: cannot compose changesets
+      // {
+      //   seed: 896,
+      //   count: 34,
+      // },
+      // TODO another error, failed to compose undo, or server didnt match??
+      {
+        seed: 67905,
+        count: 1000,
+      },
+    ],
     insertLength: {
       min: 1,
       max: 9,
@@ -1355,6 +1369,32 @@ describe('with generated actions', () => {
       },
     },
     {
+      weight: 50,
+      value: {
+        name: 'undo',
+        generateInput: () => [faker.helpers.weightedArrayElement(config.user)] as const,
+        invoke: (userName: string) => {
+          const user = findUser(userName);
+          const service = user.context.collabService.service;
+
+          service.undo();
+        },
+      },
+    },
+    {
+      weight: 30,
+      value: {
+        name: 'redo',
+        generateInput: () => [faker.helpers.weightedArrayElement(config.user)] as const,
+        invoke: (userName: string) => {
+          const user = findUser(userName);
+          const service = user.context.collabService.service;
+
+          service.undo();
+        },
+      },
+    },
+    {
       weight: 1,
       value: {
         name: 'reload',
@@ -1364,10 +1404,6 @@ describe('with generated actions', () => {
       },
     },
   ];
-
-  before(() => {
-    faker.seed(config.seed);
-  });
 
   beforeEach(() => {
     users = [
@@ -1382,9 +1418,15 @@ describe('with generated actions', () => {
     ];
   });
 
-  [...new Array<undefined>(config.testCount)].forEach((_, index) => {
-    const n = faker.number.int(config.actionsPerTest);
-    it(`test ${index}, actions: ${n}`, () => {
+  config.tests.forEach(({ count: actionsCount, seed }, index) => {
+    it(`test ${index}, actions: ${actionsCount}`, () => {
+      // TODO failing test, copy state and external change and reproduce the error in unit test
+      // TODO also ensure external change is not invalid
+      // TODO also get server records in mongodb...
+      cy.enableDebug();
+
+      faker.seed(seed);
+
       cy.clock();
 
       cy.visit(noteRoute());
@@ -1392,8 +1434,8 @@ describe('with generated actions', () => {
       shouldHaveRevision(1);
 
       cy.clock(10000);
-
-      for (let i = 0; i < n; i++) {
+      // /user2:|error/
+      for (let i = 0; i < actionsCount; i++) {
         const action = faker.helpers.weightedArrayElement(actions);
         const input = action.generateInput?.() ?? [];
         cy.log(`${i} ${action.name}: ${JSON.stringify(input)}`);

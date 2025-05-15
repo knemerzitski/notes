@@ -1,4 +1,4 @@
-import mitt, { Emitter } from 'mitt';
+import mitt, { Emitter, ReadEmitter } from 'mitt';
 
 import { Logger } from '../../../../utils/src/logging';
 import { isDefined } from '../../../../utils/src/type-guards/is-defined';
@@ -7,6 +7,7 @@ import { Changeset, InsertStrip, RetainStrip, Strip } from '../../changeset';
 import { CollabService, CollabServiceEvents } from '../../client/collab-service';
 import { SelectionRange } from '../../client/selection-range';
 import {
+  SelectionChangeset,
   SharedSimpleTextEvents,
   SimpleText,
   SimpleTextEvents,
@@ -20,7 +21,7 @@ export class KeySimpleText implements SimpleText {
   private readonly logger;
 
   private readonly _eventBus: Emitter<SimpleTextEvents>;
-  get eventBus(): Pick<Emitter<SimpleTextEvents>, 'on' | 'off'> {
+  get eventBus(): ReadEmitter<SimpleTextEvents> {
     return this._eventBus;
   }
 
@@ -274,14 +275,18 @@ export class KeySimpleText implements SimpleText {
     const insert = InsertStrip.create(insertText);
     const after = RetainStrip.create(selection.end, this.service.viewText.length - 1);
 
-    this.service.pushSelectionChangeset(
-      {
-        changeset: Changeset.from(before, insert, after),
-        afterSelection: SelectionRange.from(selection.start + insertText.length),
-        beforeSelection: selection,
-      },
-      options
-    );
+    const selCs: SelectionChangeset = {
+      changeset: Changeset.from(before, insert, after),
+      afterSelection: SelectionRange.from(selection.start + insertText.length),
+      beforeSelection: selection,
+    };
+
+    this.logger?.debug('insert', {
+      ...selCs,
+      changeset: selCs.changeset.toString(),
+    });
+
+    this.service.pushSelectionChangeset(selCs, options);
   }
 
   delete(count = 1, selection: SelectionRange, options?: SimpleTextOperationOptions) {
@@ -299,13 +304,17 @@ export class KeySimpleText implements SimpleText {
     const before = RetainStrip.create(0, selection.start - 1);
     const after = RetainStrip.create(selection.end, this.service.viewText.length - 1);
 
-    this.service.pushSelectionChangeset(
-      {
-        changeset: Changeset.from(before, after),
-        afterSelection: SelectionRange.from(selection.start),
-        beforeSelection: selection,
-      },
-      options
-    );
+    const selCs: SelectionChangeset = {
+      changeset: Changeset.from(before, after),
+      afterSelection: SelectionRange.from(selection.start),
+      beforeSelection: selection,
+    };
+
+    this.logger?.debug('delete', {
+      ...selCs,
+      changeset: selCs.changeset.toString(),
+    });
+
+    this.service.pushSelectionChangeset(selCs, options);
   }
 }

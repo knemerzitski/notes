@@ -89,7 +89,7 @@ export function HistoryRestoration({
         return;
       }
 
-      const historyEntriesRemaining = collabService.history.localIndex + 1;
+      const historyEntriesRemaining = collabService.history.undoableRecordsCount;
       const requiredEntriesInCacheCount =
         triggerEntriesRemaining - historyEntriesRemaining + 1;
 

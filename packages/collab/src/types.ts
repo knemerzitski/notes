@@ -1,4 +1,4 @@
-import { Emitter } from 'mitt';
+import { Emitter, ReadEmitter } from 'mitt';
 
 import { Maybe } from '../../utils/src/types';
 
@@ -6,12 +6,32 @@ import { Changeset } from './changeset';
 import { SelectionRange } from './client/selection-range';
 import { RevisionChangeset } from './records/record';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Constructor<T extends object = object, A extends any[] = any> = new (
+  ...args: A
+) => T;
+
+export interface Mixin<A, D, P> {
+  /**
+   * Abstract methods that the base class must implement
+   */
+  abstract: A;
+  /**
+   * Abstract methods that have a default impementation.
+   */
+  default: D;
+  /**
+   * Public methods of the composed class
+   */
+  public: P;
+}
+
 /**
  * Simple facade for querying server records.
  */
 
 export interface ServerRecordsFacade<TRecord> {
-  readonly eventBus: Pick<Emitter<ServerRecordsFacadeEvents<TRecord>>, 'on' | 'off'>;
+  readonly eventBus: ReadEmitter<ServerRecordsFacadeEvents<TRecord>>;
   /**
    * tailText is a composition of all previous records before oldest record.
    */
@@ -87,7 +107,7 @@ export interface SharedSimpleTextEvents {
 }
 
 export interface SimpleText {
-  readonly eventBus: Pick<Emitter<SimpleTextEvents>, 'on' | 'off'>;
+  readonly eventBus: ReadEmitter<SimpleTextEvents>;
   readonly sharedEventBus: Emitter<SharedSimpleTextEvents>;
 
   readonly value: string;

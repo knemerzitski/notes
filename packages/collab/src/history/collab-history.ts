@@ -1,24 +1,24 @@
-import mitt, { Emitter, PickReadEmitter } from 'mitt';
+import mitt, { Emitter, PickReadEmitter, ReadEmitter } from 'mitt';
 import {
   array,
   assign,
   coerce,
+  enums,
   Infer,
   literal,
   number,
   object,
   omit,
+  optional,
   union,
   unknown,
 } from 'superstruct';
 
 import { Logger } from '../../../utils/src/logging';
 
-import { ReadonlyDeep, Maybe } from '../../../utils/src/types';
+import { Maybe, ReadonlyDeep } from '../../../utils/src/types';
 
-import { Changeset, ChangesetStruct } from '../changeset';
-import { OptionalChangesetStruct } from '../changeset/struct';
-import { CollabClient } from '../client/collab-client';
+import { Changeset, ChangesetStruct, InsertStrip } from '../changeset';
 import { CollabServiceEvents } from '../client/collab-service';
 import {
   OptionalSelectionRange,
@@ -26,26 +26,65 @@ import {
   SelectionRangeStruct,
 } from '../client/selection-range';
 import { UserRecords } from '../client/user-records';
-import { ComposableRecordsFacade } from '../records/composable-records-facade';
-import { RevisionChangeset, SubmittedRevisionRecord } from '../records/record';
-import { TextMemoRecords } from '../records/text-memo-records';
+import {
+  RevisionChangeset,
+  RevisionChangesetStruct,
+  SubmittedRevisionRecord,
+} from '../records/record';
 import {
   SimpleTextOperationOptions,
   SelectionChangeset,
   ServerRecordsFacade,
 } from '../types';
 
-import {
-  getOrChangeset,
-  getOrRevision,
-  OrRevisionChangeset,
-} from '../utils/revision-changeset';
-
-import { externalChangeModification } from './mod-external-change';
-import { permanentChangeModification } from './mod-permanent-change';
-import { unshiftRecordsModification } from './mod-unshift-records';
+import { swapChangesets } from '../changeset/swap-changesets';
+import { isDefined } from '../../../utils/src/type-guards/is-defined';
 
 export interface CollabHistoryEvents {
+  viewChanged: Readonly<{
+    /**
+     * New view changeset.
+     */
+    view: Changeset;
+
+    /**
+     * Changeset that was just composed on view.
+     * If undefined then view was completely replaced.
+     */
+    change?: Changeset;
+
+    /**
+     * What caused view to change. Either external or local change.
+     */
+    source: ChangeSource;
+  }>;
+  haveLocalChanges: Readonly<{
+    /**
+     * Local changes
+     */
+    local: Changeset;
+  }>;
+  submitChanges?: never;
+  submittedChangesAcknowledged?: never;
+  handledExternalChange: Readonly<{
+    /**
+     * External change
+     */
+    externalChange: Changeset;
+    /**
+     * Changeset that will be composed on view
+     */
+    viewComposable: Changeset;
+    /**
+     * State before the change
+     */
+    before: Readonly<Pick<CollabHistory, 'server' | 'submitted' | 'local' | 'view'>>;
+    /**
+     * State after the change
+     */
+    after: Readonly<Pick<CollabHistory, 'server' | 'submitted' | 'local' | 'view'>>;
+  }>;
+
   appliedTypingOperation: ReadonlyDeep<
     {
       operation: Operation;
@@ -72,10 +111,23 @@ export interface CollabHistoryEvents {
   }>;
 }
 
+export enum ChangeSource {
+  LOCAL = 'local',
+  EXTERNAL = 'external',
+  RESET = 'reset',
+}
+
+const ServerRecordStruct = RevisionChangesetStruct;
+
+const ServerTailRecordStruct = RevisionChangesetStruct;
+
 const HistoryRecordStruct = object({
+  type: enums(['execute', 'permanent', 'undo', 'redo']),
+  squash: optional(literal(true)),
   changeset: ChangesetStruct,
-  afterSelection: SelectionRangeStruct,
   beforeSelection: SelectionRangeStruct,
+  afterSelection: SelectionRangeStruct,
+  serverRecord: optional(ServerRecordStruct),
 });
 
 const ExpandedHistoryRecordArrayStruct = array(HistoryRecordStruct);
@@ -83,8 +135,10 @@ const ExpandedHistoryRecordArrayStruct = array(HistoryRecordStruct);
 const CollapsedHistoryRecordArrayStruct = array(
   assign(
     omit(HistoryRecordStruct, ['beforeSelection']),
+    omit(HistoryRecordStruct, ['afterSelection']),
     object({
       beforeSelection: OptionalSelectionRange,
+      afterSelection: OptionalSelectionRange,
     })
   )
 );
@@ -95,29 +149,59 @@ export const HistoryRecordArrayStruct = coerce(
   unknown(),
   (unknownRecords) => {
     const collapsedRecords = CollapsedHistoryRecordArrayStruct.create(unknownRecords);
-    return collapsedRecords.map((record, index) =>
-      record.beforeSelection
-        ? record
-        : {
-            ...record,
-            beforeSelection:
-              collapsedRecords[index - 1]?.afterSelection ?? SelectionRange.from(0),
-          }
-    );
+    return collapsedRecords.map((record, index) => {
+      if (!record.afterSelection) {
+        return {
+          ...record,
+          beforeSelection: SelectionRange.EMPTY,
+          afterSelection: SelectionRange.EMPTY,
+        };
+      }
+
+      const previousRecord = collapsedRecords[index - 1];
+
+      if (!record.beforeSelection) {
+        return {
+          ...record,
+          beforeSelection: previousRecord?.afterSelection ?? SelectionRange.from(0),
+        };
+      }
+
+      return record;
+    });
   },
   (expandedRecords) => {
     return CollapsedHistoryRecordArrayStruct.createRaw(
-      expandedRecords.map((record, index) =>
-        SelectionRange.isEqual(
-          record.beforeSelection,
-          expandedRecords[index - 1]?.afterSelection
-        )
-          ? {
+      expandedRecords.map((record, index) => {
+        if (
+          SelectionRange.isEmpty(record.beforeSelection) &&
+          SelectionRange.isEmpty(record.afterSelection)
+        ) {
+          return {
+            type: record.type,
+            changeset: record.changeset,
+            ...(record.squash && { squash: record.squash }),
+            ...(record.serverRecord && { serverRecord: record.serverRecord }),
+          };
+        }
+
+        const previousRecord = expandedRecords[index - 1];
+        if (previousRecord) {
+          if (
+            SelectionRange.isEqual(previousRecord.afterSelection, record.beforeSelection)
+          ) {
+            return {
+              type: record.type,
               changeset: record.changeset,
               afterSelection: record.afterSelection,
-            }
-          : record
-      )
+              ...(record.squash && { squash: record.squash }),
+              ...(record.serverRecord && { serverRecord: record.serverRecord }),
+            };
+          }
+        }
+
+        return record;
+      })
     );
   }
 );
@@ -125,20 +209,16 @@ export const HistoryRecordArrayStruct = coerce(
 const LastExecutedIndexStruct = object({
   server: number(),
   submitted: number(),
-  local: number(),
+  execute: number(),
 });
 
-const ServerTailTextTransformToRecordsTailTextStruct = union([
-  ChangesetStruct,
-  literal(null),
-]);
+// TODO allow undefined?
+const ServerToLocalHistoryTransform = union([ChangesetStruct, literal(null)]);
 
 export const CollabHistoryOptionsStruct = object({
+  serverTailRecord: ServerTailRecordStruct,
+  serverToLocalHistoryTransform: ServerToLocalHistoryTransform,
   records: HistoryRecordArrayStruct,
-  recordsTailText: OptionalChangesetStruct,
-  serverTailRevision: number(),
-  serverTailTextTransformToRecordsTailText:
-    ServerTailTextTransformToRecordsTailTextStruct,
   lastExecutedIndex: LastExecutedIndexStruct,
 });
 
@@ -149,26 +229,19 @@ interface Operation {
 
 export type HistoryRecord = Infer<typeof HistoryRecordStruct>;
 
-export interface ReadonlyHistoryRecord {
-  readonly changeset: HistoryRecord['changeset'];
-  readonly afterSelection: ReadonlyDeep<HistoryRecord['afterSelection']>;
-  readonly beforeSelection: ReadonlyDeep<HistoryRecord['beforeSelection']>;
+export type ReadonlyHistoryRecord = ReadonlyDeep<HistoryRecord, Changeset>;
+
+interface ChangesetRecord {
+  readonly changeset: Changeset;
 }
+
+type ServerRecord = Readonly<Infer<typeof ServerRecordStruct>>;
+
+type ServerTailRecord = Readonly<Infer<typeof ServerTailRecordStruct>>;
 
 type LastExecutedIndex = Infer<typeof LastExecutedIndexStruct>;
 
-export type HistoryRestoreEntry =
-  | {
-      type: 'external';
-      changeset: Changeset;
-    }
-  | ({
-      type: 'local';
-    } & ReadonlyHistoryRecord);
-
-export type CollabHistoryModification = Parameters<CollabHistory['modification']>[0];
-
-class CollabHistoryModificationError extends Error {
+class CollabHistoryTransactionError extends Error {
   //
 }
 
@@ -178,63 +251,54 @@ export interface CollabHistoryOptions {
   service?: {
     eventBus: PickReadEmitter<CollabServiceEvents, 'handledExternalChange'>;
   };
-  client?: CollabClient;
+  client?: {
+    server?: Changeset;
+    submitted?: Changeset;
+    local?: Changeset;
+    view?: Changeset;
+  };
+  serverTailRecord?: ServerTailRecord;
+  serverToLocalHistoryTransform?: Maybe<Changeset>;
   records?: ReadonlyHistoryRecord[];
-  serverTailRevision?: number;
-  recordsTailText?: Changeset;
   lastExecutedIndex?: LastExecutedIndex;
-  serverTailTextTransformToRecordsTailText?: Maybe<Changeset>;
+}
+
+function oppositeType(type: 'undo'): 'redo';
+function oppositeType(type: 'redo'): 'undo';
+function oppositeType(type: 'undo' | 'redo'): 'undo' | 'redo';
+function oppositeType(type: string) {
+  return type === 'redo' ? 'undo' : 'redo';
 }
 
 export class CollabHistory {
   private readonly logger;
 
   private readonly _eventBus: Emitter<CollabHistoryEvents>;
-  get eventBus(): Pick<Emitter<CollabHistoryEvents>, 'on' | 'off'> {
+  get eventBus(): ReadEmitter<CollabHistoryEvents> {
     return this._eventBus;
   }
 
-  private client: CollabClient;
+  private serverTailRecord: ServerTailRecord;
 
-  /**
-   * Transforms serverTailText to a changeset compatible with local records.
-   * serverTailText * serverTailTextTransformToRecordsTailText = readonlyRecords.tailText
-   */
-  private serverTailTextTransformToRecordsTailText: Changeset | null;
+  private serverToLocalHistoryTransform: Changeset;
 
-  /**
-   * Modifying this instance directly can lead to invalid state
-   */
-  private readonly readonlyRecords: TextMemoRecords<ReadonlyHistoryRecord>;
-  /**
-   * Use this instance to modify records. Prevents invalid modifications.
-   */
-  private readonly modifyRecords: ComposableRecordsFacade<ReadonlyHistoryRecord>;
+  private _records: ReadonlyHistoryRecord[];
 
   get records(): readonly ReadonlyHistoryRecord[] {
-    return this.readonlyRecords.items;
+    return this._records;
   }
 
-  /**
-   * Server revision that this history records are up to date with.
-   */
-  private _serverTailRevision: number;
-
-  /**
-   * Server revision that this history records are up to date with.
-   */
   get serverTailRevision() {
-    return this._serverTailRevision;
+    return this.serverTailRecord.revision;
+  }
+
+  get undoableRecordsCount() {
+    return this._records
+      .slice(0, this.lastExecutedIndex.execute + 1)
+      .reduce((sum, p) => sum + (p.type === 'execute' ? 1 : 0), 0);
   }
 
   private lastExecutedIndex: LastExecutedIndex;
-
-  /**
-   * Record index that matches CollabClient.local after after it's applied
-   */
-  get localIndex() {
-    return this.lastExecutedIndex.local;
-  }
 
   public serverRecords: Pick<
     ServerRecordsFacade<{
@@ -249,82 +313,68 @@ export class CollabHistory {
     this.logger = options?.logger;
 
     this._eventBus = options?.eventBus ?? mitt();
-    this.client = options?.client ?? new CollabClient();
 
-    this.serverTailTextTransformToRecordsTailText =
-      options?.serverTailTextTransformToRecordsTailText ?? null;
-    this.readonlyRecords = new TextMemoRecords({
-      records: options?.records,
-      tailText: options?.recordsTailText ?? this.client.server,
-    });
-    this.modifyRecords = new ComposableRecordsFacade(this.readonlyRecords, {
-      logger: options?.logger?.extend('modifyRecords'),
-    });
-
-    this._serverTailRevision = options?.serverTailRevision ?? 0;
-
-    this.lastExecutedIndex = options?.lastExecutedIndex ?? {
-      server: -1,
-      submitted: -1,
-      local: -1,
+    this.serverTailRecord = {
+      changeset: Changeset.EMPTY,
+      revision: 0,
     };
+    this.serverToLocalHistoryTransform = this.serverTailRecord.changeset.getIdentity();
 
-    this.eventsOff = [
-      this.client.eventBus.on('submitChanges', () => {
-        this.lastExecutedIndex.submitted = this.lastExecutedIndex.local;
-        this.logger?.debug('event:submitChanges', {
-          lastExecutedIndex: this.lastExecutedIndex,
-        });
-      }),
-      this.client.eventBus.on('submittedChangesAcknowledged', () => {
-        this.lastExecutedIndex.server = this.lastExecutedIndex.submitted;
-        this.logger?.debug('event:submittedChangesAcknowledged', {
-          lastExecutedIndex: this.lastExecutedIndex,
-        });
-      }),
-      ...(options?.service?.eventBus
-        ? [
-            options.service.eventBus.on(
-              'handledExternalChange',
-              ({ externalChange, revision }) => {
-                this.logger?.debug('event:handledExternalChange', {
-                  externalChange: externalChange.toString(),
-                  revision,
-                });
-                this.processExternalChange({
-                  changeset: externalChange,
-                  revision,
-                });
-              }
-            ),
-          ]
-        : [
-            this.client.eventBus.on('handledExternalChange', ({ externalChange }) => {
-              this.logger?.debug('event:handledExternalChange', {
-                externalChange: externalChange.toString(),
-              });
-              this.processExternalChange(externalChange);
-            }),
-          ]),
-    ];
-
-    this.logState('constructor:after');
-  }
-
-  reset(options?: Pick<CollabHistoryOptions, 'serverTailRevision'>) {
-    this.modifyRecords.clear(this.client.server);
-
-    this.serverTailTextTransformToRecordsTailText = null;
-
-    this._serverTailRevision = options?.serverTailRevision ?? 0;
+    // TODO memoize records... using composition
+    this._records = [];
 
     this.lastExecutedIndex = {
       server: -1,
       submitted: -1,
-      local: -1,
+      execute: -1,
     };
 
-    this.logState('reset:after');
+    this.withTransaction('constructor', () => {
+      if (!options) {
+        return;
+      }
+      if (options.serverTailRecord) {
+        this.serverTailRecord = options.serverTailRecord;
+      }
+
+      if (options.serverToLocalHistoryTransform) {
+        this.serverToLocalHistoryTransform = options.serverToLocalHistoryTransform;
+      } else if (options.serverTailRecord) {
+        this.serverToLocalHistoryTransform =
+          this.serverTailRecord.changeset.getIdentity();
+      }
+
+      if (options.records) {
+        this._records = options.records;
+      }
+
+      if (options.lastExecutedIndex) {
+        this.lastExecutedIndex = options.lastExecutedIndex;
+      }
+    });
+  }
+
+  reset(options?: Pick<CollabHistoryOptions, 'serverTailRecord'>) {
+    this.withTransaction('reset', () => {
+      this.serverTailRecord = options?.serverTailRecord ?? {
+        changeset: Changeset.EMPTY,
+        revision: 0,
+      };
+      this.serverToLocalHistoryTransform = this.serverTailRecord.changeset.getIdentity();
+      this._records = [];
+
+      this.lastExecutedIndex = {
+        server: -1,
+        submitted: -1,
+        execute: -1,
+      };
+
+      this._eventBus.emit('viewChanged', {
+        view: this.view,
+        change: this.server,
+        source: ChangeSource.RESET,
+      });
+    });
   }
 
   /**
@@ -336,11 +386,250 @@ export class CollabHistory {
     });
   }
 
-  /**
-   * Changeset that matches `client.view`
-   */
-  private getViewText(): Changeset {
-    return this.readonlyRecords.getTextAt(this.lastExecutedIndex.local);
+  private isTransactionInProgress = false;
+  private startTransaction(name: string) {
+    if (this.isTransactionInProgress) {
+      throw new CollabHistoryTransactionError('Transaction already in progress');
+    }
+    this.isTransactionInProgress = true;
+
+    let isThisTransactionDone = false;
+
+    this.logState(`transaction:start:${name}`);
+
+    const savedState = {
+      serverTailRecord: this.serverTailRecord,
+      serverToLocalHistoryTransform: this.serverToLocalHistoryTransform,
+      records: [...this.records],
+      lastExecutedIndex: { ...this.lastExecutedIndex },
+    };
+
+    const disposeTransaction = () => {
+      if (isThisTransactionDone) {
+        return;
+      }
+      isThisTransactionDone = true;
+
+      this.isTransactionInProgress = false;
+    };
+
+    const rollbackTransaction = () => {
+      if (isThisTransactionDone) {
+        return;
+      }
+      disposeTransaction();
+
+      this.logState(`transaction:rollback:${name}`);
+      this.serverTailRecord = savedState.serverTailRecord;
+      this.serverToLocalHistoryTransform = savedState.serverToLocalHistoryTransform;
+      this._records = savedState.records;
+      this.lastExecutedIndex = savedState.lastExecutedIndex;
+      this.logState(`transaction:rollback:completed:${name}`);
+    };
+
+    return {
+      completeTransaction: () => {
+        if (isThisTransactionDone) {
+          return;
+        }
+
+        try {
+          Object.keys(this.lastExecutedIndex).forEach((key) => {
+            if (
+              this.lastExecutedIndex[key as keyof LastExecutedIndex] < -1 ||
+              this.lastExecutedIndex[key as keyof LastExecutedIndex] >=
+                this.records.length
+            ) {
+              throw new Error(`lastExecutedIndex.${key} is out of bounds`);
+            }
+          });
+
+          if (this.lastExecutedIndex.server > this.lastExecutedIndex.submitted) {
+            throw new Error(
+              `Server index ${this.lastExecutedIndex.server} ` +
+                `is greater than submitted index ${this.lastExecutedIndex.submitted}`
+            );
+          }
+
+          if (this.tailText.hasRetainStrips()) {
+            throw new Error(
+              `TailText contains retain strips ${this.tailText.toString()}`
+            );
+          }
+
+          const localRecords = [
+            this.serverTailRecord.changeset,
+            this.serverToLocalHistoryTransform,
+            ...this._records.map((r) => r.changeset),
+          ];
+          for (let i = 1; i < localRecords.length; i++) {
+            const r0 = localRecords[i - 1];
+            const r1 = localRecords[i];
+            if (!r0 || !r1) {
+              continue;
+            }
+            try {
+              r0.assertIsComposable(r1);
+            } catch (err) {
+              throw new Error('Local records are not composable', {
+                cause: err,
+              });
+            }
+          }
+
+          const serverRecrods = [
+            this.serverTailRecord,
+            ...this._records.map((r) => r.serverRecord).filter(isDefined),
+          ];
+          for (let i = 1; i < serverRecrods.length; i++) {
+            const r0 = serverRecrods[i - 1];
+            const r1 = serverRecrods[i];
+            if (!r0 || !r1) {
+              continue;
+            }
+            try {
+              r0.changeset.assertIsComposable(r1.changeset);
+            } catch (err) {
+              throw new Error('Server records are not composable', {
+                cause: err,
+              });
+            }
+            if (r0.revision >= r1.revision) {
+              throw new Error(
+                `Revision is out of order. Revision ${r0.revision} appears after ${r1.revision}`
+              );
+            }
+          }
+
+          this.logState(`transaction:completed:${name}`);
+          disposeTransaction();
+        } catch (err) {
+          this.logger?.error(`transaction:error:${name}`, err);
+          rollbackTransaction();
+          throw new CollabHistoryTransactionError(
+            `Attemplted illegal modification${err instanceof Error ? `: ${err.message}` : ''}`,
+            {
+              cause: err,
+            }
+          );
+        }
+      },
+      rollbackTransaction,
+    };
+  }
+
+  private withTransaction<TReturn>(name: string, fn: () => TReturn): TReturn | undefined {
+    if (this.isTransactionInProgress) {
+      return fn();
+    }
+
+    const tsx = this.startTransaction(name);
+    try {
+      const result = fn();
+      tsx.completeTransaction();
+      return result;
+    } finally {
+      tsx.rollbackTransaction();
+    }
+  }
+
+  private getTextAt(index: number) {
+    // slice.[0, index + 1)
+    const records: ChangesetRecord[] = this.records.slice(0, index + 1);
+    if (records.length === 0) {
+      return this.tailText;
+    }
+
+    return records.reduce((a, b) => a.compose(b.changeset), this.tailText);
+  }
+
+  private get tailText(): Changeset {
+    return [this.serverTailRecord.changeset, this.serverToLocalHistoryTransform].reduce(
+      (a, b) => a.compose(b),
+      Changeset.EMPTY
+    );
+  }
+
+  get server(): Changeset {
+    if (this.lastExecutedIndex.server === -1) {
+      return this.tailText;
+    }
+
+    // slice.[0, server + 1)
+    const records: ChangesetRecord[] = this.records.slice(
+      0,
+      this.lastExecutedIndex.server + 1
+    );
+    if (records.length === 0) {
+      return this.tailText;
+    }
+
+    return records.reduce((a, b) => a.compose(b.changeset), this.tailText);
+  }
+
+  get submitted(): Changeset {
+    if (this.lastExecutedIndex.submitted === -1) {
+      return this.server.getIdentity();
+    }
+
+    // slice.[server + 1, submitted + 1)
+    const records: ChangesetRecord[] = this._records.slice(
+      this.lastExecutedIndex.server + 1,
+      this.lastExecutedIndex.submitted + 1
+    );
+    if (records.length === 0) {
+      return this.server.getIdentity();
+    }
+
+    return records.reduce((a, b) => ({
+      changeset: a.changeset.compose(b.changeset),
+    })).changeset;
+  }
+
+  get local(): Changeset {
+    if (this.records.length === 0) {
+      return this.submitted.getIdentity();
+    }
+
+    // slice.[submitted + 1,...)
+    const records: ChangesetRecord[] = this._records.slice(
+      this.lastExecutedIndex.submitted + 1
+    );
+
+    if (records.length === 0) {
+      return this.submitted.getIdentity();
+    }
+
+    return records.reduce((a, b) => ({
+      changeset: a.changeset.compose(b.changeset),
+    })).changeset;
+  }
+
+  get view(): Changeset {
+    // slice.[0,...)
+    const records: ChangesetRecord[] = this._records;
+    if (records.length === 0) {
+      return this.tailText;
+    }
+
+    return records.reduce((a, b) => a.compose(b.changeset), this.tailText);
+  }
+
+  get submittedView(): Changeset {
+    if (this.lastExecutedIndex.submitted === -1) {
+      return this.server.getIdentity();
+    }
+
+    // slice.[0, submitted + 1)
+    const records: ChangesetRecord[] = this._records.slice(
+      0,
+      this.lastExecutedIndex.submitted + 1
+    );
+    if (records.length === 0) {
+      return this.tailText;
+    }
+
+    return records.reduce((a, b) => a.compose(b.changeset), this.tailText);
   }
 
   /**
@@ -351,128 +640,296 @@ export class CollabHistory {
     SubmittedRevisionRecord,
     'afterSelection' | 'beforeSelection'
   > {
-    if (this.lastExecutedIndex.server < this.lastExecutedIndex.local) {
-      const oldestLocalRecord = this.readonlyRecords.at(
-        this.lastExecutedIndex.server + 1
-      );
-      const localRecord = this.readonlyRecords.at(this.lastExecutedIndex.local);
-      if (!oldestLocalRecord || !localRecord) {
-        return {
-          beforeSelection: SelectionRange.ZERO,
-          afterSelection: SelectionRange.ZERO,
-        };
-      }
-
+    const oldestLocalRecord = this._records[this.lastExecutedIndex.server + 1];
+    const newestLocalRecord = this._records[this._records.length - 1];
+    if (!oldestLocalRecord || !newestLocalRecord) {
       return {
-        beforeSelection: oldestLocalRecord.beforeSelection,
-        afterSelection: localRecord.afterSelection,
-      };
-    } else {
-      // this.lastExecutedIndex.server >= this.lastExecutedIndex.local
-      const serverRecord = this.readonlyRecords.at(this.lastExecutedIndex.server);
-      const localRecord = this.readonlyRecords.at(this.lastExecutedIndex.local);
-      if (!serverRecord) {
-        return {
-          beforeSelection: SelectionRange.ZERO,
-          afterSelection: SelectionRange.ZERO,
-        };
-      }
-
-      return {
-        beforeSelection: serverRecord.afterSelection,
-        afterSelection: localRecord
-          ? localRecord.afterSelection
-          : serverRecord.beforeSelection,
+        beforeSelection: SelectionRange.EMPTY,
+        afterSelection: SelectionRange.EMPTY,
       };
     }
+
+    return {
+      beforeSelection: oldestLocalRecord.beforeSelection,
+      afterSelection: newestLocalRecord.afterSelection,
+    };
   }
 
+  haveSubmittedChanges() {
+    // return !this.submitted.isIdentity(this.server);
+    return this.lastExecutedIndex.server !== this.lastExecutedIndex.submitted;
+  }
+
+  /**
+   * Have local changes when submitting it changes server text visually
+   */
+  haveLocalChanges() {
+    const uniqueLocal = this.submittedView.insertionsToRetained(this.local);
+
+    return !uniqueLocal.isIdentity(this.submitted);
+  }
+
+  canSubmitChanges() {
+    return !this.haveSubmittedChanges() && this.haveLocalChanges();
+  }
+
+  /**
+   *
+   * @returns Submitting changes was successful and submittable changes are in
+   * {@link submitted}. Returns false if previous submitted changes exist or
+   * there are no local changes to submit.
+   */
+  submitChanges() {
+    if (!this.canSubmitChanges()) return false;
+
+    this.lastExecutedIndex.submitted = this._records.length - 1;
+
+    this._eventBus.emit('submitChanges');
+
+    return true;
+  }
+
+  private cacheServerRecords(targetIndex: number, ...serverRecords: ServerRecord[]) {
+    const targetRecord = this._records[targetIndex];
+    if (!targetRecord) {
+      return;
+    }
+
+    const concatServerRecords = [
+      ...(targetRecord.serverRecord ? [targetRecord.serverRecord] : []),
+      ...serverRecords,
+    ];
+    const firstServerRecord = concatServerRecords[0];
+    if (!firstServerRecord) {
+      return;
+    }
+
+    this._records[targetIndex] = {
+      ...targetRecord,
+      serverRecord: concatServerRecords.slice(1).reduce(
+        (a, b) => ({
+          revision: b.revision,
+          changeset: a.changeset.compose(b.changeset),
+        }),
+        firstServerRecord
+      ),
+    };
+  }
+
+  /**
+   * Can acknowledge only if submitted changes exist.
+   * @returns Acknowlegement successful. Only returns false if submitted changes don't exist.
+   */
+  submittedChangesAcknowledged(record: RevisionChangeset) {
+    if (!this.haveSubmittedChanges()) return false;
+
+    this.logger?.debug('submittedChangesAcknowledged', record);
+    const transactionResult = this.withTransaction('submittedChangesAcknowledged', () => {
+      this.cacheServerRecords(this.lastExecutedIndex.submitted, record);
+
+      this.lastExecutedIndex.server = this.lastExecutedIndex.submitted;
+      this.recordsCleanup(-1, this.lastExecutedIndex.server);
+      return true;
+    });
+
+    if (transactionResult) {
+      this._eventBus.emit('submittedChangesAcknowledged');
+    }
+
+    return true;
+  }
+
+  /**
+   * Composes external change to server changeset and updates rest accordingly to match server.
+   *
+   * A - server, X - submitted, Y - local, B - external \
+   * V - view, D - external change relative to view \
+   * Text before external change: AXY = V \
+   * Text after external change: A'BX'Y' = VD \
+   * A' = AB \
+   * X' = f(B,X) \
+   * Y' = f(f(X,B),Y) \
+   * D =  f(Y,f(X,B)) \
+   * V' = VD
+   */
+  handleExternalChange(
+    externalRecord: RevisionChangeset
+  ): CollabHistoryEvents['handledExternalChange'] | undefined {
+    const before = {
+      server: this.server,
+      submitted: this.submitted,
+      local: this.local,
+      view: this.view,
+    };
+
+    // TODO remember record revision so that tail can be moved
+
+    this.logger?.debug('handleExternalChange', externalRecord);
+
+    const transactionResult = this.withTransaction('handleExternalChange', () => {
+      this._records.splice(this.lastExecutedIndex.server + 1, 0, {
+        type: 'permanent',
+        beforeSelection: SelectionRange.EMPTY,
+        afterSelection: SelectionRange.EMPTY,
+        changeset: externalRecord.changeset,
+        serverRecord: externalRecord,
+      });
+
+      this.movePermanentChangesToLocalHistoryTransform(
+        -1,
+        this.lastExecutedIndex.server + 2,
+        'between'
+      );
+
+      this.logState(
+        `handleExternalState:follow:[${this.lastExecutedIndex.server + 1},${this._records.length})`
+      );
+      let followChangeset = externalRecord.changeset;
+      for (let i = this.lastExecutedIndex.server + 1; i < this._records.length; i++) {
+        const record = this._records[i];
+        if (!record) {
+          continue;
+        }
+
+        const nextFollowChangeset = record.changeset.follow(followChangeset);
+
+        const leftBeforeStartStrip = followChangeset.strips.at(
+          record.beforeSelection.start
+        );
+        const rightBeforeStartStrip = record.changeset.strips.at(
+          record.beforeSelection.start
+        );
+
+        const beforeSelectionChangeset =
+          leftBeforeStartStrip instanceof InsertStrip &&
+          rightBeforeStartStrip instanceof InsertStrip &&
+          rightBeforeStartStrip.value < leftBeforeStartStrip.value
+            ? nextFollowChangeset
+            : followChangeset;
+
+        this._records[i] = {
+          ...record,
+          changeset: followChangeset.follow(record.changeset),
+          beforeSelection: SelectionRange.closestRetainedPosition(
+            record.beforeSelection,
+            // followChangeset
+            beforeSelectionChangeset
+          ),
+          afterSelection: SelectionRange.closestRetainedPosition(
+            record.afterSelection,
+            nextFollowChangeset
+          ),
+        };
+
+        followChangeset = nextFollowChangeset;
+      }
+
+      this.deleteIdentityRecords(-1, this.lastExecutedIndex.server);
+
+      this.deleteIdentityRecords(
+        this.lastExecutedIndex.submitted + 1,
+        this._records.length
+      );
+
+      return {
+        viewComposable: followChangeset,
+      };
+    });
+
+    if (transactionResult) {
+      const { viewComposable } = transactionResult;
+      const event: CollabHistoryEvents['handledExternalChange'] = {
+        externalChange:
+          externalRecord instanceof Changeset ? externalRecord : externalRecord.changeset,
+        viewComposable,
+        before,
+        after: {
+          server: this.server,
+          submitted: this.submitted,
+          local: this.local,
+          view: this.view,
+        },
+      };
+
+      this._eventBus.emit('handledExternalChange', event);
+
+      this._eventBus.emit('viewChanged', {
+        view: this.view,
+        change: viewComposable,
+        source: ChangeSource.EXTERNAL,
+      });
+
+      return event;
+    }
+
+    return;
+  }
+
+  /**
+   * Introduce new local typing by composing {@link change} to
+   * local changeset.
+   */
   pushSelectionChangeset(
     value: SelectionChangeset,
     options?: SimpleTextOperationOptions
   ) {
-    if (value.changeset.isIdentity(this.getViewText())) {
+    if (this.local.isEqual(this.local.compose(value.changeset))) {
+      // Record doesn't make visual difference.
       return;
     }
 
-    this.logState('pushSelectionChangeset:before', {
-      value: {
-        ...value,
-        changeset: value.changeset.toString(),
-      },
+    const type = options?.type;
+
+    this.logger?.debug('pushSelectionChangeset', {
+      value,
       options,
     });
 
-    if (options?.type === 'permanent') {
-      // eslint-disable-next-line @typescript-eslint/no-this-alias
-      const _this = this;
-      permanentChangeModification(
-        value.changeset,
-        {
-          records: this.readonlyRecords,
-          get serverTailTextTransformToRecordsTailText() {
-            return _this.serverTailTextTransformToRecordsTailText;
-          },
-          modification: this.modification.bind(this),
-        },
-        {
-          logger: _this.logger?.extend('permanentChangeMod'),
-        }
-      );
+    const beforeHaveLocalChanges = this.haveLocalChanges();
 
-      this.client.composeLocalChange(value.changeset);
-      const newestRecord = this.readonlyRecords.at(this.localIndex);
-      if (newestRecord) {
-        // TODO is it valid to emit last record?
-        this._eventBus.emit('appliedTypingOperation', {
-          operation: {
-            changeset: newestRecord.changeset,
-            selection: newestRecord.afterSelection,
-          },
-        });
-      }
-    } else {
-      const merge = options?.type === 'merge';
-      const localIndex = this.lastExecutedIndex.local;
-      const localRecord = this.readonlyRecords.at(this.lastExecutedIndex.local);
+    const transactionResult = this.withTransaction('pushSelectionChangeset', () => {
+      const newestRecord = this._records.at(this._records.length - 1);
 
-      this.modifyRecords.deleteFromThenPush(localIndex + 1, {
+      const record: HistoryRecord = {
+        type: type === 'permanent' ? 'permanent' : 'execute',
         changeset: value.changeset,
         afterSelection: value.afterSelection,
         beforeSelection:
-          value.beforeSelection ?? localRecord?.afterSelection ?? SelectionRange.from(0),
+          value.beforeSelection ?? newestRecord?.afterSelection ?? SelectionRange.from(0),
+      };
+      if (type === 'merge') {
+        record.squash = true;
+      }
+
+      this._records.push(record);
+
+      this.lastExecutedIndex.execute = this._records.length - 1;
+
+      this.recordsCleanup(this.lastExecutedIndex.submitted + 1, this._records.length);
+
+      return {
+        operation: {
+          changeset: value.changeset,
+          selection: value.afterSelection,
+        },
+      };
+    });
+
+    if (transactionResult) {
+      // Transaction was successful
+      this._eventBus.emit('viewChanged', {
+        view: this.view,
+        change: value.changeset,
+        source: ChangeSource.LOCAL,
       });
 
-      // Adjust indexes based on deleted records
+      this._eventBus.emit('appliedTypingOperation', {
+        operation: transactionResult.operation,
+      });
 
-      if (0 <= localIndex && localIndex < this.readonlyRecords.length - 1) {
-        this.lastExecutedIndex.submitted = Math.min(
-          this.lastExecutedIndex.submitted,
-          localIndex
-        );
-        this.lastExecutedIndex.server = Math.min(
-          this.lastExecutedIndex.server,
-          this.lastExecutedIndex.submitted
-        );
-      } else if (localIndex === -1) {
-        this.lastExecutedIndex.submitted = -1;
-        this.lastExecutedIndex.server = -1;
+      if (!beforeHaveLocalChanges && this.haveLocalChanges()) {
+        this._eventBus.emit('haveLocalChanges', { local: this.local });
       }
-
-      // Applies pushed record
-      this.redo();
-
-      // return
-      if (merge) {
-        const afterLocalIndex = this.lastExecutedIndex.local;
-        if (localIndex < 0) {
-          this.mergeToRecordsTailText(afterLocalIndex + 1);
-        } else {
-          this.mergeRecords(localIndex, afterLocalIndex);
-        }
-      }
-
-      this.logState('pushSelectionChangeset:after');
     }
   }
 
@@ -484,38 +941,99 @@ export class CollabHistory {
   ): number | undefined {
     if (desiredRestoreCount <= 0) return 0;
 
+    this.logState('sliceOlderRecordsUntilDesiredOwnCount', {
+      revision: this.serverTailRecord.revision,
+      desiredRestoreCount,
+    });
     const { records: relevantRecords, ownCount: potentialRestoreCount } =
       userRecords.sliceOlderRecordsUntilDesiredOwnCount(
-        this._serverTailRevision,
+        this.serverTailRecord.revision,
         desiredRestoreCount
       );
 
     const firstRecord = relevantRecords[0];
     if (!firstRecord) return;
 
-    const tailText = userRecords.getTextAt(firstRecord.revision - 1);
+    const newServerTailRecord = userRecords.getTextAt(firstRecord.revision - 1);
 
-    const addedEntriesCount = this.unshiftRecords(
-      tailText,
-      relevantRecords.map((record) => {
-        const isOtherUserRecord = !userRecords.isOwnRecord(record);
-        if (!record.beforeSelection || !record.afterSelection || isOtherUserRecord) {
-          return {
-            type: 'external',
-            changeset: record.changeset,
-          };
-        } else {
-          return {
-            type: 'local',
-            changeset: record.changeset,
-            afterSelection: record.afterSelection,
-            beforeSelection: record.beforeSelection,
-          };
+    this.logger?.debug('restoreFromUserRecords', {
+      newServerTailRecord,
+      relevantRecords,
+    });
+
+    const transactionResult = this.withTransaction('restoreFromUserRecords', () => {
+      const beforeRecordsCount = this._records.length;
+
+      this._records.splice(
+        0,
+        0,
+        ...relevantRecords.map<ReadonlyHistoryRecord>((record) => {
+          const isOtherUserRecord = !userRecords.isOwnRecord(record);
+          if (!record.beforeSelection || !record.afterSelection || isOtherUserRecord) {
+            return {
+              type: 'permanent' as const,
+              changeset: record.changeset,
+              beforeSelection: SelectionRange.EMPTY,
+              afterSelection: SelectionRange.EMPTY,
+              serverRecord: {
+                revision: record.revision,
+                changeset: record.changeset,
+              },
+            };
+          } else {
+            return {
+              type: 'execute' as const,
+              changeset: record.changeset,
+              afterSelection: record.afterSelection,
+              beforeSelection: record.beforeSelection,
+              serverRecord: {
+                revision: record.revision,
+                changeset: record.changeset,
+              },
+            };
+          }
+        }),
+        {
+          type: 'permanent',
+          changeset: this.serverToLocalHistoryTransform,
+          beforeSelection: SelectionRange.EMPTY,
+          afterSelection: SelectionRange.EMPTY,
         }
-      })
-    );
+      );
 
-    let restoredCount = addedEntriesCount;
+      this.serverTailRecord = newServerTailRecord;
+      this.serverToLocalHistoryTransform = this.serverTailRecord.changeset.getIdentity();
+
+      this.movePermanentChangesToLocalHistoryTransform(
+        -1,
+        relevantRecords.length + 1,
+        false,
+        true
+      );
+
+      this.deleteIdentityRecords(
+        -1,
+        Math.min(this.lastExecutedIndex.server, relevantRecords.length)
+      );
+
+      const addedRecordsCount = this._records.length - beforeRecordsCount;
+
+      this.lastExecutedIndex.server += addedRecordsCount;
+      this.lastExecutedIndex.submitted += addedRecordsCount;
+      this.lastExecutedIndex.execute += addedRecordsCount;
+
+      return {
+        addedRecordsCount,
+      };
+    });
+
+    if (transactionResult === undefined) {
+      return;
+    }
+
+    const { addedRecordsCount } = transactionResult;
+
+    let restoredCount = addedRecordsCount;
 
     const remainingCount = desiredRestoreCount - restoredCount;
     if (remainingCount > 0 && potentialRestoreCount > 0 && !skipRecursive) {
@@ -540,270 +1058,700 @@ export class CollabHistory {
   }
 
   /**
-   * All or nothing operation for modifying history records
+   * Removes reduntant records from history. For example undo redo pairs.
+   * @param start Start index
+   * @param end End index is exclusive
    */
-  private modification(mod: {
-    serverTailRevision?: number;
-    serverTailTextTransformToRecordsTailText?: Changeset | null;
-    recordsTailText?: Changeset;
-    recordsSplice?: {
-      start: number;
-      deleteCount: number;
-      records: ReadonlyHistoryRecord[];
-    };
-  }) {
-    this.logState('modification:before', {
-      ...mod,
-      serverTailTextTransformToRecordsTailText:
-        mod.serverTailTextTransformToRecordsTailText?.toString(),
-      recordsTailText: mod.recordsTailText?.toString(),
-      recordsSplice: {
-        ...mod.recordsSplice,
-        records: mod.recordsSplice?.records.map((r) => ({
-          ...r,
-          changeset: r.changeset.toString(),
-        })),
-      },
+  private recordsCleanup(start: number, end: number) {
+    this.logger?.debug(`redoUndoCleanup:[${start},${end})`);
+    this.withTransaction('redoUndoCleanup', () => {
+      this.deleteUndoRedoStacks(start, end);
+
+      this.deleteExecuteUndoStacks(start, end);
+
+      this.squashRecords(start, end);
+
+      this.movePermanentChangesToLocalHistoryTransform(start, end);
+
+      this.deleteIdentityRecords(start, end);
     });
+  }
 
-    // Ensure modification is valid
-    if (
-      this.serverRecords != null &&
-      (mod.serverTailRevision !== undefined || mod.recordsTailText !== undefined)
-    ) {
-      const serverTailText = this.serverRecords.getTextAtMaybe(
-        mod.serverTailRevision ?? this._serverTailRevision
-      )?.changeset;
+  /**
+   * Delete undo/redo stacks (U*...*U*R*...*R) or (R*...*R*U*...*U)
+   * @param start
+   * @param end Is exclusive
+   */
+  private deleteUndoRedoStacks(start: number, end: number) {
+    let state: 'searching' | 'in-stack' = 'searching';
+    let stackType: 'redo' | 'undo' = 'redo';
+    let stackCount = 0;
+    let deleteCount = 0;
 
-      // If serverTailText is available, do extra sanity check
-      if (serverTailText) {
-        const serverTailToRecordsTail =
-          (mod.serverTailTextTransformToRecordsTailText !== undefined
-            ? mod.serverTailTextTransformToRecordsTailText
-            : this.serverTailTextTransformToRecordsTailText) ??
-          serverTailText.getIdentity();
-        const recordsTailText = mod.recordsTailText ?? this.readonlyRecords.tailText;
-        const recordsTailFromServerTransform = serverTailText.compose(
-          serverTailToRecordsTail
+    for (let i = end; i >= start; i--) {
+      const record = this._records[i];
+      if (!record) {
+        continue;
+      }
+
+      if (state === 'searching') {
+        if (record.type === 'undo' || record.type === 'redo') {
+          state = 'in-stack';
+          stackType = record.type;
+          stackCount = 1;
+        }
+      } else {
+        // in stack
+        if (record.type === stackType) {
+          stackCount++;
+        } else if (record.type === oppositeType(stackType)) {
+          stackCount--;
+          deleteCount += 2;
+
+          if (stackCount === 0) {
+            // undoCount === 0
+            // Found deletable undo stack
+            if (deleteCount > 0) {
+              const deleteStart = i;
+              const deleteEnd = deleteStart + deleteCount;
+              for (let j = deleteEnd - 1; j >= deleteStart; j--) {
+                this.copyServerRecordToExecute(j);
+                this.removedRecordAtIndex(j);
+              }
+              this._records.splice(deleteStart, deleteCount);
+              this.logger?.debug(`deleteUndoRedoStacks:[${deleteStart},${deleteEnd})`);
+            }
+
+            state = 'searching';
+          }
+        } else {
+          // type === 'execute'
+          state = 'searching';
+        }
+      }
+    }
+  }
+
+  private copyServerRecordToExecute(targetIndex: number) {
+    const executeIndex = this.findExecuteIndex(targetIndex);
+    if (executeIndex === -1) {
+      return;
+    }
+    this.copyServerRecord(targetIndex, executeIndex);
+  }
+
+  private copyServerRecord(fromIndex: number, toIndex: number) {
+    const fromRecord = this._records[fromIndex];
+    if (!fromRecord?.serverRecord) {
+      return;
+    }
+    const fromServerRecord = fromRecord.serverRecord;
+
+    const toRecord = this._records[toIndex];
+    if (!toRecord) {
+      return;
+    }
+
+    if (toRecord.serverRecord) {
+      const toServerRecord = toRecord.serverRecord;
+      if (fromServerRecord.revision < toServerRecord.revision) {
+        this._records[toIndex] = {
+          ...toRecord,
+          serverRecord: {
+            revision: toServerRecord.revision,
+            changeset: fromServerRecord.changeset.compose(toServerRecord.changeset),
+          },
+        };
+      } else if (fromServerRecord.revision > toServerRecord.revision) {
+        this._records[toIndex] = {
+          ...toRecord,
+          serverRecord: {
+            revision: fromServerRecord.revision,
+            changeset: toServerRecord.changeset.compose(fromServerRecord.changeset),
+          },
+        };
+      }
+    } else {
+      this._records[toIndex] = {
+        ...toRecord,
+        serverRecord: fromServerRecord,
+      };
+    }
+  }
+
+  /**
+   * Remove execute/undo stacks: (E*...*E*U*...*U)*E
+   * @param start
+   * @param end Is exclusive
+   */
+  private deleteExecuteUndoStacks(start: number, end: number) {
+    let state: 'searching' | 'in-stack' = 'searching';
+    let undoCount = 0;
+    let deleteCount = 0;
+
+    for (let i = end + 1; i >= start; i--) {
+      const record = this._records[i];
+      if (!record) {
+        continue;
+      }
+
+      if (state === 'searching') {
+        if (record.type === 'execute') {
+          state = 'in-stack';
+          deleteCount = 0;
+        }
+      } else {
+        // in stack
+        if (record.type === 'undo') {
+          undoCount++;
+        } else if (record.type === 'execute') {
+          if (undoCount > 0) {
+            undoCount--;
+            deleteCount += 2;
+          } else {
+            // undoCount === 0
+            // Found deletable undo stack
+            if (deleteCount > 0) {
+              const deleteStart = i + 1;
+              const deleteEnd = deleteStart + deleteCount;
+              //4,5
+              for (let j = deleteEnd - 1; j >= deleteStart; j--) {
+                this.copyServerRecordToExecute(j);
+                this.removedRecordAtIndex(j);
+              }
+              this._records.splice(deleteStart, deleteCount);
+              this.logger?.debug(`deleteExecuteUndoStacks:[${deleteStart},${deleteEnd})`);
+            }
+
+            state = 'searching';
+          }
+        } else {
+          // type === 'redo'
+          state = 'searching';
+        }
+      }
+    }
+  }
+
+  /**
+   * Merge squash records: (E0 * E(s) * ... * E(s)) * E1 = E0' * E1
+   * @param start
+   * @param end Is exclusive
+   */
+  private squashRecords(start: number, end: number) {
+    let state: 'searching' | 'in-squash' = 'searching';
+    let squashCount = 0;
+    for (let i = end - 1; i >= start; i--) {
+      const record = this._records[i];
+      if (!record) {
+        continue;
+      }
+
+      if (state === 'searching') {
+        if (record.type === 'execute' && !record.squash) {
+          state = 'in-squash';
+          squashCount = 1;
+        }
+      } else {
+        //state  === 'in-squash'
+        if (record.squash) {
+          squashCount++;
+        } else {
+          if (squashCount > 1) {
+            const mergeStart = i;
+            const mergeEnd = mergeStart + squashCount;
+
+            this._records.splice(
+              mergeStart,
+              squashCount,
+              this.mergeRecords(this._records.slice(mergeStart, mergeEnd))
+            );
+            for (let j = mergeEnd - 1; j > mergeStart; j--) {
+              this.removedRecordAtIndex(j);
+            }
+            this.logger?.debug(`squashRecords:[${mergeStart},${mergeEnd})`);
+          }
+
+          state = 'searching';
+        }
+      }
+    }
+  }
+
+  /**
+   * Move permanent changes to the left and compose to serverToLocalHistoryTransform
+   * @param start
+   * @param end Is exclusive
+   */
+  private movePermanentChangesToLocalHistoryTransform(
+    start: number,
+    end: number,
+    /**
+     * @default true
+     */
+    calculateRecordsRemoved: boolean | 'between' | 'start' = true,
+    firstPermanentToRight = false
+  ) {
+    this.logState(`movePermanentChangesToLocalHistoryTransform:before:[${start},${end})`);
+
+    for (let i = end - 1; i >= start; i--) {
+      const leftRecord = this._records[i - 1];
+      const rightRecord = this._records[i];
+      if (!leftRecord || !rightRecord) {
+        continue;
+      }
+
+      if (leftRecord.type === 'permanent' && rightRecord.type === 'permanent') {
+        this._records[i - 1] = {
+          ...rightRecord,
+          changeset: leftRecord.changeset.compose(rightRecord.changeset),
+          serverRecord:
+            leftRecord.serverRecord && rightRecord.serverRecord
+              ? {
+                  revision: rightRecord.serverRecord.revision,
+                  changeset: leftRecord.serverRecord.changeset.compose(
+                    rightRecord.serverRecord.changeset
+                  ),
+                }
+              : (leftRecord.serverRecord ?? rightRecord.serverRecord),
+        };
+
+        this._records.splice(i, 1);
+        if (calculateRecordsRemoved === true || calculateRecordsRemoved === 'between') {
+          this.removedRecordAtIndex(i);
+        }
+      } else if (leftRecord.type !== 'permanent' && rightRecord.type === 'permanent') {
+        const [newRightChangeset, newLeftChangeset] = swapChangesets(
+          (this._records[i - 2]?.changeset ?? this.tailText).length,
+          leftRecord.changeset,
+          rightRecord.changeset
         );
 
-        if (!recordsTailFromServerTransform.isEqual(recordsTailText)) {
-          const error = new CollabHistoryModificationError(
-            'Attempted illegal modification: serverTailText * transform != recordsTailText'
+        const newLeftServerRecord =
+          leftRecord.serverRecord && rightRecord.serverRecord
+            ? {
+                revision: rightRecord.serverRecord.revision,
+                changeset: leftRecord.serverRecord.changeset.compose(
+                  rightRecord.serverRecord.changeset
+                ),
+              }
+            : (leftRecord.serverRecord ?? rightRecord.serverRecord);
+
+        this._records[i] = {
+          ...leftRecord,
+          changeset: newLeftChangeset,
+          afterSelection: SelectionRange.closestRetainedPosition(
+            leftRecord.afterSelection,
+            rightRecord.changeset
+          ),
+          beforeSelection: SelectionRange.closestRetainedPosition(
+            leftRecord.beforeSelection,
+            rightRecord.changeset
+          ),
+          serverRecord: newLeftServerRecord,
+        };
+
+        this._records[i - 1] = {
+          ...rightRecord,
+          changeset: newRightChangeset,
+          // serverRecord: leftRecord.serverRecord ? undefined : rightRecord.serverRecord,
+          serverRecord: undefined,
+        };
+      }
+    }
+
+    if (start === -1) {
+      const firstRecord = this._records[0];
+      if (firstRecord?.type === 'permanent') {
+        if (firstRecord.serverRecord) {
+          if (firstPermanentToRight && this.copyServerRecordToNextIndex(0)) {
+            this.serverToLocalHistoryTransform =
+              this.serverToLocalHistoryTransform.compose(firstRecord.changeset);
+          } else {
+            this.serverTailRecord = {
+              revision: firstRecord.serverRecord.revision,
+              changeset: this.serverTailRecord.changeset.compose(firstRecord.changeset),
+            };
+            this.serverToLocalHistoryTransform =
+              this.serverTailRecord.changeset.getIdentity();
+          }
+        } else {
+          this.serverToLocalHistoryTransform = this.serverToLocalHistoryTransform.compose(
+            firstRecord.changeset
           );
-          this.logger?.error(error.message, {
-            serverTailText: serverTailText.toString(),
-            serverTailToRecordsTail: serverTailToRecordsTail.toString(),
-            recordsTailText: recordsTailText.toString(),
-          });
-          throw error;
+        }
+
+        this._records.splice(0, 1);
+        if (calculateRecordsRemoved === true || calculateRecordsRemoved === 'start') {
+          this.removedRecordAtIndex(0);
         }
       }
     }
 
-    // Apply modifiction
-    if (mod.recordsSplice !== undefined && mod.recordsTailText !== undefined) {
-      this.modifyRecords.replaceTailTextAndSplice(
-        mod.recordsTailText,
-        mod.recordsSplice.start,
-        mod.recordsSplice.deleteCount,
-        ...mod.recordsSplice.records
-      );
-    } else if (mod.recordsTailText !== undefined) {
-      this.modifyRecords.replaceTailText(mod.recordsTailText);
-    } else if (mod.recordsSplice !== undefined) {
-      this.modifyRecords.splice(
-        mod.recordsSplice.start,
-        mod.recordsSplice.deleteCount,
-        ...mod.recordsSplice.records
-      );
+    this.logState('movePermanentChangesToLocalHistoryTransform:after');
+  }
+
+  private copyServerRecordToNextIndex(targetIndex: number) {
+    // TODO reuse logic with cacheServerRecord
+    const leftRecord = this._records[targetIndex];
+    if (!leftRecord?.serverRecord) {
+      return false;
+    }
+    const rightRecord = this._records[targetIndex + 1];
+    if (!rightRecord) {
+      return false;
     }
 
-    if (mod.serverTailRevision !== undefined) {
-      this._serverTailRevision = mod.serverTailRevision;
+    if (rightRecord.serverRecord) {
+      this._records[targetIndex + 1] = {
+        ...rightRecord,
+        serverRecord: {
+          ...rightRecord.serverRecord,
+          changeset: leftRecord.serverRecord.changeset.compose(
+            rightRecord.serverRecord.changeset
+          ),
+        },
+      };
+    } else {
+      this._records[targetIndex + 1] = {
+        ...rightRecord,
+        serverRecord: leftRecord.serverRecord,
+      };
     }
 
-    if (mod.serverTailTextTransformToRecordsTailText !== undefined) {
-      this.serverTailTextTransformToRecordsTailText =
-        mod.serverTailTextTransformToRecordsTailText;
-    }
-
-    this.deleteIdentityRecords();
-
-    this.logState('modification:after');
+    return true;
   }
 
   /**
-   * @param tailText First element in {@link entries} is composable on {@link tailText}.
-   * @param entries Text entries.
+   * Deletes identity records. A record is considered identity if composing it does nothing.
+   * @param start
+   * @param end Is exclusive
    */
-  private unshiftRecords(tailText: RevisionChangeset, entries: HistoryRestoreEntry[]) {
-    this.logState('unshiftRecords:before', {
-      args: {
-        tailText: {
-          revision: tailText.revision,
-          changeset: tailText.changeset.toString(),
-        },
-        entries: entries.map((e) => ({
-          type: e.type,
-          changeset: e.changeset.toString(),
-        })),
-      },
-    });
+  private deleteIdentityRecords(start: number, end: number) {
+    this.logger?.debug(`deleteIdentityRecords:[${start},${end})`);
+    for (let i = end - 1; i >= start; i--) {
+      const record = this._records[i];
+      const prevRecord = this._records[i - 1];
+      if (!record || !prevRecord) {
+        continue;
+      }
+      if (record.changeset.isIdentity(prevRecord.changeset)) {
+        this.copyServerRecordToNextIndex(i);
 
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const _this = this;
-    const beforeRecordsCount = this.readonlyRecords.length;
+        this._records.splice(i, 1);
+        this.removedRecordAtIndex(i);
+        this.logger?.debug(`deleteIdentityRecord:${i}`);
+      }
+    }
 
-    unshiftRecordsModification(
-      {
-        newEntries: entries,
-        newRecordsTailText: tailText,
-      },
-      {
-        get serverTailTextTransformToRecordsTailText() {
-          return _this.serverTailTextTransformToRecordsTailText;
-        },
-        modification: this.modification.bind(this),
-      },
-      { logger: this.logger?.extend('unshiftRecordsMod') }
-    );
+    if (start === -1) {
+      const firstRecord = this._records[0];
+      if (firstRecord?.changeset.isIdentity(this.serverToLocalHistoryTransform)) {
+        this.copyServerRecordToNextIndex(0);
+        this._records.splice(0, 1);
+        this.removedRecordAtIndex(0);
+        this.logger?.debug(`deleteIdentityRecord:0`);
+      }
+    }
+  }
 
-    const addedRecordsCount = this.readonlyRecords.length - beforeRecordsCount;
+  private getRecord(index: number): ReadonlyHistoryRecord {
+    const record = this._records[index];
+    if (!record) {
+      throw new Error(`No record at index "${index}"`);
+    }
+    return record;
+  }
 
-    this.lastExecutedIndex.server += addedRecordsCount;
-    this.lastExecutedIndex.submitted += addedRecordsCount;
-    this.lastExecutedIndex.local += addedRecordsCount;
+  /**
+   * If record is undo or redo then it returns execute record that it applies to
+   */
+  private findExecuteIndex(targetIndex: number): number {
+    let undoStack = 0;
+    for (let i = targetIndex; i >= 0; i--) {
+      const record = this._records[i];
+      if (!record) {
+        continue;
+      }
 
-    this.logState('unshiftRecords:after');
+      if (record.type === 'undo') {
+        undoStack++;
+      } else if (record.type === 'redo') {
+        undoStack--;
+      } else if (record.type === 'execute') {
+        if (undoStack === 0) {
+          return i;
+        }
 
-    return addedRecordsCount;
+        undoStack--;
+      } else {
+        // type === 'permanent'
+        return -1;
+      }
+    }
+
+    return -1;
+  }
+
+  /**
+   * Moves local index to first smaller index execute record
+   */
+  private decreaseLocalIndex() {
+    this.lastExecutedIndex.execute = this.getNextDecreaseLocalIndex();
+  }
+
+  private getNextDecreaseLocalIndex() {
+    let undoStack = 0;
+    for (let i = this.lastExecutedIndex.execute - 1; i >= 0; i--) {
+      const record = this._records[i];
+      if (!record) {
+        continue;
+      }
+
+      if (record.type === 'undo') {
+        undoStack++;
+      } else if (record.type === 'redo') {
+        undoStack--;
+      } else if (record.type === 'execute') {
+        if (undoStack === 0) {
+          return i;
+        }
+
+        undoStack--;
+      } else {
+        // type === 'permanent', can't decrease past permanent record
+        return i;
+      }
+    }
+
+    return -1;
+  }
+
+  /**
+   * Moves local index to first bigger index execute record
+   */
+  private increaseLocalIndex() {
+    this.lastExecutedIndex.execute = this.getNextIncreaseLocalIndex();
+  }
+
+  private getNextIncreaseLocalIndex() {
+    for (let i = this.lastExecutedIndex.execute + 1; i < this._records.length; i++) {
+      const record = this._records[i];
+      if (!record) {
+        continue;
+      }
+
+      if (record.type === 'execute') {
+        return i;
+      }
+    }
+
+    return -1;
   }
 
   canUndo() {
-    return Boolean(this.readonlyRecords.at(this.lastExecutedIndex.local));
+    return Boolean(this._records[this.lastExecutedIndex.execute]?.type === 'execute');
   }
 
-  undo() {
+  // TODO static method
+  private mergeRecords(records: ReadonlyHistoryRecord[]): ReadonlyHistoryRecord {
+    const firstRecord = records[0];
+    const lastRecord = records[records.length - 1];
+    if (!firstRecord || !lastRecord) {
+      // TODO static empty record
+      return {
+        type: 'execute',
+        changeset: Changeset.EMPTY,
+        beforeSelection: SelectionRange.EMPTY,
+        afterSelection: SelectionRange.EMPTY,
+      };
+    }
+
+    const composedChangeset = records
+      .slice(1)
+      .reduce((a, b) => a.compose(b.changeset), firstRecord.changeset);
+
+    // Compose server records too
+    const serverRecords = records.map((r) => r.serverRecord).filter(isDefined);
+    const composedServerRecord =
+      serverRecords.length > 0
+        ? serverRecords.reduce((a, b) => ({
+            revision: b.revision,
+            changeset: a.changeset.compose(b.changeset),
+          }))
+        : null;
+
+    return {
+      ...firstRecord,
+      changeset: composedChangeset,
+      afterSelection: lastRecord.afterSelection,
+      ...(composedServerRecord && { serverRecord: composedServerRecord }),
+    };
+  }
+
+  undo(): boolean {
     if (!this.canUndo()) {
       return false;
     }
 
-    const record = this.readonlyRecords.at(this.lastExecutedIndex.local);
-    if (!record) {
-      return false;
-    }
+    // TODO put state in a single object so that it's easier to do transaction??
 
-    const inverseChangeset = record.changeset.inverse(
-      this.readonlyRecords.getTextAt(this.lastExecutedIndex.local - 1)
+    const beforeHaveLocalChanges = this.haveLocalChanges();
+
+    const transactionResult = this.withTransaction<ReadonlyHistoryRecord | undefined>(
+      'undo',
+      () => {
+        const appliedRecords: ReadonlyHistoryRecord[] = [];
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        while (true) {
+          const record = this._records[this.lastExecutedIndex.execute];
+          if (record?.type !== 'execute') {
+            break;
+          }
+
+          const inverseChangeset = record.changeset.inverse(
+            this.getTextAt(this.lastExecutedIndex.execute - 1)
+          );
+
+          this.decreaseLocalIndex();
+
+          const applyRecord: ReadonlyHistoryRecord = {
+            type: 'undo',
+            changeset: inverseChangeset,
+            beforeSelection: record.afterSelection,
+            afterSelection: record.beforeSelection,
+          };
+
+          this._records.push(applyRecord);
+          appliedRecords.push(applyRecord);
+
+          if (!record.squash) {
+            break;
+          }
+        }
+
+        if (appliedRecords.length === 0) {
+          return;
+        }
+
+        // TODO redundant?
+        this.recordsCleanup(this.lastExecutedIndex.submitted + 1, this._records.length);
+
+        return this.mergeRecords(appliedRecords);
+      }
     );
 
-    this.logState('undo:before', {
-      executo: record.changeset.toString(),
-      undo: inverseChangeset.toString(),
-      viewAfterUndo: this.client.view.compose(inverseChangeset).toString(),
-    });
+    if (transactionResult) {
+      // Transaction was successful
+      this._eventBus.emit('viewChanged', {
+        view: this.view,
+        change: transactionResult.changeset,
+        source: ChangeSource.LOCAL,
+      });
 
-    this.lastExecutedIndex.local--;
+      this._eventBus.emit('appliedTypingOperation', {
+        operation: {
+          changeset: transactionResult.changeset,
+          selection: transactionResult.afterSelection,
+        },
+      });
 
-    this.client.composeLocalChange(inverseChangeset);
-    this._eventBus.emit('appliedTypingOperation', {
-      operation: {
-        changeset: inverseChangeset,
-        selection: record.beforeSelection,
-      },
-    });
+      this._eventBus.emit('appliedUndo', {
+        operation: {
+          changeset: transactionResult.changeset,
+          selection: transactionResult.afterSelection,
+        },
+      });
 
-    this._eventBus.emit('appliedUndo', {
-      operation: {
-        changeset: inverseChangeset,
-        selection: record.beforeSelection,
-      },
-    });
+      if (!beforeHaveLocalChanges && this.haveLocalChanges()) {
+        this._eventBus.emit('haveLocalChanges', { local: this.local });
+      }
+    }
 
-    this.logState('undo:after');
-
-    return true;
+    return !!transactionResult;
   }
 
   canRedo() {
-    return Boolean(this.readonlyRecords.at(this.lastExecutedIndex.local + 1));
+    return Boolean(this._records[this.getNextIncreaseLocalIndex()]);
   }
 
-  redo() {
+  redo(): boolean {
     if (!this.canRedo()) {
       return false;
     }
 
-    const record = this.readonlyRecords.at(this.lastExecutedIndex.local + 1);
-    if (!record) {
-      return false;
+    const beforeHaveLocalChanges = this.haveLocalChanges();
+
+    const transactionResult = this.withTransaction('redo', () => {
+      const appliedRecords: ReadonlyHistoryRecord[] = [];
+
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      while (true) {
+        this.increaseLocalIndex();
+
+        const record = this._records[this.lastExecutedIndex.execute];
+        if (record?.type !== 'execute') {
+          break;
+        }
+
+        const applyRecord: ReadonlyHistoryRecord = {
+          type: 'redo',
+          changeset: record.changeset,
+          beforeSelection: record.beforeSelection,
+          afterSelection: record.afterSelection,
+        };
+
+        this._records.push(applyRecord);
+        appliedRecords.push(applyRecord);
+
+        const nextIncreaseLocalIndex = this.getNextIncreaseLocalIndex();
+        if (!this._records[nextIncreaseLocalIndex]?.squash) {
+          break;
+        }
+      }
+
+      if (appliedRecords.length === 0) {
+        return;
+      }
+
+      this.recordsCleanup(this.lastExecutedIndex.submitted + 1, this._records.length);
+
+      return this.mergeRecords(appliedRecords);
+    });
+
+    if (transactionResult) {
+      // Transaction was successful
+      this._eventBus.emit('viewChanged', {
+        view: this.view,
+        change: transactionResult.changeset,
+        source: ChangeSource.LOCAL,
+      });
+
+      this._eventBus.emit('appliedTypingOperation', {
+        operation: {
+          changeset: transactionResult.changeset,
+          selection: transactionResult.afterSelection,
+        },
+      });
+
+      this._eventBus.emit('appliedRedo', {
+        operation: {
+          changeset: transactionResult.changeset,
+          selection: transactionResult.afterSelection,
+        },
+      });
+
+      if (!beforeHaveLocalChanges && this.haveLocalChanges()) {
+        this._eventBus.emit('haveLocalChanges', { local: this.local });
+      }
     }
 
-    this.logState('redo:before', {
-      execute: record.changeset.toString(),
-      viewAfterExecute: this.client.view.compose(record.changeset).toString(),
-    });
-
-    this.lastExecutedIndex.local++;
-
-    this.client.composeLocalChange(record.changeset);
-    this._eventBus.emit('appliedTypingOperation', {
-      operation: {
-        changeset: record.changeset,
-        selection: record.afterSelection,
-      },
-    });
-
-    this._eventBus.emit('appliedRedo', {
-      operation: {
-        changeset: record.changeset,
-        selection: record.afterSelection,
-      },
-    });
-
-    this.logState('redo:after');
-
-    return true;
+    return !!transactionResult;
   }
 
-  private processExternalChange(externalChange: OrRevisionChangeset) {
-    this.logState('processExternalChange:before', {
-      revision: getOrRevision(externalChange),
-      changeset: getOrChangeset(externalChange).toString(),
-    });
-
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const _this = this;
-
-    externalChangeModification(
-      externalChange,
-      {
-        client: {
-          get server() {
-            return _this.client.server;
-          },
-        },
-        get serverTailTextTransformToRecordsTailText() {
-          return _this.serverTailTextTransformToRecordsTailText;
-        },
-        records: this.readonlyRecords,
-        get serverIndex() {
-          return _this.lastExecutedIndex.server;
-        },
-        modification: this.modification.bind(this),
-      },
-      {
-        logger: this.logger?.extend('externalChangeMod'),
-      }
-    );
-
-    this.logState('processExternalChange:after');
-  }
-
-  private entryAtIndexDeleted(index: number) {
-    if (index <= this.lastExecutedIndex.local) {
-      this.lastExecutedIndex.local--;
+  private removedRecordAtIndex(index: number) {
+    if (index <= this.lastExecutedIndex.execute) {
+      this.lastExecutedIndex.execute--;
     }
     if (index <= this.lastExecutedIndex.submitted) {
       this.lastExecutedIndex.submitted--;
@@ -813,169 +1761,163 @@ export class CollabHistory {
     }
   }
 
-  private mergeRecords(startIndex: number, endIndex: number) {
-    // Do not merge serverIndex => submittedIndex records
-    // That record is requird for processing external changes
-    startIndex = Math.max(startIndex, this.lastExecutedIndex.submitted + 1);
-    if (endIndex <= startIndex) {
-      return;
+  private addedRecordAtIndex(index: number) {
+    if (index <= this.lastExecutedIndex.execute) {
+      this.lastExecutedIndex.execute++;
     }
-
-    const startRecord = this.readonlyRecords.at(startIndex);
-    const endRecord = this.readonlyRecords.at(endIndex);
-    if (!startRecord || !endRecord) {
-      return;
+    if (index <= this.lastExecutedIndex.submitted) {
+      this.lastExecutedIndex.submitted++;
     }
-
-    const mergingRecordValue = { ...startRecord };
-
-    for (let i = startIndex + 1; i <= endIndex; i++) {
-      const nextRecord = this.readonlyRecords.at(i);
-      if (!nextRecord) {
-        continue;
-      }
-
-      mergingRecordValue.changeset = mergingRecordValue.changeset.compose(
-        nextRecord.changeset
-      );
-    }
-
-    // Copy afterSelection from end record
-    mergingRecordValue.afterSelection = endRecord.afterSelection;
-
-    this.modifyRecords.splice(startIndex, endIndex - startIndex + 1, mergingRecordValue);
-
-    for (let i = endIndex; i > startIndex; i--) {
-      this.entryAtIndexDeleted(i);
-    }
-
-    this.logState('mergeRecords:after', {
-      args: {
-        startIndex,
-        endIndex,
-      },
-    });
-
-    return true;
-  }
-
-  /**
-   * Invoke only when no server records
-   */
-  private mergeToRecordsTailText(count: number) {
-    // Do not merge submittedIndex => serverIndex record
-    // That record is requird for processing external changes
-    count = Math.max(count, this.lastExecutedIndex.submitted);
-
-    let mergedTailText = this.readonlyRecords.tailText;
-    for (let i = 0; i < count; i++) {
-      const nextRecord = this.readonlyRecords.at(i);
-      if (!nextRecord) {
-        continue;
-      }
-      mergedTailText = mergedTailText.compose(nextRecord.changeset);
-    }
-
-    this.modifyRecords.replaceTailTextAndSplice(mergedTailText, 0, count);
-
-    for (let i = count - 1; i >= 0; i--) {
-      this.entryAtIndexDeleted(i);
-    }
-
-    this.logState('mergeToRecordsTailText:after', {
-      args: {
-        count,
-      },
-    });
-  }
-  /**
-   * Deletes identity records. A record is considered identity if composing it does nothing.
-   */
-  private deleteIdentityRecords() {
-    for (let i = this.readonlyRecords.length - 1; i >= 0; i--) {
-      const record = this.readonlyRecords.at(i);
-      if (!record) {
-        continue;
-      }
-      const text = this.readonlyRecords.getTextAt(i - 1);
-      if (record.changeset.isIdentity(text)) {
-        this.modifyRecords.splice(i, 1);
-        this.entryAtIndexDeleted(i);
-      }
+    if (index <= this.lastExecutedIndex.server) {
+      this.lastExecutedIndex.server++;
     }
   }
 
   serialize(keepServerRecords = false) {
     if (keepServerRecords) {
-      const result = CollabHistoryOptionsStruct.createRaw({
-        records: this.readonlyRecords.items,
-        serverTailRevision: this._serverTailRevision,
-        recordsTailText: !this.readonlyRecords.tailText.isEqual(this.client.server)
-          ? this.readonlyRecords.tailText
-          : undefined,
-        serverTailTextTransformToRecordsTailText:
-          this.serverTailTextTransformToRecordsTailText,
+      return CollabHistoryOptionsStruct.createRaw({
+        serverTailRecord: this.serverTailRecord,
+        serverToLocalHistoryTransform: this.serverToLocalHistoryTransform.isIdentity(
+          this.serverTailRecord.changeset
+        )
+          ? null
+          : this.serverToLocalHistoryTransform,
+        records: this._records,
         lastExecutedIndex: this.lastExecutedIndex,
       });
+    } else if (this.lastExecutedIndex.execute < this.lastExecutedIndex.server) {
+      let keepIndex = Math.max(
+        0,
+        Math.min(this.lastExecutedIndex.server + 1, this.lastExecutedIndex.execute + 1)
+      );
 
-      this.logState('serialize', {
-        args: {
-          keepServerRecords,
+      const allServerRecords: ServerRecord[] = [];
+      for (let i = keepIndex - 1; i >= 0; i--) {
+        const record = this._records[i];
+        if (record?.serverRecord) {
+          allServerRecords.unshift(record.serverRecord);
+        }
+        if (allServerRecords.length === 0) {
+          keepIndex = i;
+        }
+      }
+
+      // const mergeTransformRecords: Changeset[] = this.records
+      //   .slice(keepIndex, this.lastExecutedIndex.server)
+      //   .map((r) => r.changeset);
+      // const firstMergeTransformRecord = mergeTransformRecords[0];
+      // const newServerToLocalHistoryTransform = firstMergeTransformRecord
+      //   ? mergeTransformRecords
+      //       .slice(1)
+      //       .reduce((a, b) => a.compose(b), firstMergeTransformRecord)
+      //   : null;
+
+      // logAll({
+      //   keepIndex,
+      //   allServerRecords,
+      //   mergeTransformRecords,
+      //   newServerToLocalHistoryTransform
+      // });
+
+      // TODO test serializing this!
+
+      return CollabHistoryOptionsStruct.createRaw({
+        serverTailRecord: allServerRecords.reduce(
+          (a, b) => ({
+            changeset: a.changeset.compose(b.changeset),
+            revision: b.revision,
+          }),
+          this.serverTailRecord
+        ),
+        // serverToLocalHistoryTransform: newServerToLocalHistoryTransform,
+        serverToLocalHistoryTransform: null,
+        records: this._records.slice(keepIndex),
+        lastExecutedIndex: {
+          server: this.lastExecutedIndex.server - keepIndex,
+          submitted: this.lastExecutedIndex.submitted - keepIndex,
+          execute: this.lastExecutedIndex.execute - keepIndex,
         },
-        output: result,
       });
+    } else {
+      const record = this._records[this.lastExecutedIndex.server];
+      const serverRevision = record?.serverRecord?.revision;
+      // TODO query serverRevison from CollabService
+      if (serverRevision === undefined) {
+        return CollabHistoryOptionsStruct.createRaw({
+          serverTailRecord: this.serverTailRecord,
+          serverToLocalHistoryTransform: this.serverToLocalHistoryTransform.isIdentity(
+            this.serverTailRecord.changeset
+          )
+            ? null
+            : this.serverToLocalHistoryTransform,
+          records: this._records,
+          lastExecutedIndex: this.lastExecutedIndex,
+        });
+      } else {
+        const keepIndex = this.lastExecutedIndex.server + 1;
 
-      return result;
+        return CollabHistoryOptionsStruct.createRaw({
+          serverTailRecord: {
+            changeset: this.server,
+            revision: serverRevision,
+          },
+          serverToLocalHistoryTransform: null,
+          records: this._records.slice(keepIndex),
+          lastExecutedIndex: {
+            server: -1,
+            submitted: this.lastExecutedIndex.submitted - keepIndex,
+            execute: this.lastExecutedIndex.execute - keepIndex,
+          },
+        });
+      }
     }
-
-    // Serialize without records already available in server
-    // Those records can be fetched later when history is restored
-    const tailTextIndex = this.lastExecutedIndex.server;
-    const keepRecordIndex = this.lastExecutedIndex.server + 1;
-
-    const result = CollabHistoryOptionsStruct.createRaw({
-      records: this.readonlyRecords.slice(keepRecordIndex),
-      serverTailRevision: this._serverTailRevision,
-      recordsTailText: this.readonlyRecords.getTextAt(tailTextIndex),
-      serverTailTextTransformToRecordsTailText: null,
-      lastExecutedIndex: {
-        server: -1,
-        submitted: this.lastExecutedIndex.submitted - keepRecordIndex,
-        local: this.lastExecutedIndex.local - keepRecordIndex,
-      },
-    });
-
-    this.logState('serialize', {
-      args: {
-        keepServerRecords,
-      },
-      output: result,
-    });
-
-    return result;
   }
 
-  private logState(message: string, data?: Record<string, unknown>) {
+  // TODO set private
+  logState(message: string, data?: Record<string, unknown>) {
+    function catchErr<T>(fn: () => T): T | string {
+      try {
+        return fn();
+      } catch (err) {
+        return err instanceof Error ? err.message : 'error';
+      }
+    }
+
+    function selectionString(record: ReadonlyHistoryRecord) {
+      return (
+        Object.values(SelectionRange.collapseSame(record.beforeSelection)).join('_') +
+        ' -> ' +
+        Object.values(SelectionRange.collapseSame(record.afterSelection)).join('_')
+      );
+    }
+
     this.logger?.debug(message, {
       ...data,
       state: {
-        serverTailRevision: this._serverTailRevision,
-        serverTail:
-          this.serverRecords
-            ?.getTextAtMaybe(this._serverTailRevision)
-            ?.changeset.toString() ?? 'unknown',
+        serverTailRecord: this.serverTailRecord,
+        serverToLocalHistoryTransform: this.serverToLocalHistoryTransform,
         lastExecutedIndex: { ...this.lastExecutedIndex },
-        tailText: this.readonlyRecords.tailText.toString(),
-        records: this.readonlyRecords.items.map((r) => r.changeset.toString()),
-        serverTailTextTransformToRecordsTailText:
-          this.serverTailTextTransformToRecordsTailText?.toString(),
-        viewText: this.getViewText().toString(),
-        client: {
-          server: this.client.server.toString(),
-          submitted: this.client.submitted.toString(),
-          local: this.client.local.toString(),
-          view: this.client.view.toString(),
-        },
+        server: catchErr(() => this.server),
+        submitted: catchErr(() => this.submitted),
+        local: catchErr(() => this.local),
+        view: catchErr(() => this.view),
+        submittedView: catchErr(() => this.submittedView),
+        viewText: catchErr(() => this.view.joinInsertions()),
+        haveLocalChanges: catchErr(() => this.haveLocalChanges()),
+        haveSubmittedChanges: catchErr(() => this.haveSubmittedChanges()),
+        records: [...new Array<undefined>(this.records.length)].map((_, i) => {
+          const record = this._records[i];
+          return record
+            ? {
+                index: i,
+                type: `${record.type}${record.squash ? '(s)' : ''}`,
+                changeset: record.changeset,
+                composed: catchErr(() => this.getTextAt(i)),
+                selection: selectionString(record),
+                ...(record.serverRecord && { serverRecord: record.serverRecord }),
+              }
+            : null;
+        }),
       },
     });
   }
@@ -984,11 +1926,7 @@ export class CollabHistory {
     value: unknown
   ): Pick<
     CollabHistoryOptions,
-    | 'records'
-    | 'serverTailRevision'
-    | 'recordsTailText'
-    | 'lastExecutedIndex'
-    | 'serverTailTextTransformToRecordsTailText'
+    'serverTailRecord' | 'serverToLocalHistoryTransform' | 'records' | 'lastExecutedIndex'
   > {
     return CollabHistoryOptionsStruct.create(value);
   }

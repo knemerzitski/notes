@@ -1,4 +1,4 @@
-import mitt, { Emitter } from 'mitt';
+import mitt, { Emitter, ReadEmitter } from 'mitt';
 
 import { ReadonlyDeep } from '../../../../utils/src/types';
 
@@ -50,7 +50,7 @@ export interface CollabServiceSelectionRangeOptions {
 
 export class CollabServiceSelectionRange implements SelectionRange {
   private readonly _eventBus: Emitter<CollabServiceSelectionRangeEvents>;
-  get eventBus(): Pick<Emitter<CollabServiceSelectionRangeEvents>, 'on' | 'off'> {
+  get eventBus(): ReadEmitter<CollabServiceSelectionRangeEvents> {
     return this._eventBus;
   }
 

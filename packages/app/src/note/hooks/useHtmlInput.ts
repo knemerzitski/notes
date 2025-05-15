@@ -179,6 +179,8 @@ export function useHtmlInput({
         e.preventDefault();
         onRedoRef.current?.();
       } else {
+        // inputType: ""
+        // code: "Enter"
         logger?.error('handleInput:unknown', e);
       }
     },

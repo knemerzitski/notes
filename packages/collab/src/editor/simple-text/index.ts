@@ -1,4 +1,4 @@
-import mitt, { Emitter, PickReadEmitter } from 'mitt';
+import mitt, { Emitter, PickReadEmitter, ReadEmitter } from 'mitt';
 
 import { CollabService, CollabServiceEvents } from '../../client/collab-service';
 import { SelectionRange } from '../../client/selection-range';
@@ -15,7 +15,7 @@ import { insertToSelectionChangeset } from './insert-to-selection-changeset';
 
 export class SimpleTextEditor implements SimpleText {
   private readonly _eventBus: Emitter<SimpleTextEvents>;
-  get eventBus(): Pick<Emitter<SimpleTextEvents>, 'on' | 'off'> {
+  get eventBus(): ReadEmitter<SimpleTextEvents> {
     return this._eventBus;
   }
 

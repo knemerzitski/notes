@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { createHelperCollabEditingEnvironment } from './helpers/server-client';
 
+// TODO copied to collab2
+
 describe('single user', () => {
   let helper: ReturnType<typeof createHelperCollabEditingEnvironment>;
 

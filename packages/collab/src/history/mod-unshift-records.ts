@@ -14,11 +14,11 @@ import {
 
 export type HistoryUnshiftEntry =
   | {
-      type: 'external';
+      source: 'external';
       changeset: Changeset;
     }
   | ({
-      type: 'local';
+      source: 'local';
     } & ReadonlyHistoryRecord);
 
 export interface UnshiftRecordsModificationContext {
@@ -61,13 +61,14 @@ export function unshiftRecordsModification(
       continue;
     }
 
-    if (entry.type === 'external') {
+    if (entry.source === 'external') {
       // Compose external record on transform
       currentSwapTransform = currentSwapTransform
         ? entry.changeset.compose(currentSwapTransform)
         : entry.changeset;
     } else {
       const newRecord: HistoryRecord = {
+        type: entry.type,
         changeset: entry.changeset,
         afterSelection: entry.afterSelection,
         beforeSelection: entry.beforeSelection,

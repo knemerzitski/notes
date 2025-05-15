@@ -5,75 +5,75 @@ import { RangeRelation, rangeRelation } from './range-relation';
 describe('equal length ranges', () => {
   it.each<[[number, number, number, number], RangeRelation]>([
     [
-      [2, 4, 6, 8],
+      [2, 5, 6, 9],
       {
         overlap: false,
         position: 'left',
-        connected: false,
+        distance: 2,
       },
     ],
     [
-      [3, 5, 6, 8],
+      [3, 6, 6, 9],
       {
         overlap: false,
         position: 'left',
-        connected: true,
+        distance: 1,
       },
     ],
     [
-      [4, 6, 6, 8],
+      [4, 7, 6, 9],
       {
         overlap: true,
         position: 'left',
-        connected: false,
+        distance: 0,
       },
     ],
     [
-      [5, 7, 6, 8],
+      [5, 8, 6, 9],
       {
         overlap: true,
         position: 'left',
-        connected: false,
+        distance: 0,
       },
     ],
     [
-      [6, 8, 6, 8],
+      [6, 9, 6, 9],
       {
         overlap: true,
         position: 'inside',
-        connected: false,
+        distance: 0,
       },
     ],
     [
-      [7, 9, 6, 8],
+      [7, 10, 6, 9],
       {
         overlap: true,
         position: 'right',
-        connected: false,
+        distance: 0,
       },
     ],
     [
-      [8, 10, 6, 8],
+      [8, 11, 6, 9],
       {
         overlap: true,
         position: 'right',
-        connected: false,
+        distance: 0,
       },
     ],
     [
-      [9, 11, 6, 8],
+      [9, 12, 6, 9],
       {
         overlap: false,
         position: 'right',
-        connected: true,
+        distance: 1,
       },
     ],
     [
-      [10, 12, 6, 8],
+      [10, 13, 6, 9],
       {
         overlap: false,
         position: 'right',
-        connected: false,
+        distance: 2,
       },
     ],
   ])('[%s;%s],[%s;%s] => %s', ([x1, x2, y1, y2], expected) => {
@@ -84,67 +84,67 @@ describe('equal length ranges', () => {
 describe('smaller length range', () => {
   it.each<[[number, number, number, number], RangeRelation]>([
     [
-      [3, 4, 6, 8],
+      [3, 5, 6, 9],
       {
         overlap: false,
         position: 'left',
-        connected: false,
+        distance: 2,
       },
     ],
     [
-      [4, 5, 6, 8],
+      [4, 6, 6, 9],
       {
         overlap: false,
         position: 'left',
-        connected: true,
+        distance: 1,
       },
     ],
     [
-      [5, 6, 6, 8],
+      [5, 7, 6, 9],
       {
         overlap: true,
         position: 'left',
-        connected: false,
+        distance: 0,
       },
     ],
     [
-      [6, 7, 6, 8],
+      [6, 8, 6, 9],
       {
         overlap: true,
         position: 'inside',
-        connected: false,
+        distance: 0,
       },
     ],
     [
-      [7, 8, 6, 8],
+      [7, 9, 6, 9],
       {
         overlap: true,
         position: 'inside',
-        connected: false,
+        distance: 0,
       },
     ],
     [
-      [8, 9, 6, 8],
+      [8, 10, 6, 9],
       {
         overlap: true,
         position: 'right',
-        connected: false,
+        distance: 0,
       },
     ],
     [
-      [9, 10, 6, 8],
+      [9, 11, 6, 9],
       {
         overlap: false,
         position: 'right',
-        connected: true,
+        distance: 1,
       },
     ],
     [
-      [10, 11, 6, 8],
+      [10, 12, 6, 9],
       {
         overlap: false,
         position: 'right',
-        connected: false,
+        distance: 2,
       },
     ],
   ])('[%s;%s],[%s;%s] => %s', ([x1, x2, y1, y2], expected) => {
@@ -155,91 +155,91 @@ describe('smaller length range', () => {
 describe('bigger length range', () => {
   it.each<[[number, number, number, number], RangeRelation]>([
     [
-      [0, 4, 6, 8],
+      [0, 5, 6, 9],
       {
         overlap: false,
         position: 'left',
-        connected: false,
+        distance: 2,
       },
     ],
     [
-      [1, 5, 6, 8],
+      [1, 6, 6, 9],
       {
         overlap: false,
         position: 'left',
-        connected: true,
+        distance: 1,
       },
     ],
     [
-      [2, 6, 6, 8],
+      [2, 7, 6, 9],
       {
         overlap: true,
         position: 'left',
-        connected: false,
+        distance: 0,
       },
     ],
     [
-      [3, 7, 6, 8],
+      [3, 8, 6, 9],
       {
         overlap: true,
         position: 'left',
-        connected: false,
+        distance: 0,
       },
     ],
     [
-      [4, 8, 6, 8],
+      [4, 9, 6, 9],
       {
         overlap: true,
         position: 'outside',
-        connected: false,
+        distance: 0,
       },
     ],
     [
-      [5, 9, 6, 8],
+      [5, 10, 6, 9],
       {
         overlap: true,
         position: 'outside',
-        connected: false,
+        distance: 0,
       },
     ],
     [
-      [6, 10, 6, 8],
+      [6, 11, 6, 9],
       {
         overlap: true,
         position: 'outside',
-        connected: false,
+        distance: 0,
       },
     ],
     [
-      [7, 11, 6, 8],
+      [7, 12, 6, 9],
       {
         overlap: true,
         position: 'right',
-        connected: false,
+        distance: 0,
       },
     ],
     [
-      [8, 12, 6, 8],
+      [8, 13, 6, 9],
       {
         overlap: true,
         position: 'right',
-        connected: false,
+        distance: 0,
       },
     ],
     [
-      [9, 13, 6, 8],
+      [9, 14, 6, 9],
       {
         overlap: false,
         position: 'right',
-        connected: true,
+        distance: 1,
       },
     ],
     [
-      [10, 14, 6, 8],
+      [10, 15, 6, 9],
       {
         overlap: false,
         position: 'right',
-        connected: false,
+        distance: 2,
       },
     ],
   ])('[%s;%s],[%s;%s] => %s', ([x1, x2, y1, y2], expected) => {

@@ -1,5 +1,5 @@
 import { ApolloCache } from '@apollo/client';
-import mitt, { Emitter } from 'mitt';
+import mitt, { Emitter, ReadEmitter } from 'mitt';
 
 import { Changeset } from '../../../../collab/src/changeset';
 import { CollabServiceRecord } from '../../../../collab/src/client/collab-service';
@@ -70,10 +70,7 @@ const CacheRecordsFacadeWatch_CollabTextFragment = gql(`
 export class CacheRecordsFacade implements ServerRecordsFacade<CollabServiceRecord> {
   private readonly _eventBus: Emitter<ServerRecordsFacadeEvents<CollabServiceRecord>> =
     mitt();
-  get eventBus(): Pick<
-    Emitter<ServerRecordsFacadeEvents<CollabServiceRecord>>,
-    'on' | 'off'
-  > {
+  get eventBus(): ReadEmitter<ServerRecordsFacadeEvents<CollabServiceRecord>> {
     return this._eventBus;
   }
 

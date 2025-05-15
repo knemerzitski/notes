@@ -12,6 +12,17 @@ export interface Entry<Key, Value> {
 }
 
 /**
+ * @source {@link https://fettblog.eu/typescript-union-to-intersection/}
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type UnionToIntersection<T> = (T extends any ? (x: T) => any : never) extends (
+  x: infer R
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+) => any
+  ? R
+  : never;
+
+/**
  * @source {@link https://stackoverflow.com/questions/57103834/typescript-omit-a-property-from-all-interfaces-in-a-union-but-keep-the-union-s}
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

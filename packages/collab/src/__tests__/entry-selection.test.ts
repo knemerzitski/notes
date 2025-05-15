@@ -3,6 +3,8 @@ import { expect, it } from 'vitest';
 import { Changeset } from '../changeset';
 import { SelectionRange } from '../client/selection-range';
 
+// TODO copied to collab2
+
 interface TestOperation {
   selection: number;
   expectedSelection: number;

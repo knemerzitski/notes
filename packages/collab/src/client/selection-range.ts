@@ -31,7 +31,15 @@ export type SelectionRange = Infer<typeof ExpandedSelectionRangeStruct>;
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace SelectionRange {
+  const emptySymbol = Symbol('empty');
+
   export const ZERO: Readonly<SelectionRange> = { start: 0, end: 0 };
+
+  export const EMPTY: Readonly<SelectionRange> & { [emptySymbol]: true } = {
+    start: 0,
+    end: 0,
+    [emptySymbol]: true,
+  };
 
   export function add(
     a: Readonly<SelectionRange>,
@@ -152,6 +160,19 @@ export namespace SelectionRange {
       return a.start === b.start && (a.end ?? a.start) === (b.end ?? b.start);
     }
     return false;
+  }
+
+  export function isEmpty(a?: Partial<SelectionRange> & { [emptySymbol]?: true }) {
+    return a?.[emptySymbol] === true;
+  }
+
+  export function toString(a: PartialBy<SelectionRange, 'end'>) {
+    a = SelectionRange.collapseSame(a);
+    if (a.end == null) {
+      return `>${a.start}`;
+    }
+
+    return `>${a.start};${a.end}<`;
   }
 
   export function parseValue(value: unknown): SelectionRange {

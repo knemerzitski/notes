@@ -2,7 +2,7 @@ import { PickReadEmitter } from 'mitt';
 
 import { Logger } from '../../../../utils/src/logging';
 
-import { Changeset } from '../../changeset';
+import { Changeset, InsertStrip, RetainStrip } from '../../changeset';
 import { CollabService, CollabServiceEvents } from '../../client/collab-service';
 import { SelectionRange } from '../../client/selection-range';
 import { SelectionChangeset, SimpleText, SimpleTextOperationOptions } from '../../types';
@@ -116,7 +116,12 @@ export class JsonText<K extends string, S extends StringRecordStruct> {
             jsonViewText: view.viewText,
           });
           // Change happened outside this context, must ensure text is in sync with object structure
-          if (this.syncView(view)) {
+          if (
+            this.syncView(view, {
+              type: 'permanent',
+              submit: true,
+            })
+          ) {
             // viewText had invalid structure
             return;
           }
@@ -218,13 +223,31 @@ export class JsonText<K extends string, S extends StringRecordStruct> {
     }
   ) {
     if (this.service.viewText !== view.viewText) {
-      this.logger?.debug('syncView', {
-        view,
-      });
       this.syncDuringProcessingMessages = true;
+
+      let changeset: Changeset;
+
+      const retainedChangeset = Changeset.fromInsertion(
+        view.viewText
+      ).insertionsToRetained(Changeset.fromInsertion(this.service.viewText));
+      const firstStrip = retainedChangeset.strips.values[0];
+      if (
+        retainedChangeset.strips.values.length === 1 &&
+        firstStrip instanceof RetainStrip
+      ) {
+        changeset = Changeset.from(
+          InsertStrip.create(view.viewText.slice(0, firstStrip.startIndex)),
+          RetainStrip.create(0, firstStrip.length - 1),
+          InsertStrip.create(view.viewText.slice(firstStrip.endIndex + 1))
+        );
+        this.logger?.debug('get part of it insertions stuff', changeset);
+      } else {
+        changeset = Changeset.fromInsertion(view.viewText);
+      }
+
       this.pushSelectionChangeset(
         {
-          changeset: Changeset.fromInsertion(view.viewText),
+          changeset,
           afterSelection: SelectionRange.ZERO,
         },
         {

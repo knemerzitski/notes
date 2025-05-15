@@ -9,6 +9,8 @@ import { Changeset } from '../changeset';
 import { processRecordInsertion } from './process-record-insertion';
 import { ServerRevisionRecord } from './record';
 
+// TODO copied to collab2
+
 const records: ServerRevisionRecord[] = [
   {
     revision: 5,

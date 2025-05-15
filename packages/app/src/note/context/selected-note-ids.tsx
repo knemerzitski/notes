@@ -1,4 +1,4 @@
-import mitt, { Emitter } from 'mitt';
+import mitt, { Emitter, ReadEmitter } from 'mitt';
 import {
   createContext,
   ReactNode,
@@ -25,7 +25,7 @@ interface SelectedNoteIdsModel {
   has: (id: Note['id']) => boolean;
   clear: () => void;
   getAll: () => readonly Note['id'][];
-  eventBus: Pick<Emitter<SelectedNodeIdsEvents>, 'on' | 'off'>;
+  eventBus: ReadEmitter<SelectedNodeIdsEvents>;
 }
 
 const SelectedNoteIdsModelContext = createContext<SelectedNoteIdsModel | null>(null);

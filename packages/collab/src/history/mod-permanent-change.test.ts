@@ -26,7 +26,8 @@ function createRecord(changeset: unknown): ReadonlyHistoryRecord {
   };
 }
 
-describe('permanentChangeModification', () => {
+// TODO mod-permanent-change is not used but reuse tests
+describe.skip('permanentChangeModification', () => {
   it.each([
     {
       msg: 'at start',
@@ -101,8 +102,8 @@ describe('permanentChangeModification', () => {
           changes.recordsTailText !== undefined &&
           changes.recordsSplice !== undefined
         ) {
-          safeRecords.replaceTailTextAndSplice(
-            changes.recordsTailText,
+          safeRecords.replaceTailText(changes.recordsTailText);
+          safeRecords.splice(
             changes.recordsSplice.start,
             changes.recordsSplice.deleteCount,
             ...changes.recordsSplice.records

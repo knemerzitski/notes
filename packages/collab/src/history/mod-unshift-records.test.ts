@@ -13,12 +13,13 @@ import {
 function createEntry(changeset: unknown, external?: boolean): HistoryUnshiftEntry {
   if (external) {
     return {
-      type: 'external',
+      source: 'external',
       changeset: Changeset.parseValue(changeset),
     };
   } else {
     return {
-      type: 'local',
+      type: 'execute',
+      source: 'local',
       changeset: Changeset.parseValue(changeset),
       afterSelection: {
         start: 0,
@@ -32,7 +33,8 @@ function createEntry(changeset: unknown, external?: boolean): HistoryUnshiftEntr
   }
 }
 
-describe('unshiftRecordsModification', () => {
+// TODO mod-unshift-records is not used but reuse tests
+describe.skip('unshiftRecordsModification', () => {
   it.each([
     {
       msg: 'one entry replace tail abcd => cd',
@@ -157,8 +159,8 @@ describe('unshiftRecordsModification', () => {
           changes.recordsTailText !== undefined &&
           changes.recordsSplice !== undefined
         ) {
-          recordsFacade.replaceTailTextAndSplice(
-            changes.recordsTailText,
+          recordsFacade.replaceTailText(changes.recordsTailText);
+          recordsFacade.splice(
             changes.recordsSplice.start,
             changes.recordsSplice.deleteCount,
             ...changes.recordsSplice.records

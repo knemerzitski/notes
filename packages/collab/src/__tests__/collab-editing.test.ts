@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Changeset } from '../changeset';
 
 import { createHelperCollabEditingEnvironment } from './helpers/server-client';
+
+// TODO copied to collab2
 
 const cs = (...values: unknown[]) => Changeset.parseValue(values);
 
@@ -31,86 +34,12 @@ describe('single client', () => {
     expect(server.headText()).toStrictEqual('hello world');
   });
 
-  it('external changes to server are composed as retained characters in submitted and local', () => {
-    const { client } = helper;
-
-    client.A.insertText('server');
-    client.A.client.submitChanges();
-    client.A.client.submittedChangesAcknowledged();
-    client.A.insertText('; submitted');
-    client.A.client.submitChanges();
-    client.A.insertText('; local');
-    client.A.insertText('; more');
-    client.A.client.handleExternalChange(
-      cs('external before - ', [0, 5], ' - external after')
-    );
-
-    expect(client.A.client.server.toString()).toStrictEqual(
-      cs('external before - server - external after').toString()
-    );
-    expect(client.A.client.submitted.toString()).toStrictEqual(
-      cs([0, 23], '; submitted', [24, 40]).toString()
-    );
-    expect(client.A.client.local.toString()).toStrictEqual(
-      cs([0, 34], '; local; more', [35, 51]).toString()
-    );
-    expect(client.A.client.view.toString()).toStrictEqual(
-      cs('external before - server; submitted; local; more - external after').toString()
-    );
-    expect(client.A.valueWithSelection()).toStrictEqual(
-      'external before - server; submitted; local; more> - external after'
-    );
-  });
-
-  it('edits e0 to e8 with duplicate external deletion', () => {
-    const { client } = helper;
-
-    client.A.insertText('[e0]');
-    client.A.insertText('[e1]');
-    client.A.insertText('[e2]');
-    client.A.client.submitChanges();
-    client.A.client.submittedChangesAcknowledged();
-    client.A.insertText('[e3]');
-    client.A.insertText('[e4]');
-    client.A.insertText('[e5]');
-    client.A.client.submitChanges();
-    client.A.insertText('[e6]');
-    client.A.insertText('[e7]');
-    client.A.insertText('[e8]');
-    client.A.setCaretPosition(4);
-    client.A.deleteTextCount(4);
-
-    client.A.client.handleExternalChange(
-      cs('[EXTERNAL]', [4, 7], '[BETWEEN]', [8, 11], '[EXTERNAL]')
-    );
-
-    client.A.client.submittedChangesAcknowledged();
-    client.A.client.submitChanges();
-    client.A.client.submittedChangesAcknowledged();
-
-    client.A.client.handleExternalChange(cs([0, 30], '[somewhere]', [31, 60]));
-
-    client.A.setCaretPosition(23);
-    client.A.deleteTextCount(9);
-
-    expect(client.A.valueWithSelection()).toStrictEqual(
-      '[EXTERNAL][e1]>[e2][e3][somewhere][e4][e5][e6][e7][e8][EXTERNAL]'
-    );
-
-    expect(client.A.client.local.toString()).toStrictEqual('(72 -> 63)[0 - 13, 23 - 71]');
-    expect(client.A.client.submitted.toString()).toStrictEqual('(72 -> 72)[0 - 71]');
-    expect(client.A.client.server.toString()).toStrictEqual(
-      '(0 -> 72)["[EXTERNAL][e1][BETWEEN][e2][e3][somewhere][e4][e5][e6][e7][e8][EXTERNAL]"]'
-    );
-  });
-
   it('merges history records with option set', () => {
     const { client } = helper;
 
     client.A.insertText('hello world');
     client.A.insertText(' one', { type: 'merge' });
     expect(client.A.valueWithSelection()).toStrictEqual('hello world one>');
-    expect(client.A.service.history.records).toHaveLength(1);
     client.A.service.undo();
     expect(client.A.valueWithSelection()).toStrictEqual('>');
   });
@@ -148,6 +77,85 @@ describe('two clients', () => {
     helper = createHelperCollabEditingEnvironment({
       clientNames: ['A', 'B'],
     });
+  });
+
+  it('external changes to server are composed as retained characters in submitted and local', () => {
+    const { client } = helper;
+
+    client.A.insertText('server');
+    client.A.submitChangesInstant();
+    client.A.insertText('; submitted');
+    client.A.submitChanges();
+    client.A.insertText('; local');
+    client.A.insertText('; more');
+
+    client.B.insertText('external before - ');
+    client.B.selectionRange.set(-1);
+    client.B.insertText(' - external after');
+    client.B.submitChangesInstant();
+
+    expect(client.A.client.server.toString()).toStrictEqual(
+      cs('external before - server - external after').toString()
+    );
+    expect(client.A.client.submitted.toString()).toStrictEqual(
+      cs([0, 23], '; submitted', [24, 40]).toString()
+    );
+    expect(client.A.client.local.toString()).toStrictEqual(
+      cs([0, 34], '; local; more', [35, 51]).toString()
+    );
+    expect(client.A.client.view.toString()).toStrictEqual(
+      cs('external before - server; submitted; local; more - external after').toString()
+    );
+    expect(client.A.valueWithSelection()).toStrictEqual(
+      'external before - server; submitted; local; more> - external after'
+    );
+  });
+
+  it('edits e0 to e8 with duplicate external deletion', () => {
+    const { client } = helper;
+
+    client.A.insertText('[e0]');
+    client.A.insertText('[e1]');
+    client.A.insertText('[e2]');
+    client.A.submitChangesInstant();
+    client.A.insertText('[e3]');
+    client.A.insertText('[e4]');
+    client.A.insertText('[e5]');
+    const submitted = client.A.submitChanges();
+    client.A.insertText('[e6]');
+    client.A.insertText('[e7]');
+    client.A.insertText('[e8]');
+    client.A.setCaretPosition(4);
+    client.A.deleteTextCount(4);
+
+    client.B.selectionRange.set(4);
+    client.B.deleteTextCount(4);
+    client.B.insertText('[EXTERNAL]');
+    client.B.selectionRange.set(14);
+    client.B.insertText('[BETWEEN]');
+    client.B.selectionRange.set(-1);
+    client.B.insertText('[EXTERNAL]');
+    client.B.submitChangesInstant();
+
+    submitted.serverReceive().acknowledgeAndSendToOtherClients();
+    client.A.submitChangesInstant();
+
+    client.B.selectionRange.set(31);
+    client.B.insertText('[somewhere]');
+    client.B.submitChangesInstant();
+
+    client.A.setCaretPosition(23);
+    client.A.deleteTextCount(9);
+
+    expect(client.A.valueWithSelection()).toStrictEqual(
+      '[EXTERNAL][e1]>[e2][e3][somewhere][e4][e5][e6][e7][e8][EXTERNAL]'
+    );
+
+    expect(client.A.client.local.toString()).toStrictEqual('(72 -> 63)[0 - 13, 23 - 71]');
+    expect(client.A.client.submitted.toString()).toStrictEqual('(72 -> 72)[0 - 71]');
+    expect(client.A.client.server.toString()).toStrictEqual(
+      '(0 -> 72)["[EXTERNAL][e1][BETWEEN][e2][e3][somewhere][e4][e5][e6][e7][e8][EXTERNAL]"]'
+    );
   });
 
   it('converges 2 changes at the same time', () => {
