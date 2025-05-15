@@ -60,3 +60,12 @@ export interface TypingOptions {
    */
   historyType?: 'merge' | 'permanent';
 }
+
+export interface Selector {
+  readonly value: Selection;
+
+  set(selection: Selection): void;
+  set(start: number, end?: number): void;
+  // eslint-disable-next-line @typescript-eslint/unified-signatures
+  set(start: Selection | number, end?: number): void;
+}

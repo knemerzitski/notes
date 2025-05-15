@@ -8,6 +8,7 @@ import {
   createStateFromHeadRecord,
   CollabServiceHeadRecord,
   CollabServiceEvents,
+  ControlledTyper,
 } from '../../client';
 import {
   processSubmittedRecord,
@@ -233,7 +234,6 @@ class Client {
   readonly on;
   readonly off;
 
-  private readonly selection;
   private readonly typer;
 
   private _disconnected;
@@ -265,8 +265,8 @@ class Client {
 
     this.service.addServerFacade(new LocalServerFacade(this.server));
 
-    this.selection = new BasicSelection(this.service);
-    this.typer = new BasicTyper(this.service);
+    const serviceTyper = new BasicTyper(this.service);
+    this.typer = new ControlledTyper(serviceTyper, new BasicSelection(serviceTyper));
 
     // Send Service records if it's missing some
     if (options.requestMissingRevisions) {
@@ -324,7 +324,7 @@ class Client {
   }
 
   get caret() {
-    return this.selection.value;
+    return this.typer.caret;
   }
 
   get historySize() {
@@ -344,7 +344,7 @@ class Client {
   }
 
   getViewTextWithSelection(): string {
-    return textWithSelection(this.viewText, this.selection.value);
+    return textWithSelection(this.viewText, this.typer.caret);
   }
 
   /**
@@ -362,18 +362,18 @@ class Client {
   setCaret(start: number, end?: number): void;
   setCaret(start: Selection | number, end?: number): void {
     if (Selection.is(start)) {
-      this.selection.set(start);
+      this.typer.setCaret(start);
     } else {
-      this.selection.set(start, end);
+      this.typer.setCaret(start, end);
     }
   }
 
   insert(value: string, options?: TypingOptions) {
-    this.typer.insert(value, this.selection.value, options);
+    this.typer.insert(value, options);
   }
 
   delete(count = 1, options?: TypingOptions) {
-    this.typer.delete(count, this.selection.value, options);
+    this.typer.delete(count, options);
   }
 
   canUndo() {

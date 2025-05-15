@@ -1,19 +1,19 @@
 import { Selection } from '../../../common/selection';
-import { Service } from '../../service/service';
+import { Selector, Typer } from '../types';
 
-export class BasicSelection {
+export class BasicSelection implements Selector {
   private _selection = Selection.ZERO;
 
   private readonly off: () => void;
 
-  constructor(private readonly service: Pick<Service, 'on' | 'viewText'>) {
+  constructor(private readonly typer: Typer) {
     const offList = [
-      service.on('localTyping:applied', ({ typing }) => {
-        this._selection = typing.selection;
+      typer.on('selection:changed', ({ newSelection }) => {
+        this._selection = newSelection;
       }),
       // Adjust selection to external typing
-      service.on('externalTyping:applied', ({ typing }) => {
-        this._selection = this._selection.follow(typing.changeset, true);
+      typer.on('externalTyping:applied', ({ changeset }) => {
+        this._selection = this._selection.follow(changeset, true);
       }),
     ];
 
@@ -41,6 +41,6 @@ export class BasicSelection {
       this._selection = Selection.create(start, end);
     }
 
-    this._selection = this._selection.clamp(this.service.viewText.length);
+    this._selection = this._selection.clamp(this.typer.value.length);
   }
 }
