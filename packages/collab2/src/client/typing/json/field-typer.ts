@@ -25,6 +25,8 @@ export class FieldTyper<T extends string> implements Typer {
     return this.getFieldText().value;
   }
 
+  private readonly disposeHandlers: () => void;
+
   constructor(
     private readonly ctx: {
       readonly name: T;
@@ -35,93 +37,104 @@ export class FieldTyper<T extends string> implements Typer {
       readonly logger?: Logger;
     }
   ) {
-    this.publicEventBus.on('selection:changed', ({ newSelection }) => {
-      this.eventBus.emit(
-        'selection:changed',
-        this.createEvent({
-          newSelection,
-          source: 'movement',
-        })
-      );
-    });
-
-    this.service.on('view:changed', ({ change: { viewRevision } }) => {
-      const prevValue = this.getFieldText(viewRevision - 1).value;
-      const newValue = this.getFieldText(viewRevision).value;
-      if (prevValue !== newValue) {
+    const offList = [
+      this.publicEventBus.on('selection:changed', ({ newSelection }) => {
         this.eventBus.emit(
-          'value:changed',
+          'selection:changed',
           this.createEvent({
-            newValue,
+            newSelection,
+            source: 'movement',
           })
         );
-      }
-    });
+      }),
+      this.service.on('view:changed', ({ change: { viewRevision } }) => {
+        const prevValue = this.getFieldText(viewRevision - 1).value;
+        const newValue = this.getFieldText(viewRevision).value;
+        if (prevValue !== newValue) {
+          this.eventBus.emit(
+            'value:changed',
+            this.createEvent({
+              newValue,
+            })
+          );
+        }
+      }),
 
-    this.service.on('redo:applied', ({ typing: { viewRevision } }) => {
-      const prevValue = this.getFieldText(viewRevision - 1).value;
-      const newValue = this.getFieldText(viewRevision).value;
-      if (prevValue !== newValue) {
-        this.eventBus.emit('redo:applied', this.createEvent());
-      }
-    });
+      this.service.on('undo:applied', ({ typing: { viewRevision } }) => {
+        const prevValue = this.getFieldText(viewRevision - 1).value;
+        const newValue = this.getFieldText(viewRevision).value;
+        if (prevValue !== newValue) {
+          this.eventBus.emit('undo:applied', this.createEvent());
+        }
+      }),
 
-    this.service.on('undo:applied', ({ typing: { viewRevision } }) => {
-      const prevValue = this.getFieldText(viewRevision - 1).value;
-      const newValue = this.getFieldText(viewRevision).value;
-      if (prevValue !== newValue) {
-        this.eventBus.emit('undo:applied', this.createEvent());
-      }
-    });
+      this.service.on('redo:applied', ({ typing: { viewRevision } }) => {
+        const prevValue = this.getFieldText(viewRevision - 1).value;
+        const newValue = this.getFieldText(viewRevision).value;
+        if (prevValue !== newValue) {
+          this.eventBus.emit('redo:applied', this.createEvent());
+        }
+      }),
 
-    this.service.on('localTyping:applied', ({ typing: { selection } }) => {
-      const typerSelection = this.toTyperSelection(selection);
-      if (!typerSelection) {
-        return;
-      }
+      this.service.on('localTyping:applied', ({ typing: { selection } }) => {
+        const typerSelection = this.toTyperSelection(selection);
+        if (!typerSelection) {
+          return;
+        }
 
-      this.eventBus.emit(
-        'selection:changed',
-        this.createEvent({
-          newSelection: typerSelection,
-          source: 'typing',
-        })
-      );
-    });
-
-    this.service.on('externalTyping:applied', ({ typing }) => {
-      const haveListeners =
-        !!this.eventBus.all.get('externalTyping:applied')?.length ||
-        !!this.eventBus.all.get('*')?.length;
-      if (!haveListeners) {
-        return;
-      }
-
-      const prevViewText = this.getViewText(typing.viewRevision - 1);
-      const prevFieldText = this.getFieldText(typing.viewRevision - 1);
-      const fieldText = this.getFieldText(typing.viewRevision);
-      if (!prevFieldText.metadata || !fieldText.metadata) {
-        return;
-      }
-
-      const fieldChangeset = toFieldChangeset(
-        typing.changeset,
-        prevViewText,
-        prevFieldText.value,
-        prevFieldText.metadata,
-        fieldText.metadata,
-        this.textParser
-      );
-
-      if (!Changeset.isNoOp(Changeset.fromText(prevFieldText.value), fieldChangeset)) {
         this.eventBus.emit(
-          'externalTyping:applied',
+          'selection:changed',
           this.createEvent({
-            changeset: fieldChangeset,
+            newSelection: typerSelection,
+            source: 'typing',
           })
         );
-      }
-    });
+      }),
+
+      this.service.on('externalTyping:applied', ({ typing }) => {
+        const haveListeners =
+          !!this.eventBus.all.get('externalTyping:applied')?.length ||
+          !!this.eventBus.all.get('*')?.length;
+        if (!haveListeners) {
+          return;
+        }
+
+        const prevViewText = this.getViewText(typing.viewRevision - 1);
+        const prevFieldText = this.getFieldText(typing.viewRevision - 1);
+        const fieldText = this.getFieldText(typing.viewRevision);
+        if (!prevFieldText.metadata || !fieldText.metadata) {
+          return;
+        }
+
+        const fieldChangeset = toFieldChangeset(
+          typing.changeset,
+          prevViewText,
+          prevFieldText.value,
+          prevFieldText.metadata,
+          fieldText.metadata,
+          this.textParser
+        );
+
+        if (!Changeset.isNoOp(Changeset.fromText(prevFieldText.value), fieldChangeset)) {
+          this.eventBus.emit(
+            'externalTyping:applied',
+            this.createEvent({
+              changeset: fieldChangeset,
+            })
+          );
+        }
+      }),
+    ];
+
+    this.disposeHandlers = () => {
+      offList.forEach((off) => {
+        off();
+      });
+    };
+  }
+
+  dispose() {
+    this.disposeHandlers();
   }
 
   private get name() {

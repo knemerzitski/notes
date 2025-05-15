@@ -16,6 +16,8 @@ export class Service<T extends string> {
 
   private controlledTypingCounter = 0;
 
+  private readonly disposeHandlers: () => void;
+
   constructor(readonly ctx: Context<T>) {
     this.on = this.ctx.collabService.on;
     this.off = this.ctx.collabService.on;
@@ -32,15 +34,27 @@ export class Service<T extends string> {
 
     this.enforceStructure();
 
-    this.collabService.on('view:changed', () => {
-      if (this.controlledTypingCounter === 0) {
-        /**
-         * View changed without calling {@link addLocalTyping}.
-         * Ensure structure is valid.
-         */
-        this.enforceStructure();
-      }
-    });
+    const offList = [
+      this.collabService.on('view:changed', () => {
+        if (this.controlledTypingCounter === 0) {
+          /**
+           * View changed without calling {@link addLocalTyping}.
+           * Ensure structure is valid.
+           */
+          this.enforceStructure();
+        }
+      }),
+    ];
+
+    this.disposeHandlers = () => {
+      offList.forEach((off) => {
+        off();
+      });
+    };
+  }
+
+  dispose() {
+    this.disposeHandlers();
   }
 
   get textParser() {

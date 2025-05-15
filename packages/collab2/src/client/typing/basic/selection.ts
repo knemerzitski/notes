@@ -4,7 +4,7 @@ import { Selector, Typer } from '../types';
 export class BasicSelection implements Selector {
   private _selection = Selection.ZERO;
 
-  private readonly off: () => void;
+  private readonly disposeHandlers: () => void;
 
   constructor(private readonly typer: Typer) {
     const offList = [
@@ -17,7 +17,7 @@ export class BasicSelection implements Selector {
       }),
     ];
 
-    this.off = () => {
+    this.disposeHandlers = () => {
       offList.forEach((off) => {
         off();
       });
@@ -29,7 +29,7 @@ export class BasicSelection implements Selector {
   }
 
   dispose() {
-    this.off();
+    this.disposeHandlers();
   }
 
   set(selection: Selection): void;
