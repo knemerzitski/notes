@@ -1,42 +1,47 @@
-import { expect, it } from 'vitest';
+import { it } from 'vitest';
 import { createCollabSandbox } from './helpers/collab-sandbox';
+import { logAll } from '../../../utils/src/log-all';
 
 // TODO remove
 it('sandbox', () => {
+  const fieldNames = ['title', 'content'];
+
   const {
     server,
-    client: { A, B },
+    client: { A },
   } = createCollabSandbox({
-    clients: ['A', 'B'],
+    clients: ['A'],
+    client: {
+      jsonTyper: {
+        fieldNames,
+      },
+    },
   });
 
-  A.insert('a');
   A.submitChangesInstant();
-  A.disconnect();
-
-  const A2 = server.createClient('A2', {
-    userId: 'A',
+  const B = server.createClient('B', {
+    jsonTyper: {
+      fieldNames,
+    },
   });
-  A2.setCaret(-1);
-  A2.insert('b');
-  A2.submitChangesInstant();
 
-  B.insert('[B]');
+
+  const A_content = A.getField('content');
+  A_content.insert('f\n\no"o');
+  A.submitChangesInstant();
+
+  const B_title = B.getField('title');
+  B_title.insert('bar""');
   B.submitChangesInstant();
 
-  A.reconnect();
-  expect(A.getViewTextWithSelection()).toMatchInlineSnapshot(`"a│"`);
-
-  A.catchUpToServer();
-  expect(A.getViewTextWithSelection()).toMatchInlineSnapshot(`"[B]a│b"`);
-
-  A.undo();
-  expect(A.getViewTextWithSelection()).toMatchInlineSnapshot(`"[B]a│"`);
-  A.undo();
-  expect(A.getViewTextWithSelection()).toMatchInlineSnapshot(`"[B]│"`);
-
-  A.redo();
-  expect(A.getViewTextWithSelection()).toMatchInlineSnapshot(`"[B]a│"`);
-  A.redo();
-  expect(A.getViewTextWithSelection()).toMatchInlineSnapshot(`"[B]ab│"`);
+  logAll({
+    A: {
+      fields: A.getFieldTextsWithSelection(),
+      viewText: A.getViewTextWithSelection(),
+    },
+    B: {
+      fields: B.getFieldTextsWithSelection(),
+      viewText: B.getViewTextWithSelection(),
+    },
+  });
 });

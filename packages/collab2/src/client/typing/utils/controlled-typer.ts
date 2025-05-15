@@ -3,8 +3,8 @@ import { Selector, Typer, TypingOptions } from '../types';
 
 export class ControlledTyper {
   constructor(
-    readonly typer: Typer,
-    readonly selector: Selector
+    private readonly typer: Typer,
+    private readonly selector: Selector
   ) {}
 
   get value() {

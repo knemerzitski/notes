@@ -9,6 +9,8 @@ import {
   CollabServiceHeadRecord,
   CollabServiceEvents,
   ControlledTyper,
+  JsonTyperService,
+  spaceNewlineHook,
 } from '../../client';
 import {
   processSubmittedRecord,
@@ -24,6 +26,9 @@ import { textWithSelection, textWithSelections } from './selection';
 import { createLogger } from '../../../../utils/src/logging';
 import mitt from 'mitt';
 import { Changeset } from '../../common/changeset';
+import mapObject from 'map-obj';
+import { TextParser } from '../../client/typing/json/text-parser';
+import { PartialBy } from '../../../../utils/src/types';
 
 export function createCollabSandbox<TClientName extends string>(options?: {
   server?: ConstructorParameters<typeof Server>[0];
@@ -235,6 +240,7 @@ class Client {
   readonly off;
 
   private readonly typer;
+  private readonly json;
 
   private _disconnected;
 
@@ -252,6 +258,10 @@ class Client {
      * @default false
      */
     requestMissingRevisions?: boolean;
+    jsonTyper?: PartialBy<
+      Omit<ConstructorParameters<typeof JsonTyperService>[0], 'collabService'>,
+      'parser'
+    >;
   }) {
     this.name = options.name;
     this.userId = options.userId ?? this.name;
@@ -267,6 +277,35 @@ class Client {
 
     const serviceTyper = new BasicTyper(this.service);
     this.typer = new ControlledTyper(serviceTyper, new BasicSelection(serviceTyper));
+
+    if (options.jsonTyper) {
+      const fieldNames = options.jsonTyper.fieldNames;
+      const jsonService = new JsonTyperService({
+        parser: new TextParser({
+          hook: spaceNewlineHook,
+          keys: fieldNames,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          fallbackKey: fieldNames[0]!,
+        }),
+        ...options.jsonTyper,
+        collabService: this.service,
+      });
+
+      this.json = {
+        service: jsonService,
+        typers: Object.fromEntries(
+          fieldNames.map((fieldName) => {
+            const fieldTyper = jsonService.getTyper(fieldName);
+            const selector = new BasicSelection(fieldTyper);
+            const typer = new ControlledTyper(fieldTyper, selector);
+
+            return [fieldName, typer];
+          })
+        ),
+      };
+    } else {
+      this.json = null;
+    }
 
     // Send Service records if it's missing some
     if (options.requestMissingRevisions) {
@@ -347,6 +386,17 @@ class Client {
     return textWithSelection(this.viewText, this.typer.caret);
   }
 
+  getFieldTextsWithSelection(): Record<string, string> {
+    if (!this.json) {
+      throw new Error('JsonTyperService is not enabled');
+    }
+
+    return mapObject(this.json.typers, (fieldName, typer) => [
+      fieldName as string,
+      textWithSelection(typer.value, typer.caret),
+    ]);
+  }
+
   /**
    * Disconnected client won't receive records from other clients but can still submit changes
    */
@@ -374,6 +424,17 @@ class Client {
 
   delete(count = 1, options?: TypingOptions) {
     this.typer.delete(count, options);
+  }
+
+  getField(
+    fieldName: string
+  ): Pick<ControlledTyper, 'caret' | 'setCaret' | 'value' | 'insert' | 'delete'> {
+    if (!this.json) {
+      throw new Error('JsonTyperService is not enabled');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return this.json.typers[fieldName]!;
   }
 
   canUndo() {
