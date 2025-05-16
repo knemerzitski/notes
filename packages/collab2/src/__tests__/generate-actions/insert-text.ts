@@ -1,15 +1,35 @@
 import { faker } from '@faker-js/faker';
-import { Context } from '.';
+import { Config, Context } from '.';
 
 declare module '.' {
   export interface Config {
-    readonly insertLength:
-      | number
+    readonly insert: WeightValue<
       | {
-          readonly min: number;
-          readonly max: number;
-        };
+          type: 'word';
+          value:
+            | number
+            | {
+                readonly min: number;
+                readonly max: number;
+              };
+        }
+      | {
+          type: 'custom';
+          value: string;
+        }
+    >[];
     readonly mergeProbability: number;
+  }
+}
+
+export function parseInsert(value: Config['insert'][number]['value']) {
+  if (value.type === 'word') {
+    return faker.word.sample({
+      length: value.value,
+      strategy: 'closest',
+    });
+  } else {
+    return value.value;
   }
 }
 
@@ -19,10 +39,7 @@ export function insertText(ctx: Context) {
     generateArgs: () => {
       return [
         faker.helpers.weightedArrayElement(ctx.clientWeights),
-        faker.word.sample({
-          length: ctx.config.insertLength,
-          strategy: 'closest',
-        }),
+        parseInsert(faker.helpers.weightedArrayElement(ctx.config.insert)),
         faker.helpers.maybe(() => true, {
           probability: ctx.config.mergeProbability,
         }) ?? false,

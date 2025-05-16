@@ -12,6 +12,10 @@ import { createCollabSandbox } from '../helpers/collab-sandbox';
 import mapObject from 'map-obj';
 import { faker } from '@faker-js/faker';
 import { Logger } from '../../../../utils/src/logging';
+import { fieldInsertText } from './field-insert-text';
+import { isDefined } from '../../../../utils/src/type-guards/is-defined';
+import { fieldSetCaret } from './field-set-caret';
+import { fieldDeleteText } from './field-delete-text';
 
 type ClientName = 'A' | 'B';
 
@@ -21,7 +25,10 @@ type ActionName =
   | 'deleteText'
   | 'undo'
   | 'redo'
-  | 'submitStep';
+  | 'submitStep'
+  | 'fieldSetCaret'
+  | 'fieldInsertText'
+  | 'fieldDeleteText';
 
 interface Action<T extends any[]> {
   name: ActionName;
@@ -39,16 +46,20 @@ export type WeightedAction<T extends any[]> = WeightValue<Action<T>>;
 export interface Config {
   readonly logger?: Logger;
   readonly collabSandboxOptions?: Parameters<typeof createCollabSandbox<ClientName>>[0];
-  readonly actionWeights: Record<ActionName, number>;
+  readonly actionWeights: Partial<Record<ActionName, number>>;
   readonly clientWeights: Record<ClientName, number>;
+  readonly fieldWeights?: Record<string, number>;
 }
 
 export interface Context {
   readonly config: Config;
 
-  readonly createAction: <T extends unknown[]>(action: Action<T>) => WeightedAction<T>;
+  readonly createAction: <T extends unknown[]>(
+    action: Action<T>
+  ) => WeightedAction<T> | undefined;
   readonly clientContext: Record<ClientName, ClientContext>;
   readonly clientWeights: WeightValue<ClientName>[];
+  readonly fieldWeights: WeightValue<string>[];
 }
 
 export interface ClientContext {
@@ -70,7 +81,10 @@ export function generateActions(config: Config): GeneratedActions {
     undo(ctx),
     redo(ctx),
     submitStep(ctx),
-  ];
+    fieldSetCaret(ctx),
+    fieldInsertText(ctx),
+    fieldDeleteText(ctx),
+  ].filter(isDefined);
 
   return {
     context: ctx,
@@ -98,10 +112,17 @@ function createContext(config: Config): Context {
   });
 
   return {
-    createAction: (action) => ({
-      weight: config.actionWeights[action.name],
-      value: action,
-    }),
+    createAction: (action) => {
+      const weight = config.actionWeights[action.name];
+      if (weight === undefined || weight <= 0) {
+        return;
+      }
+
+      return {
+        weight,
+        value: action,
+      };
+    },
     clientContext: mapObject(collabSandbox.client, (name, client) => [
       name,
       {
@@ -109,14 +130,20 @@ function createContext(config: Config): Context {
         submission: null,
       } satisfies ClientContext,
     ]),
-    clientWeights: Object.entries(config.clientWeights).map((v) => ({
-      value: v[0] as ClientName,
-      weight: v[1],
-    })),
-    submitStepWeights: Object.entries(config.submitStepWeights).map((v) => ({
-      value: Number.parseInt(v[0]),
-      weight: v[1],
-    })),
+    clientWeights: mapWeights(config.clientWeights),
+    submitStepWeights: mapWeights(config.submitStepWeights),
+    fieldWeights: config.fieldWeights ? mapWeights(config.fieldWeights) : [],
     config,
   };
+}
+
+function mapWeights<T extends string | number>(
+  weightsRecord: Record<T, number>
+): WeightValue<T>[] {
+  return Object.entries<number>(weightsRecord)
+    .map(([key, value]) => ({
+      value: key as T,
+      weight: value,
+    }))
+    .filter(({ weight }) => weight > 0);
 }
