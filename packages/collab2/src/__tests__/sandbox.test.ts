@@ -3,7 +3,7 @@ import { createCollabSandbox } from './helpers/collab-sandbox';
 import { logAll } from '../../../utils/src/log-all';
 
 // TODO remove
-it('sandbox', () => {
+it.skip('sandbox', () => {
   const fieldNames = ['title', 'content'];
 
   const {

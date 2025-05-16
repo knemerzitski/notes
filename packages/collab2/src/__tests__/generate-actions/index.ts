@@ -9,15 +9,12 @@ import { undo } from './undo';
 import { submitStep } from './submit-step';
 import { redo } from './redo';
 import { createCollabSandbox } from '../helpers/collab-sandbox';
-import mapObject from 'map-obj';
 import { faker } from '@faker-js/faker';
 import { Logger } from '../../../../utils/src/logging';
 import { fieldInsertText } from './field-insert-text';
 import { isDefined } from '../../../../utils/src/type-guards/is-defined';
 import { fieldSetCaret } from './field-set-caret';
 import { fieldDeleteText } from './field-delete-text';
-
-type ClientName = 'A' | 'B';
 
 type ActionName =
   | 'setCaret'
@@ -45,26 +42,31 @@ export type WeightedAction<T extends any[]> = WeightValue<Action<T>>;
 
 export interface Config {
   readonly logger?: Logger;
-  readonly collabSandboxOptions?: Parameters<typeof createCollabSandbox<ClientName>>[0];
+  readonly collabSandboxOptions?: Parameters<typeof createCollabSandbox<string>>[0];
   readonly actionWeights: Partial<Record<ActionName, number>>;
-  readonly clientWeights: Record<ClientName, number>;
+  readonly clientWeights: Record<string, number>;
   readonly fieldWeights?: Record<string, number>;
 }
 
 export interface Context {
   readonly config: Config;
+  readonly collabSandbox: ReturnType<typeof createCollabSandbox>;
 
   readonly createAction: <T extends unknown[]>(
     action: Action<T>
   ) => WeightedAction<T> | undefined;
-  readonly clientContext: Record<ClientName, ClientContext>;
-  readonly clientWeights: WeightValue<ClientName>[];
+
+  readonly getClient: (
+    clientName: string
+  ) => ReturnType<typeof createCollabSandbox>['client']['string'];
+  readonly getClientState: (clientName: string) => RuntimeClientContext;
+
+  readonly clientWeights: WeightValue<string>[];
   readonly fieldWeights: WeightValue<string>[];
 }
 
-export interface ClientContext {
-  client: ReturnType<typeof createCollabSandbox>['client']['string'];
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface RuntimeClientContext {}
 
 export interface GeneratedActions {
   readonly context: Context;
@@ -73,7 +75,22 @@ export interface GeneratedActions {
 }
 
 export function generateActions(config: Config): GeneratedActions {
-  const ctx = createContext(config);
+  let clientStates: Record<string, RuntimeClientContext> = {};
+
+  const ctx: Context = {
+    ...createContext(config),
+    getClientState(clientName) {
+      let state = clientStates[clientName];
+      if (!state) {
+        state = {
+          submission: null,
+        };
+        clientStates[clientName] = state;
+      }
+      return state;
+    },
+  };
+
   const actions: WeightedAction<any>[] = [
     setCaret(ctx),
     insertText(ctx),
@@ -90,12 +107,16 @@ export function generateActions(config: Config): GeneratedActions {
     context: ctx,
     actions,
     run: (actionsCount: number) => {
+      clientStates = {};
+
+      // now initialize context for clients..
       for (let i = 0; i < actionsCount; i++) {
         const action = faker.helpers.weightedArrayElement(actions);
         const args: any = action.generateArgs?.() ?? [];
         config.logger?.debug(`${i} ${action.name}`, args);
         try {
           action.invoke(...args);
+          // logAll(ctx.getRuntimeClientContext('A').client.getFieldTextsWithSelection());
         } catch (err) {
           console.log('Error on action at index', i);
           throw err;
@@ -105,13 +126,11 @@ export function generateActions(config: Config): GeneratedActions {
   };
 }
 
-function createContext(config: Config): Context {
-  const collabSandbox = createCollabSandbox({
-    clients: ['A', 'B'],
-    ...config.collabSandboxOptions,
-  });
+function createContext(config: Config): Omit<Context, 'getClientState'> {
+  const collabSandbox = createCollabSandbox(config.collabSandboxOptions);
 
   return {
+    collabSandbox,
     createAction: (action) => {
       const weight = config.actionWeights[action.name];
       if (weight === undefined || weight <= 0) {
@@ -123,13 +142,9 @@ function createContext(config: Config): Context {
         value: action,
       };
     },
-    clientContext: mapObject(collabSandbox.client, (name, client) => [
-      name,
-      {
-        client,
-        submission: null,
-      } satisfies ClientContext,
-    ]),
+    getClient(name: string) {
+      return collabSandbox.server.getClient(name);
+    },
     clientWeights: mapWeights(config.clientWeights),
     submitStepWeights: mapWeights(config.submitStepWeights),
     fieldWeights: config.fieldWeights ? mapWeights(config.fieldWeights) : [],

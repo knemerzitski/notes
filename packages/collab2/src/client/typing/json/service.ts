@@ -61,6 +61,10 @@ export class Service<T extends string> {
     return this.ctx.parser;
   }
 
+  private get logger() {
+    return this.ctx.logger;
+  }
+
   private get collabService() {
     return this.ctx.collabService;
   }
@@ -153,6 +157,11 @@ export class Service<T extends string> {
 
     if (unknownStructure === validStructure) {
       return;
+    } else {
+      this.logger?.error('enforceStructure', {
+        unknownStructure,
+        validStructure,
+      });
     }
 
     this.addLocalTyping({

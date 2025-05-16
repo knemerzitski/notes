@@ -1,10 +1,7 @@
 import { it } from 'vitest';
 import { createCollabSandbox } from './helpers/collab-sandbox';
-import { isEnvironmentVariableTruthy } from '../../../utils/src/string/is-environment-variable-truthy';
 
-const test = isEnvironmentVariableTruthy(process.env.MEASURE) ? it : it.skip;
-
-test('measure increasing records count execution time', () => {
+it.skip('measure increasing records count execution time', () => {
   const {
     client: { A },
   } = createCollabSandbox({

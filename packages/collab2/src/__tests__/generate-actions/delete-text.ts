@@ -26,7 +26,7 @@ export function deleteText(ctx: Context) {
       ] as const;
     },
     invoke(clientName, deleteCount, merge) {
-      const client = ctx.clientContext[clientName].client;
+      const client = ctx.getClient(clientName);
       client.delete(deleteCount, {
         historyType: merge ? 'merge' : undefined,
       });

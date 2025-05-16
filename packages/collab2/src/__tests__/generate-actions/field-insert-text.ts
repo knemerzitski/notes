@@ -16,7 +16,7 @@ export function fieldInsertText(ctx: Context) {
       ] as const;
     },
     invoke(clientName, fieldName, value, merge) {
-      const client = ctx.clientContext[clientName].client;
+      const client = ctx.getClient(clientName);
       const field = client.getField(fieldName);
 
       field.insert(value, {

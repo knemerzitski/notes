@@ -11,6 +11,7 @@ import { it } from 'vitest';
 it('generated actions', () => {
   const gen = generateActions({
     collabSandboxOptions: {
+      clients: ['A', 'B'],
       server: {
         recordsLimit: 500,
       },
@@ -64,7 +65,6 @@ it('generated actions', () => {
   });
 
   faker.seed(1);
-
   gen.run(1000);
 });
 
@@ -73,16 +73,6 @@ it('generated actions with json fields', () => {
     collabSandboxOptions: {
       server: {
         recordsLimit: 500,
-      },
-      client: {
-        service: {
-          context: {
-            historySizeLimit: 20,
-          },
-        },
-        jsonTyper: {
-          fieldNames: ['title', 'content'],
-        },
       },
     },
     clientWeights: {
@@ -98,8 +88,8 @@ it('generated actions with json fields', () => {
       submitStep: 30,
     },
     fieldWeights: {
-      title: 0,
-      content: 1,
+      title: 1,
+      content: 3,
     },
     insert: [
       {
@@ -144,7 +134,24 @@ it('generated actions with json fields', () => {
     },
   });
 
-  faker.seed(2);
+  const clientOptions: Parameters<
+    typeof gen.context.collabSandbox.server.createClient
+  >[1] = {
+    service: {
+      context: {
+        historySizeLimit: 20,
+      },
+    },
+    jsonTyper: {
+      fieldNames: ['title', 'content'],
+    },
+  };
 
-  gen.run(10);
+  const A = gen.context.collabSandbox.server.createClient('A', clientOptions);
+  A.submitChangesInstant();
+
+  gen.context.collabSandbox.server.createClient('B', clientOptions);
+
+  faker.seed(2);
+  gen.run(1000);
 });

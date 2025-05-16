@@ -27,7 +27,7 @@ export function fieldDeleteText(ctx: Context) {
       ] as const;
     },
     invoke(clientName, fieldName, deleteCount, merge) {
-      const client = ctx.clientContext[clientName].client;
+      const client = ctx.getClient(clientName);
       const field = client.getField(fieldName);
 
       field.delete(deleteCount, {

@@ -168,6 +168,14 @@ class Server {
     );
   }
 
+  getClient(name: string): Client {
+    const client = this.clients.find((client) => client.name === name);
+    if (!client) {
+      throw new Error(`No such client ${name}`);
+    }
+    return client;
+  }
+
   addRecord(submittedRecord: SubmittedRecord) {
     const result = processSubmittedRecord(
       submittedRecord,
@@ -280,13 +288,18 @@ class Client {
 
     if (options.jsonTyper) {
       const fieldNames = options.jsonTyper.fieldNames;
+      const logger = createLogger(`${this.name}:json`, {
+        format: 'object',
+      });
       const jsonService = new JsonTyperService({
         parser: new TextParser({
+          logger: logger.extend('parser'),
           hook: spaceNewlineHook,
           keys: fieldNames,
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           fallbackKey: fieldNames[0]!,
         }),
+        logger,
         ...options.jsonTyper,
         collabService: this.service,
       });

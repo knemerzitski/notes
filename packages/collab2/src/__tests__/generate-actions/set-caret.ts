@@ -20,7 +20,7 @@ export function setCaret(ctx: Context) {
       return [clientName, startRatio, endRatio] as const;
     },
     invoke(clientName, startRatio, endRatio) {
-      const client = ctx.clientContext[clientName].client;
+      const client = ctx.getClient(clientName);
 
       client.setCaret(
         Selection.create(

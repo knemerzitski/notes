@@ -9,7 +9,7 @@ declare module '.' {
     readonly submitAcknowledgeFirstProbability: number;
   }
 
-  export interface ClientContext {
+  export interface RuntimeClientContext {
     submission: SubmissionFn | null;
   }
 
@@ -31,11 +31,12 @@ export function submitStep(ctx: Context) {
       ] as const;
     },
     invoke(clientName, stepsCount, acknowledgeFirst) {
-      const clientContext = ctx.clientContext[clientName];
-      if (!clientContext.submission) {
-        clientContext.submission = () => {
-          if (clientContext.client.canSubmitChanges()) {
-            const submit = clientContext.client.submitChanges();
+      const client = ctx.getClient(clientName);
+      const state = ctx.getClientState(clientName);
+      if (!state.submission) {
+        state.submission = () => {
+          if (client.canSubmitChanges()) {
+            const submit = client.submitChanges();
             return () => {
               const received = submit.serverReceive();
               if (acknowledgeFirst) {
@@ -63,8 +64,8 @@ export function submitStep(ctx: Context) {
       }
 
       for (let i = 0; i < stepsCount; i++) {
-        if (clientContext.submission !== null) {
-          clientContext.submission = clientContext.submission();
+        if (state.submission !== null) {
+          state.submission = state.submission();
         } else {
           break;
         }

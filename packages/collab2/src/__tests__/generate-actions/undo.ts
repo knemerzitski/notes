@@ -8,7 +8,7 @@ export function undo(ctx: Context) {
       return [faker.helpers.weightedArrayElement(ctx.clientWeights)] as const;
     },
     invoke(clientName) {
-      const client = ctx.clientContext[clientName].client;
+      const client = ctx.getClient(clientName);
       client.undo();
     },
   });

@@ -46,7 +46,7 @@ export function insertText(ctx: Context) {
       ] as const;
     },
     invoke(clientName, value, merge) {
-      const client = ctx.clientContext[clientName].client;
+      const client = ctx.getClient(clientName);
 
       client.insert(value, {
         historyType: merge ? 'merge' : undefined,
