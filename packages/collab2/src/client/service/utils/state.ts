@@ -20,7 +20,7 @@ export function createFromHeadRecord(record: ServiceHeadRecord): State {
     viewChanges: [
       {
         changeset: record.text,
-        inverse: Changeset.EMPTY,
+        inverse: Changeset.inverse(record.text, ''),
         viewRevision: 0,
       },
     ],
