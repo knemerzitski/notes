@@ -46,15 +46,18 @@ function history_yes(record: AddLocalTypingRecord, draft: WritableDraft<State>) 
     record.selectionInverse ?? prevRecord?.selection ?? Selection.ZERO;
   const selection = record.selection;
 
-  draft.undoStack.push({
-    type: 'view',
-    viewIndex: draft.viewChanges.length + draft.viewIndexOffset,
-    externalChanges: [],
-    changeset: castDraft(changeset),
-    inverse: castDraft(inverse),
-    selectionInverse,
-    selection,
-  });
+  if (!changeset.isIdentity() && !Changeset.isNoOp(changeset, inverse)) {
+    draft.undoStack.push({
+      type: 'view',
+      viewIndex: draft.viewChanges.length + draft.viewIndexOffset,
+      externalChanges: [],
+      changeset: castDraft(changeset),
+      inverse: castDraft(inverse),
+      selectionInverse,
+      selection,
+    });
+  }
+
   draft.redoStack = [];
 
   updateLocalRecord({
@@ -130,20 +133,29 @@ export function history_merge(record: AddLocalTypingRecord, draft: WritableDraft
     adjustedPrevRecord.changeset,
     record.changeset
   );
-  const mergedRecord: HistoryServiceRecord = {
-    type: 'view',
-    viewIndex: draft.viewChanges.length + draft.viewIndexOffset,
-    externalChanges: [],
-    changeset: mergedChangeset,
-    inverse: Changeset.inverse(
-      mergedChangeset,
-      Changeset.compose(draft.viewText, adjustedPrevRecord.inverse)
-    ),
-    selectionInverse: adjustedPrevRecord.selectionInverse,
-    selection: record.selection,
-  };
+  const mergedInverse = Changeset.inverse(
+    mergedChangeset,
+    Changeset.compose(draft.viewText, adjustedPrevRecord.inverse)
+  );
+  if (
+    !mergedChangeset.isIdentity() &&
+    !Changeset.isNoOp(mergedChangeset, mergedInverse)
+  ) {
+    const mergedRecord: HistoryServiceRecord = {
+      type: 'view',
+      viewIndex: draft.viewChanges.length + draft.viewIndexOffset,
+      externalChanges: [],
+      changeset: mergedChangeset,
+      inverse: mergedInverse,
+      selectionInverse: adjustedPrevRecord.selectionInverse,
+      selection: record.selection,
+    };
 
-  draft.undoStack[draft.undoStack.length - 1] = castDraft(mergedRecord);
+    draft.undoStack[draft.undoStack.length - 1] = castDraft(mergedRecord);
+  } else {
+    // Merged change undoes previous change, pop it from undoStack
+    draft.undoStack.pop();
+  }
 
   draft.redoStack = [];
 
