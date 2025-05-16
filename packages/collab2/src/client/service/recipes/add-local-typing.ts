@@ -81,7 +81,7 @@ function history_yes(record: AddLocalTypingRecord, draft: WritableDraft<State>) 
   draft.viewRevision = nextViewRevision;
 }
 
-function history_merge(record: AddLocalTypingRecord, draft: WritableDraft<State>) {
+export function history_merge(record: AddLocalTypingRecord, draft: WritableDraft<State>) {
   const prevRecord = getLastHistoryRecord(draft.undoStack, 'view');
   if (!prevRecord) {
     history_yes(record, draft);
@@ -126,14 +126,18 @@ function history_merge(record: AddLocalTypingRecord, draft: WritableDraft<State>
     selectionInverse: followRecord.selection,
   };
 
+  const mergedChangeset = Changeset.compose(
+    adjustedPrevRecord.changeset,
+    record.changeset
+  );
   const mergedRecord: HistoryServiceRecord = {
     type: 'view',
     viewIndex: draft.viewChanges.length + draft.viewIndexOffset,
     externalChanges: [],
-    changeset: Changeset.compose(adjustedPrevRecord.changeset, record.changeset),
-    inverse: Changeset.compose(
-      Changeset.inverse(record.changeset, draft.viewText),
-      adjustedPrevRecord.inverse
+    changeset: mergedChangeset,
+    inverse: Changeset.inverse(
+      mergedChangeset,
+      Changeset.compose(draft.viewText, adjustedPrevRecord.inverse)
     ),
     selectionInverse: adjustedPrevRecord.selectionInverse,
     selection: record.selection,
