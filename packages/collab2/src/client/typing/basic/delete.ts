@@ -21,7 +21,10 @@ export function deletionRecord(
   }
   count = Math.max(0, count);
 
-  const deleteSelection = Selection.create(Math.max(selection.start - count, 0), selection.end);
+  const deleteSelection = Selection.create(
+    Math.max(selection.start - count, 0),
+    selection.end
+  );
 
   return {
     changeset: Changeset.create(completeText.length, [

@@ -205,12 +205,9 @@ it('delete while insert', () => {
   );
 
   expect(result.changeset.toString()).toStrictEqual(Changeset.parse('2:0').toString());
-  expect(result.inverse.toString()).toStrictEqual(
-    Changeset.parse('1:0,"a"').toString()
-  );
+  expect(result.inverse.toString()).toStrictEqual(Changeset.parse('1:0,"a"').toString());
   expect(result.selectionInverse.toString()).toStrictEqual(
     Selection.parse('2').toString()
   );
   expect(result.selection.toString()).toStrictEqual(Selection.parse('1').toString());
 });
-

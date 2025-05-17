@@ -25,7 +25,6 @@ it.skip('sandbox', () => {
     },
   });
 
-
   const A_content = A.getField('content');
   A_content.insert('f\n\no"o');
   A.submitChangesInstant();

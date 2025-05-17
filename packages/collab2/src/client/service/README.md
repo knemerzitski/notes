@@ -13,6 +13,7 @@ Structure:
 
 Dependency flows only in one directoy `Service <- meals <- recipes <- actions`.
 Allowed dependencies:
+
 - Service
   - $meals
   - $recipes
