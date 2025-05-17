@@ -72,6 +72,7 @@ export interface OrderedMessageBufferParams<
  * Pops messages in incremental seqence order by version.
  * Old messages are discarded and future ones are stored
  * until missing messages are present.
+ * @deprecated Not used
  */
 export class OrderedMessageBuffer<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

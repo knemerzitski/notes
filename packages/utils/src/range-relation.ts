@@ -24,6 +24,7 @@ export function isRangeOverlap(x1: number, x2: number, y1: number, y2: number) {
 
 /**
  * @return Range [x1,x2) relation relative to [y1,y2)
+ * @deprecated Not used
  */
 export function rangeRelation(
   x1: number,
