@@ -1,6 +1,16 @@
-import { date, Infer, InferRaw, object } from 'superstruct';
+import { date, Infer, InferRaw, number, object } from 'superstruct';
+import { ChangesetSchema } from './changeset';
 
-import { RevisionChangesetSchema } from './changeset';
+// TODO rename to TextRecordSchema
+export const RevisionChangesetSchema = object({
+  // TODO rename to text and use plain string type
+  changeset: ChangesetSchema,
+  revision: number(),
+});
+
+export type DBRevisionChangesetSchema = InferRaw<typeof RevisionChangesetSchema>;
+
+export type RevisionChangesetSchema = Infer<typeof RevisionChangesetSchema>;
 
 export const CollabTextSchema = object({
   // TODO rename to headRecord

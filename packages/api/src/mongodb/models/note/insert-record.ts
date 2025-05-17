@@ -7,7 +7,7 @@ import { MongoDBCollections } from '../../collections';
 import {
   RevisionChangesetSchema,
   DBRevisionChangesetSchema,
-} from '../../schema/changeset';
+} from '../../schema/collab-text';
 import { CollabRecordSchema, DBCollabRecordSchema } from '../../schema/collab-record';
 import { TransactionContext } from '../../utils/with-transaction';
 
