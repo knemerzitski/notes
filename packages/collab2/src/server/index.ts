@@ -6,6 +6,6 @@ export type {
   ServerState,
 } from './types';
 
-export { initialState } from './initial-state';
+export { createState } from './create-state';
 export { composeNewTail } from './compose-new-tail';
 export { processSubmittedRecord } from './process-submitted-record';
