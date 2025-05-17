@@ -166,7 +166,7 @@ it('loads all fields', async () => {
                 author: {
                   _id: 1,
                 },
-                userGeneratedId: 1,
+                idempotencyId: 1,
                 selectionInverse: 1,
                 selection: 1,
               },
@@ -214,7 +214,7 @@ it('loads all fields', async () => {
             author: {
               _id: expect.any(ObjectId),
             },
-            userGeneratedId: expect.any(String),
+            idempotencyId: expect.any(String),
             selectionInverse: Selection.ZERO.serialize(),
             selection: Selection.create(4).serialize(),
           },

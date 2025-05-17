@@ -39,7 +39,7 @@ export function createInitialCollabText({
     createCollabRecord({
       collabTextId,
       authorId,
-      userGeneratedId: record.idempotencyId,
+      idempotencyId: record.idempotencyId,
       revision: record.revision,
       changeset: record.changeset,
       inverse: record.inverse,

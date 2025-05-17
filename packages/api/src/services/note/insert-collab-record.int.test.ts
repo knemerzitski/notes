@@ -100,7 +100,7 @@ it('updates openNote with new selection when it exists', async () => {
       revision: headRevision++,
       selection: Selection.create(2, 3),
       selectionInverse: Selection.ZERO,
-      userGeneratedId: faker.string.nanoid(),
+      idempotencyId: faker.string.nanoid(),
     },
     connectionId,
     openNoteDuration,
@@ -142,7 +142,7 @@ it('handles inserting records with total size larger than 16MiB', async () => {
       userId: user._id,
       maxRecordsCount: 1_000_000,
       insertRecord: {
-        userGeneratedId: faker.string.nanoid(),
+        idempotencyId: faker.string.nanoid(),
         revision: headRevision++,
         changeset: Changeset.fromText(value, inputLength),
         selectionInverse: Selection.ZERO,

@@ -39,7 +39,7 @@ const _updateNoteInsertRecord: NonNullable<
       revision: insertRecord.targetRevision,
       selectionInverse: insertRecord.selectionInverse,
       selection: insertRecord.selection,
-      userGeneratedId: insertRecord.id,
+      idempotencyId: insertRecord.id,
     },
     connectionId: ctx.connectionId,
     openNoteDuration: ctx.options.note.openNoteDuration,

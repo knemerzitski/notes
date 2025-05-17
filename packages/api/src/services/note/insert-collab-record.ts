@@ -59,7 +59,7 @@ interface InsertCollabRecordParams {
    */
   insertRecord: Pick<
     CollabRecordSchema,
-    'userGeneratedId' | 'revision' | 'changeset' | 'selection' | 'selectionInverse'
+    'idempotencyId' | 'revision' | 'changeset' | 'selection' | 'selectionInverse'
   >;
   /**
    * Limit the records array by deleting older records
@@ -122,7 +122,7 @@ export function insertCollabRecord({
                     $pagination: {
                       after: insertRecord.revision,
                     },
-                    userGeneratedId: 1,
+                    idempotencyId: 1,
                     revision: 1,
                     changeset: 1,
                     inverse: 1,
@@ -281,7 +281,7 @@ export function insertCollabRecord({
         const originalInsertRecord: MongoReadonlyDeep<
           Pick<
             CollabRecordSchema,
-            | 'userGeneratedId'
+            | 'idempotencyId'
             | 'authorId'
             | 'revision'
             | 'changeset'
@@ -465,7 +465,7 @@ function toSubmittedRecord(
   record: MongoReadonlyDeep<
     Pick<
       CollabRecordSchema,
-      | 'userGeneratedId'
+      | 'idempotencyId'
       | 'authorId'
       | 'revision'
       | 'changeset'
@@ -475,7 +475,7 @@ function toSubmittedRecord(
   >
 ): SubmittedRecord {
   return {
-    id: record.userGeneratedId,
+    id: record.idempotencyId,
     targetRevision: record.revision,
     authorId: objectIdToStr(record.authorId),
     changeset: record.changeset,
@@ -488,7 +488,7 @@ function toServerRecord(
   record: MongoReadonlyDeep<
     Pick<
       QueryableCollabRecord,
-      | 'userGeneratedId'
+      | 'idempotencyId'
       | 'revision'
       | 'changeset'
       | 'inverse'
@@ -500,7 +500,7 @@ function toServerRecord(
   >
 ): ServerRecord {
   return {
-    idempotencyId: record.userGeneratedId,
+    idempotencyId: record.idempotencyId,
     authorId: objectIdToStr(record.author._id),
     revision: record.revision,
     changeset: record.changeset,
@@ -524,7 +524,7 @@ function toCollabRecord(
   original: MongoReadonlyDeep<Pick<CollabRecordSchema, 'authorId'>>
 ): Pick<
   CollabRecordSchema,
-  | 'userGeneratedId'
+  | 'idempotencyId'
   | 'authorId'
   | 'revision'
   | 'changeset'
@@ -534,7 +534,7 @@ function toCollabRecord(
 > {
   return {
     authorId: original.authorId,
-    userGeneratedId: record.idempotencyId,
+    idempotencyId: record.idempotencyId,
     revision: record.revision,
     changeset: record.changeset,
     inverse: record.inverse,

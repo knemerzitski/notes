@@ -354,7 +354,7 @@ describe('no existing notes', () => {
         inverse: Changeset.create(15, []).serialize(),
         revision: 1,
         authorId: user._id,
-        userGeneratedId: expect.any(String),
+        idempotencyId: expect.any(String),
         selectionInverse: Selection.create(0).serialize(),
         selection: Selection.create(15).serialize(),
         createdAt: expect.any(Date),

@@ -23,6 +23,8 @@ export const CollabRecordSchema = object({
    * This record belongs to specific CollabText
    */
   collabTextId: instance(ObjectId),
+  idempotencyId: string(),
+  revision: number(),
   changeset: ChangesetSchema,
   inverse: ChangesetSchema,
   selectionInverse: SelectionRangeSchema,
@@ -31,10 +33,6 @@ export const CollabRecordSchema = object({
    * When record was inserted to DB
    */
   createdAt: date(),
-
-  revision: number(),
-  // TODO rename to idempotencyId
-  userGeneratedId: string(),
 });
 
 export type DBCollabRecordSchema = InferRaw<typeof CollabRecordSchema>;

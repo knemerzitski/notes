@@ -20,7 +20,7 @@ export function fakeCollabRecord(
     _id: new ObjectId(),
     authorId: new ObjectId(),
     collabTextId: new ObjectId(),
-    userGeneratedId: faker.string.nanoid(6),
+    idempotencyId: faker.string.nanoid(6),
     revision: faker.number.int(),
     changeset: Changeset.EMPTY.serialize(),
     inverse: Changeset.EMPTY.serialize(),
