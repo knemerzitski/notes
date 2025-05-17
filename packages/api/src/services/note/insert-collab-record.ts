@@ -69,91 +69,6 @@ interface InsertCollabRecordParams {
   connectionId?: string;
 }
 
-// TODO move to bottom
-function toSubmittedRecord(
-  record: MongoReadonlyDeep<
-    Pick<
-      CollabRecordSchema,
-      | 'afterSelection'
-      | 'selectionInverse'
-      | 'changeset'
-      | 'revision'
-      | 'userGeneratedId'
-      | 'authorId'
-    >
-  >
-): SubmittedRecord {
-  return {
-    id: record.userGeneratedId,
-    targetRevision: record.revision,
-    authorId: objectIdToStr(record.authorId),
-    changeset: record.changeset,
-    selectionInverse: record.selectionInverse,
-    selection: record.afterSelection,
-  };
-}
-
-// TODO move to bottom
-function toServerRecord(
-  record: MongoReadonlyDeep<
-    Pick<
-      QueryableCollabRecord,
-      | 'userGeneratedId'
-      | 'revision'
-      | 'changeset'
-      | 'inverse'
-      | 'selectionInverse'
-      | 'afterSelection'
-    > & {
-      author: Pick<QueryableCollabRecord['author'], '_id'>;
-    }
-  >
-): ServerRecord {
-  return {
-    idempotencyId: record.userGeneratedId,
-    authorId: objectIdToStr(record.author._id),
-    revision: record.revision,
-    changeset: record.changeset,
-    inverse: record.inverse,
-    selectionInverse: record.selectionInverse,
-    selection: record.afterSelection,
-  };
-}
-
-function toServerForTailRecord(
-  record: MongoReadonlyDeep<Pick<QueryableCollabRecord, 'revision' | 'changeset'>>
-): Pick<ServerRecord, 'revision' | 'changeset'> {
-  return {
-    revision: record.revision,
-    changeset: record.changeset,
-  };
-}
-
-// TODO move to bottom
-function toMongoRecord(
-  record: ServerRecord,
-  original: MongoReadonlyDeep<Pick<CollabRecordSchema, 'authorId'>>
-): Pick<
-  CollabRecordSchema,
-  | 'afterSelection'
-  | 'selectionInverse'
-  | 'changeset'
-  | 'inverse'
-  | 'revision'
-  | 'userGeneratedId'
-  | 'authorId'
-> {
-  return {
-    authorId: original.authorId,
-    userGeneratedId: record.idempotencyId,
-    revision: record.revision,
-    changeset: record.changeset,
-    inverse: record.inverse,
-    selectionInverse: record.selectionInverse,
-    afterSelection: record.selection,
-  };
-}
-
 export function insertCollabRecord({
   mongoDB,
   userId,
@@ -388,7 +303,7 @@ export function insertCollabRecord({
         );
 
         const processedInsertRecord: CollabRecordSchema = createCollabRecord({
-          ...toMongoRecord(insertion.record, originalInsertRecord),
+          ...toCollabRecord(insertion.record, originalInsertRecord),
           collabTextId: noteId,
         });
 
@@ -407,7 +322,7 @@ export function insertCollabRecord({
                 revision: noteForTailText.collabText.tailText.revision,
                 text: noteForTailText.collabText.tailText.changeset,
               },
-              noteForTailText.collabText.records.map(toServerForTailRecord)
+              noteForTailText.collabText.records.map(toTailServerRecord)
             );
 
             newTailText = {
@@ -544,4 +459,86 @@ export function insertCollabRecord({
       skipAwaitFirstOperation: true,
     }
   );
+}
+
+function toSubmittedRecord(
+  record: MongoReadonlyDeep<
+    Pick<
+      CollabRecordSchema,
+      | 'afterSelection'
+      | 'selectionInverse'
+      | 'changeset'
+      | 'revision'
+      | 'userGeneratedId'
+      | 'authorId'
+    >
+  >
+): SubmittedRecord {
+  return {
+    id: record.userGeneratedId,
+    targetRevision: record.revision,
+    authorId: objectIdToStr(record.authorId),
+    changeset: record.changeset,
+    selectionInverse: record.selectionInverse,
+    selection: record.afterSelection,
+  };
+}
+
+function toServerRecord(
+  record: MongoReadonlyDeep<
+    Pick<
+      QueryableCollabRecord,
+      | 'userGeneratedId'
+      | 'revision'
+      | 'changeset'
+      | 'inverse'
+      | 'selectionInverse'
+      | 'afterSelection'
+    > & {
+      author: Pick<QueryableCollabRecord['author'], '_id'>;
+    }
+  >
+): ServerRecord {
+  return {
+    idempotencyId: record.userGeneratedId,
+    authorId: objectIdToStr(record.author._id),
+    revision: record.revision,
+    changeset: record.changeset,
+    inverse: record.inverse,
+    selectionInverse: record.selectionInverse,
+    selection: record.afterSelection,
+  };
+}
+
+function toTailServerRecord(
+  record: MongoReadonlyDeep<Pick<QueryableCollabRecord, 'revision' | 'changeset'>>
+): Pick<ServerRecord, 'revision' | 'changeset'> {
+  return {
+    revision: record.revision,
+    changeset: record.changeset,
+  };
+}
+
+function toCollabRecord(
+  record: ServerRecord,
+  original: MongoReadonlyDeep<Pick<CollabRecordSchema, 'authorId'>>
+): Pick<
+  CollabRecordSchema,
+  | 'afterSelection'
+  | 'selectionInverse'
+  | 'changeset'
+  | 'inverse'
+  | 'revision'
+  | 'userGeneratedId'
+  | 'authorId'
+> {
+  return {
+    authorId: original.authorId,
+    userGeneratedId: record.idempotencyId,
+    revision: record.revision,
+    changeset: record.changeset,
+    inverse: record.inverse,
+    selectionInverse: record.selectionInverse,
+    afterSelection: record.selection,
+  };
 }
