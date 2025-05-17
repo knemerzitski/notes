@@ -11,32 +11,6 @@ function s(value: string) {
   return StripStruct.create(value);
 }
 
-it('sliceRetained', () => {
-  expect(cs('0:').sliceRetained(0, 0).toString()).toStrictEqual(ss('').toString());
-  expect(cs('5:2,"a",4').sliceRetained(2, 2).toString()).toStrictEqual(ss('').toString());
-  expect(cs('5:1-2,"a",4').sliceRetained(2, 5).toString()).toStrictEqual(
-    ss('2,"a",4').toString()
-  );
-  expect(cs('5:1-2,"a",4').sliceRetained(2, 4).toString()).toStrictEqual(
-    ss('2,"a"').toString()
-  );
-  expect(cs('5:1-2,"a",4').sliceRetained(2, 3).toString()).toStrictEqual(
-    ss('2').toString()
-  );
-  expect(cs('15:"a",2-5,"bc",8-14').sliceRetained(4, 9).toString()).toStrictEqual(
-    ss('4-5,"bc",8').toString()
-  );
-  expect(cs('15:"a",2-5,"bcs",8-14').sliceRetained(4, 9).toString()).toStrictEqual(
-    ss('4-5,"bcs",8').toString()
-  );
-  expect(
-    cs('21:"a",2-5,"bc",9-10,"s",14-20').sliceRetained(4, 15).toString()
-  ).toStrictEqual(ss('4-5,"bc",9-10,"s",14').toString());
-  expect(
-    cs('21:"a",2-5,"bc",9-10,"s",14-20').sliceRetained(16, 25).toString()
-  ).toStrictEqual(ss('16-20').toString());
-});
-
 describe('sliceText', () => {
   it('empty', () => {
     expect(cs('').sliceText(0, 0).toString()).toStrictEqual(ss('').toString());

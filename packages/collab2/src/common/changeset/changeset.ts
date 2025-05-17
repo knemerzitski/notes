@@ -14,14 +14,7 @@ import { stripsArray } from './utils/strips-array';
 import { toString } from './utils/to-string';
 import { withRemoveStrips } from './utils/with-remove-strips';
 
-import {
-  ChangesetError,
-  ChangesetStruct,
-  InsertStrip,
-  RangeStrip,
-  RetainStrip,
-  Strip,
-} from '.';
+import { ChangesetError, ChangesetStruct, InsertStrip, RetainStrip, Strip } from '.';
 
 /**
  * Represents how to change text.
@@ -90,51 +83,6 @@ export class Changeset {
     public readonly strips: readonly Strip[] = []
   ) {
     this.outputLength = outputLengthSum(this.strips);
-  }
-
-  /**
-   * @deprecated
-   * TODO optionaly include insertions or add feature to mark retained characters to easily find them
-   * Slices by retained characters based on Changeset itself.
-   * E.g ["a",2-5,"bc",8-14].sliceRetained(4,9) = [4-5,"bc",8]
-   *
-   * E.g.
-   * ```
-   * (7:"ab",0-4,"hijklm",5-6).sliceRetained(3,5) = (3-4,"hijlkm")
-   * // a,b,0,1,2,3,4,h,i,j,k,l,m,5,6
-   * //           ^start          ^end
-   * ```
-   *
-   * @param start
-   * @param end Exclusive
-   */
-  sliceRetained(start = 0, end = start + 1): Strip[] {
-    const result: Strip[] = [];
-
-    let pos = 0;
-    for (const strip of this.strips) {
-      if (RangeStrip.is(strip)) {
-        if (strip.outputLength > 0) {
-          const resultStrip = RetainStrip.create(
-            Math.max(start, strip.start),
-            Math.min(end, strip.end)
-          );
-          if (!resultStrip.isEmpty()) {
-            result.push(resultStrip);
-          }
-        }
-
-        if (end <= strip.end) {
-          break;
-        }
-      } else if (strip.outputLength > 0 && pos >= start) {
-        result.push(strip);
-      }
-
-      pos += strip.length;
-    }
-
-    return result;
   }
 
   /**
