@@ -5,7 +5,7 @@ import { ServerRecord, TailRecord } from './types';
 
 export function composeNewTail(
   tailRecord: TailRecord,
-  records: readonly ServerRecord[],
+  records: readonly Pick<ServerRecord, 'revision' | 'changeset'>[],
   /**
    * End of records slice to compose
    * @default records.length

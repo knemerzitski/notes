@@ -12,7 +12,7 @@ import { ServerRecord, TailRecord } from '../types';
  */
 export function assertTailToRecords(
   tailRecord: TailRecord,
-  records: readonly ServerRecord[]
+  records: readonly Pick<ServerRecord, 'revision' | 'changeset'>[]
 ) {
   const firstRecord = records[0];
   if (firstRecord) {

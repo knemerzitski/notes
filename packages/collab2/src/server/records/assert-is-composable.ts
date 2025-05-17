@@ -1,3 +1,4 @@
+import { ServerError } from '../errors';
 import { $record } from '../record';
 import { ServerRecord } from '../types';
 
@@ -14,7 +15,7 @@ export function assertIsComposable(records: readonly R[]) {
     try {
       $record.assertIsComposable(prevRecord, record);
     } catch (err) {
-      throw new Error(`Records at index "${i - 1}" and "${i}" are not composable`, {
+      throw new ServerError(`Records at index "${i - 1}" and "${i}" are not composable`, {
         cause: err,
       });
     }

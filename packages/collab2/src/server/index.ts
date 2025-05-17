@@ -9,3 +9,5 @@ export type {
 export { createState } from './create-state';
 export { composeNewTail } from './compose-new-tail';
 export { processSubmittedRecord } from './process-submitted-record';
+
+export { ServerError, RecordSubmissionServerError } from './errors';

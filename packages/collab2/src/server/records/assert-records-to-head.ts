@@ -1,3 +1,4 @@
+import { ServerError } from '../errors';
 import { HeadRecord, ServerRecord } from '../types';
 
 /**
@@ -14,12 +15,12 @@ export function assertRecordsToHead(
   const lastRecord = records[records.length - 1];
   if (lastRecord) {
     if (lastRecord.revision !== headRecord.revision) {
-      throw new Error(
+      throw new ServerError(
         `Unexpected headRecord and last record revision is not equal. records[-1].revision: ${lastRecord.revision}, headRecord.revision: ${headRecord.revision}`
       );
     }
     if (lastRecord.changeset.outputLength !== headRecord.text.outputLength) {
-      throw new Error(
+      throw new ServerError(
         `Unexpected headRecord and last record outputLengths are different. records[-1].outputLength: ${lastRecord.changeset.outputLength}, headRecord.outputLength: ${headRecord.text.outputLength}`
       );
     }

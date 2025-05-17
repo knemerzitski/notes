@@ -1,24 +1,28 @@
-import { ServerRecord, SubmittedRecord } from '../types';
+import { RecordSubmissionServerError } from '../errors';
+import { HeadRecord, ServerRecord, SubmittedRecord } from '../types';
 
 export function assertSubmittedRevision(
+  submittedRecord: SubmittedRecord,
   records: readonly ServerRecord[],
-  submittedRecord: SubmittedRecord
+  headRecord: HeadRecord
 ) {
-  const firstRecord = records[0];
-  const lastRecord = records[records.length - 1];
-  if (!firstRecord || !lastRecord) {
-    return;
-  }
+  const firstRevision = records[0]?.revision;
+  const headRevision = records[records.length - 1]?.revision ?? headRecord.revision;
 
-  if (submittedRecord.targetRevision + 1 < firstRecord.revision) {
-    throw new Error(
-      `Missing older records to insert new record. Oldest revision: ${firstRecord.revision - 1}, Submitted targetRevision: ${submittedRecord.targetRevision}`
+  if (
+    (firstRevision != null && submittedRecord.targetRevision + 1 < firstRevision) ||
+    (firstRevision == null && submittedRecord.targetRevision < headRevision)
+  ) {
+    throw new RecordSubmissionServerError(
+      'REVISION_OLD',
+      `Missing older records to insert new record. Oldest revision: ${firstRevision != null ? firstRevision - 1 : 'unknown'}, Submitted targetRevision: ${submittedRecord.targetRevision}`
     );
   }
 
-  if (submittedRecord.targetRevision > lastRecord.revision) {
-    throw new Error(
-      `Cannot insert record after headRecord. headRecord revision: ${lastRecord.revision}, Submitted targetRevision: ${submittedRecord.targetRevision}`
+  if (submittedRecord.targetRevision > headRevision) {
+    throw new RecordSubmissionServerError(
+      'REVISION_INVALID',
+      `Cannot insert record after headRecord. headRecord revision: ${headRevision}, Submitted targetRevision: ${submittedRecord.targetRevision}`
     );
   }
 }
