@@ -59,15 +59,13 @@ export function fakeCollabText(
     return fakeCollabRecord({
       ...options,
       override: {
+        authorId,
         revision: headRevision,
         changeset: recordChangeset,
         inverse: recordChangeset,
+        selectionInverse: Selection.ZERO.serialize(),
+        afterSelection: Selection.create(initialText.length).serialize(),
         ...options?.override,
-        authorId,
-        beforeSelection: options?.override?.beforeSelection ?? Selection.ZERO.serialize(),
-        afterSelection:
-          options?.override?.afterSelection ??
-          Selection.create(initialText.length).serialize(),
       },
     });
   }

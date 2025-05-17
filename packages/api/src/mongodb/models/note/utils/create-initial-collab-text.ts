@@ -43,7 +43,7 @@ export function createInitialCollabText({
       revision: record.revision,
       changeset: record.changeset,
       inverse: record.inverse,
-      beforeSelection: record.selectionInverse,
+      selectionInverse: record.selectionInverse,
       afterSelection: record.selection,
     })
   );

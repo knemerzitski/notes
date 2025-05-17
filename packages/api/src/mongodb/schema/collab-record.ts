@@ -25,10 +25,9 @@ export const CollabRecordSchema = object({
   collabTextId: instance(ObjectId),
   // TODO rename to selection
   afterSelection: SelectionRangeSchema,
-  // TODO rename to selectionInverse
-  beforeSelection: SelectionRangeSchema,
   changeset: ChangesetSchema,
   inverse: ChangesetSchema,
+  selectionInverse: SelectionRangeSchema,
   /**
    * When record was inserted to DB
    */

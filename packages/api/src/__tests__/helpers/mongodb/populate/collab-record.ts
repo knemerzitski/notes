@@ -18,16 +18,16 @@ export function fakeCollabRecord(
 ): DBCollabRecordSchema {
   return {
     _id: new ObjectId(),
+    authorId: new ObjectId(),
     collabTextId: new ObjectId(),
     userGeneratedId: faker.string.nanoid(6),
     revision: faker.number.int(),
     changeset: Changeset.EMPTY.serialize(),
     inverse: Changeset.EMPTY.serialize(),
+    selectionInverse: Selection.ZERO.serialize(),
+    afterSelection: Selection.ZERO.serialize(),
     createdAt: new Date(),
     ...options?.override,
-    authorId: new ObjectId(),
-    beforeSelection: options?.override?.beforeSelection ?? Selection.ZERO.serialize(),
-    afterSelection: options?.override?.afterSelection ?? Selection.ZERO.serialize(),
   };
 }
 

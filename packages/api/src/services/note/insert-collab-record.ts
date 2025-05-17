@@ -15,6 +15,7 @@ import {
 import { CollectionName } from '../../mongodb/collection-names';
 import { MongoDBCollections } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
+import { QueryableCollabRecord } from '../../mongodb/loaders/note/descriptions/collab-record';
 import { insertRecord as model_insertRecord } from '../../mongodb/models/note/insert-record';
 import { updateSetCollabText } from '../../mongodb/models/note/update-set-collab-text';
 import { createCollabRecord } from '../../mongodb/models/note/utils/create-collab-record';
@@ -35,7 +36,6 @@ import {
 } from './errors';
 import { findNoteUser } from './note';
 import { updateOpenNoteAndPrime } from './update-open-note-selection-range';
-import { QueryableCollabRecord } from '../../mongodb/loaders/note/descriptions/collab-record';
 
 interface InsertCollabRecordParams {
   mongoDB: {
@@ -59,7 +59,7 @@ interface InsertCollabRecordParams {
    */
   insertRecord: Pick<
     CollabRecordSchema,
-    'afterSelection' | 'beforeSelection' | 'changeset' | 'revision' | 'userGeneratedId'
+    'afterSelection' | 'selectionInverse' | 'changeset' | 'revision' | 'userGeneratedId'
   >;
   /**
    * Limit the records array by deleting older records
@@ -75,7 +75,7 @@ function toSubmittedRecord(
     Pick<
       CollabRecordSchema,
       | 'afterSelection'
-      | 'beforeSelection'
+      | 'selectionInverse'
       | 'changeset'
       | 'revision'
       | 'userGeneratedId'
@@ -88,7 +88,7 @@ function toSubmittedRecord(
     targetRevision: record.revision,
     authorId: objectIdToStr(record.authorId),
     changeset: record.changeset,
-    selectionInverse: record.beforeSelection,
+    selectionInverse: record.selectionInverse,
     selection: record.afterSelection,
   };
 }
@@ -102,7 +102,7 @@ function toServerRecord(
       | 'revision'
       | 'changeset'
       | 'inverse'
-      | 'beforeSelection'
+      | 'selectionInverse'
       | 'afterSelection'
     > & {
       author: Pick<QueryableCollabRecord['author'], '_id'>;
@@ -115,7 +115,7 @@ function toServerRecord(
     revision: record.revision,
     changeset: record.changeset,
     inverse: record.inverse,
-    selectionInverse: record.beforeSelection,
+    selectionInverse: record.selectionInverse,
     selection: record.afterSelection,
   };
 }
@@ -136,7 +136,7 @@ function toMongoRecord(
 ): Pick<
   CollabRecordSchema,
   | 'afterSelection'
-  | 'beforeSelection'
+  | 'selectionInverse'
   | 'changeset'
   | 'inverse'
   | 'revision'
@@ -149,7 +149,7 @@ function toMongoRecord(
     revision: record.revision,
     changeset: record.changeset,
     inverse: record.inverse,
-    beforeSelection: record.selectionInverse,
+    selectionInverse: record.selectionInverse,
     afterSelection: record.selection,
   };
 }
@@ -214,7 +214,7 @@ export function insertCollabRecord({
                     author: {
                       _id: 1,
                     },
-                    beforeSelection: 1,
+                    selectionInverse: 1,
                     afterSelection: 1,
                   },
                 },
@@ -367,7 +367,7 @@ export function insertCollabRecord({
           Pick<
             CollabRecordSchema,
             | 'afterSelection'
-            | 'beforeSelection'
+            | 'selectionInverse'
             | 'changeset'
             | 'revision'
             | 'userGeneratedId'

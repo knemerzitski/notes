@@ -99,7 +99,7 @@ it('updates openNote with new selection when it exists', async () => {
       changeset: Changeset.fromText('footext', 3),
       revision: headRevision++,
       afterSelection: Selection.create(2, 3),
-      beforeSelection: Selection.ZERO,
+      selectionInverse: Selection.ZERO,
       userGeneratedId: faker.string.nanoid(),
     },
     connectionId,
@@ -145,7 +145,7 @@ it('handles inserting records with total size larger than 16MiB', async () => {
         changeset: Changeset.fromText(value, inputLength),
         revision: headRevision++,
         afterSelection: Selection.ZERO,
-        beforeSelection: Selection.ZERO,
+        selectionInverse: Selection.ZERO,
         userGeneratedId: faker.string.nanoid(),
       },
     });

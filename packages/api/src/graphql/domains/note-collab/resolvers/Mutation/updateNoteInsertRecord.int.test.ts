@@ -296,7 +296,7 @@ it('inserts record on headText revision (newRecord = headText)', async () => {
       inverse: Changeset.parse('16:0-3').serialize(),
       userGeneratedId: 'random',
       createdAt: expect.any(Date),
-      beforeSelection: Selection.create(4).serialize(),
+      selectionInverse: Selection.create(4).serialize(),
       afterSelection: Selection.create(16).serialize(),
     },
   ]);
@@ -390,7 +390,7 @@ it('inserts record on older revision (tailText < newRecord < headText)', async (
       inverse: Changeset.parse('14:0-3').serialize(),
       userGeneratedId: 'aa',
       createdAt: expect.any(Date),
-      beforeSelection: Selection.create(4).serialize(),
+      selectionInverse: Selection.create(4).serialize(),
       afterSelection: Selection.create(14).serialize(),
     },
   ]);
@@ -487,7 +487,7 @@ it('returns existing record when new record is a duplicate of a previous one (id
       inverse: Changeset.parse('16:0-3').serialize(),
       userGeneratedId: 'will_be_dup',
       createdAt: expect.any(Date),
-      beforeSelection: Selection.create(4).serialize(),
+      selectionInverse: Selection.create(4).serialize(),
       afterSelection: Selection.create(16).serialize(),
     },
   ]);
