@@ -11,7 +11,7 @@ export interface FakeShareNoteLinkOptions {
 }
 
 export function fakeShareNoteLink(
-  creatorUser: Pick<DBUserSchema, '_id'>,
+  authorId: DBUserSchema['_id'],
   options?: FakeShareNoteLinkOptions
 ): DBShareNoteLinkSchema {
   return {
@@ -20,7 +20,7 @@ export function fakeShareNoteLink(
     expireAt: faker.date.future({
       years: 1,
     }),
-    creatorUserId: creatorUser._id,
+    authorId,
     ...options?.override,
     permissions: {
       ...options?.override?.permissions,

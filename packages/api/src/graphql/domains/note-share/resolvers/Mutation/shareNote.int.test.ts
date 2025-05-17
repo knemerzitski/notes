@@ -124,7 +124,7 @@ it('creates new note sharing', async () => {
       shareLinks: [
         {
           _id: expect.any(ObjectId),
-          creatorUserId: user._id,
+          authorId: user._id,
           permissions: {
             user: {
               readOnly: false,

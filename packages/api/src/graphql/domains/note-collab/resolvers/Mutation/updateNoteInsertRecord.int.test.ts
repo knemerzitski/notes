@@ -291,9 +291,7 @@ it('inserts record on headText revision (newRecord = headText)', async () => {
       _id: expect.any(ObjectId),
       collabTextId: note._id,
       revision: 15,
-      creatorUser: {
-        _id: user._id,
-      },
+      authorId: user._id,
       changeset: Changeset.parse('4:0-3,". after head"').serialize(),
       inverse: Changeset.parse('16:0-3').serialize(),
       userGeneratedId: 'random',
@@ -387,9 +385,7 @@ it('inserts record on older revision (tailText < newRecord < headText)', async (
       _id: expect.any(ObjectId),
       collabTextId: note._id,
       revision: 15,
-      creatorUser: {
-        _id: user._id,
-      },
+      authorId: user._id,
       changeset: Changeset.parse('4:0-3,"text on 12"').serialize(),
       inverse: Changeset.parse('14:0-3').serialize(),
       userGeneratedId: 'aa',
@@ -486,9 +482,7 @@ it('returns existing record when new record is a duplicate of a previous one (id
       collabTextId: note._id,
       // Inserted after 14
       revision: 15,
-      creatorUser: {
-        _id: user._id,
-      },
+      authorId: user._id,
       changeset: Changeset.parse('4:0-3,". after head"').serialize(),
       inverse: Changeset.parse('16:0-3').serialize(),
       userGeneratedId: 'will_be_dup',

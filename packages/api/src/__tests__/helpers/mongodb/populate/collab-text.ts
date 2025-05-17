@@ -23,7 +23,7 @@ export interface FakeCollabTextOptions {
 }
 
 export function fakeCollabText(
-  creatorUserId: DBCollabRecordSchema['creatorUser']['_id'],
+  authorId: DBCollabRecordSchema['authorId'],
   options?: FakeCollabTextOptions
 ): { collabText: DBCollabTextSchema; collabRecords: DBCollabRecordSchema[] } {
   const revisionOffset = Math.max(options?.revisionOffset ?? 0, 0);
@@ -63,10 +63,7 @@ export function fakeCollabText(
         changeset: recordChangeset,
         inverse: recordChangeset,
         ...options?.override,
-        creatorUser: {
-          ...options?.override?.creatorUser,
-          _id: creatorUserId,
-        },
+        authorId,
         beforeSelection: options?.override?.beforeSelection ?? Selection.ZERO.serialize(),
         afterSelection:
           options?.override?.afterSelection ??

@@ -90,7 +90,7 @@ export async function insertShareLink({
 
   const newShareLink: ShareNoteLinkSchema = {
     _id: new ObjectId(),
-    creatorUserId: userId,
+    authorId: userId,
     permissions: {
       user: {
         readOnly,

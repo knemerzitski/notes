@@ -25,10 +25,7 @@ export function fakeCollabRecord(
     inverse: Changeset.EMPTY.serialize(),
     createdAt: new Date(),
     ...options?.override,
-    creatorUser: {
-      _id: new ObjectId(),
-      ...options?.override?.creatorUser,
-    },
+    authorId: new ObjectId(),
     beforeSelection: options?.override?.beforeSelection ?? Selection.ZERO.serialize(),
     afterSelection: options?.override?.afterSelection ?? Selection.ZERO.serialize(),
   };

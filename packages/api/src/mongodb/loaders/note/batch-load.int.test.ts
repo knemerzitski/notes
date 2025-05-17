@@ -163,7 +163,7 @@ it('loads all fields', async () => {
                 },
                 revision: 1,
                 changeset: 1,
-                creatorUser: {
+                author: {
                   _id: 1,
                 },
                 userGeneratedId: 1,
@@ -211,7 +211,7 @@ it('loads all fields', async () => {
           {
             revision: 6,
             changeset: Changeset.parse('0:"r_6"').serialize(),
-            creatorUser: {
+            author: {
               _id: expect.any(ObjectId),
             },
             userGeneratedId: expect.any(String),

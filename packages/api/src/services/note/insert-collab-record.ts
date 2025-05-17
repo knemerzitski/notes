@@ -35,20 +35,7 @@ import {
 } from './errors';
 import { findNoteUser } from './note';
 import { updateOpenNoteAndPrime } from './update-open-note-selection-range';
-
-type ExistingRecord = Pick<
-  CollabRecordSchema,
-  | 'afterSelection'
-  | 'beforeSelection'
-  | 'changeset'
-  | 'inverse'
-  | 'revision'
-  | 'userGeneratedId'
-> & {
-  creatorUser: Pick<CollabRecordSchema['creatorUser'], '_id'>;
-};
-
-type InsertRecord = Omit<ExistingRecord, 'creatorUser' | 'inverse'>;
+import { QueryableCollabRecord } from '../../mongodb/loaders/note/descriptions/collab-record';
 
 interface InsertCollabRecordParams {
   mongoDB: {
@@ -70,7 +57,10 @@ interface InsertCollabRecordParams {
   /**
    * New record to be inserted
    */
-  insertRecord: InsertRecord;
+  insertRecord: Pick<
+    CollabRecordSchema,
+    'afterSelection' | 'beforeSelection' | 'changeset' | 'revision' | 'userGeneratedId'
+  >;
   /**
    * Limit the records array by deleting older records
    */
@@ -81,12 +71,22 @@ interface InsertCollabRecordParams {
 
 // TODO move to bottom
 function toSubmittedRecord(
-  record: MongoReadonlyDeep<Omit<ExistingRecord, 'inverse'>>
+  record: MongoReadonlyDeep<
+    Pick<
+      CollabRecordSchema,
+      | 'afterSelection'
+      | 'beforeSelection'
+      | 'changeset'
+      | 'revision'
+      | 'userGeneratedId'
+      | 'authorId'
+    >
+  >
 ): SubmittedRecord {
   return {
     id: record.userGeneratedId,
     targetRevision: record.revision,
-    authorId: objectIdToStr(record.creatorUser._id),
+    authorId: objectIdToStr(record.authorId),
     changeset: record.changeset,
     selectionInverse: record.beforeSelection,
     selection: record.afterSelection,
@@ -94,10 +94,24 @@ function toSubmittedRecord(
 }
 
 // TODO move to bottom
-function toServerRecord(record: MongoReadonlyDeep<ExistingRecord>): ServerRecord {
+function toServerRecord(
+  record: MongoReadonlyDeep<
+    Pick<
+      QueryableCollabRecord,
+      | 'userGeneratedId'
+      | 'revision'
+      | 'changeset'
+      | 'inverse'
+      | 'beforeSelection'
+      | 'afterSelection'
+    > & {
+      author: Pick<QueryableCollabRecord['author'], '_id'>;
+    }
+  >
+): ServerRecord {
   return {
     idempotencyId: record.userGeneratedId,
-    authorId: objectIdToStr(record.creatorUser._id),
+    authorId: objectIdToStr(record.author._id),
     revision: record.revision,
     changeset: record.changeset,
     inverse: record.inverse,
@@ -107,7 +121,7 @@ function toServerRecord(record: MongoReadonlyDeep<ExistingRecord>): ServerRecord
 }
 
 function toServerForTailRecord(
-  record: Pick<MongoReadonlyDeep<ExistingRecord>, 'revision' | 'changeset'>
+  record: MongoReadonlyDeep<Pick<QueryableCollabRecord, 'revision' | 'changeset'>>
 ): Pick<ServerRecord, 'revision' | 'changeset'> {
   return {
     revision: record.revision,
@@ -118,10 +132,19 @@ function toServerForTailRecord(
 // TODO move to bottom
 function toMongoRecord(
   record: ServerRecord,
-  original: MongoReadonlyDeep<Omit<ExistingRecord, 'inverse'>>
-): ExistingRecord {
+  original: MongoReadonlyDeep<Pick<CollabRecordSchema, 'authorId'>>
+): Pick<
+  CollabRecordSchema,
+  | 'afterSelection'
+  | 'beforeSelection'
+  | 'changeset'
+  | 'inverse'
+  | 'revision'
+  | 'userGeneratedId'
+  | 'authorId'
+> {
   return {
-    creatorUser: original.creatorUser,
+    authorId: original.authorId,
     userGeneratedId: record.idempotencyId,
     revision: record.revision,
     changeset: record.changeset,
@@ -188,7 +211,7 @@ export function insertCollabRecord({
                     revision: 1,
                     changeset: 1,
                     inverse: 1,
-                    creatorUser: {
+                    author: {
                       _id: 1,
                     },
                     beforeSelection: 1,
@@ -257,7 +280,7 @@ export function insertCollabRecord({
         const newCollabText = createInitialCollabText({
           collabTextId: noteId,
           initialText: insertRecord.changeset.joinInsertions(),
-          creatorUserId: userId,
+          authorId: userId,
           afterSelection: insertRecord.afterSelection,
         });
 
@@ -284,7 +307,12 @@ export function insertCollabRecord({
             _id: noteId,
             collabText: {
               ...newCollabText.collabText,
-              records: newCollabText.collabRecords,
+              records: newCollabText.collabRecords.map((record) => ({
+                ...record,
+                author: {
+                  _id: record.authorId,
+                },
+              })),
             },
           },
           {
@@ -295,7 +323,16 @@ export function insertCollabRecord({
                   collabText: assign(
                     CollabTextSchema,
                     object({
-                      records: array(CollabRecordSchema),
+                      records: array(
+                        assign(
+                          CollabRecordSchema,
+                          object({
+                            author: object({
+                              _id: CollabRecordSchema.schema.authorId,
+                            }),
+                          })
+                        )
+                      ),
                     })
                   ),
                 })
@@ -326,11 +363,19 @@ export function insertCollabRecord({
       }
 
       try {
-        const originalInsertRecord: MongoReadonlyDeep<Omit<ExistingRecord, 'inverse'>> = {
+        const originalInsertRecord: MongoReadonlyDeep<
+          Pick<
+            CollabRecordSchema,
+            | 'afterSelection'
+            | 'beforeSelection'
+            | 'changeset'
+            | 'revision'
+            | 'userGeneratedId'
+            | 'authorId'
+          >
+        > = {
           ...insertRecord,
-          creatorUser: {
-            _id: userId,
-          },
+          authorId: userId,
         };
 
         const insertion = processSubmittedRecord(
@@ -436,7 +481,14 @@ export function insertCollabRecord({
             {
               _id: noteId,
               collabText: {
-                records: [processedInsertRecord],
+                records: [
+                  {
+                    ...processedInsertRecord,
+                    author: {
+                      _id: processedInsertRecord.authorId,
+                    },
+                  },
+                ],
               },
             },
             {
@@ -447,7 +499,16 @@ export function insertCollabRecord({
                     collabText: assign(
                       CollabTextSchema,
                       object({
-                        records: array(CollabRecordSchema),
+                        records: array(
+                          assign(
+                            CollabRecordSchema,
+                            object({
+                              author: object({
+                                _id: CollabRecordSchema.schema.authorId,
+                              }),
+                            })
+                          )
+                        ),
                       })
                     ),
                   })

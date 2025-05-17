@@ -16,6 +16,10 @@ export type SelectionRangeSchema = Infer<typeof SelectionRangeSchema>;
 export const CollabRecordSchema = object({
   _id: instance(ObjectId),
   /**
+   * User who created the record
+   */
+  authorId: instance(ObjectId),
+  /**
    * This record belongs to specific CollabText
    */
   collabTextId: instance(ObjectId),
@@ -29,10 +33,7 @@ export const CollabRecordSchema = object({
    * When record was inserted to DB
    */
   createdAt: date(),
-  // TODO rename to author
-  creatorUser: object({
-    _id: instance(ObjectId),
-  }),
+
   revision: number(),
   // TODO rename to idempotencyId
   userGeneratedId: string(),

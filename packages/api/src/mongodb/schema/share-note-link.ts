@@ -30,7 +30,7 @@ export const ShareNoteLinkSchema = object({
   /**
    * User who created this link
    */
-  creatorUserId: instance(ObjectId),
+  authorId: instance(ObjectId),
   /**
    * Permissions depending on user role
    */

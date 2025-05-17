@@ -69,14 +69,14 @@ export const CollabTextRecord: CollabTextRecordResolvers = {
       userId: async () =>
         (
           await parent.query({
-            creatorUser: {
+            author: {
               _id: 1,
             },
           })
-        )?.creatorUser._id,
+        )?.author._id,
       query: createMapQueryFn(parent.query)<Pick<UserSchema, '_id' | 'profile'>>()(
-        (query) => ({ creatorUser: query }),
-        (result) => result.creatorUser
+        (query) => ({ author: query }),
+        (result) => result.author
       ),
     };
   },
@@ -85,14 +85,14 @@ export const CollabTextRecord: CollabTextRecordResolvers = {
       userId: async () =>
         (
           await parent.query({
-            creatorUser: {
+            author: {
               _id: 1,
             },
           })
-        )?.creatorUser._id,
+        )?.author._id,
       query: createMapQueryFn(parent.query)<Pick<UserSchema, '_id' | 'profile'>>()(
-        (query) => ({ creatorUser: query }),
-        (result) => result.creatorUser
+        (query) => ({ author: query }),
+        (result) => result.author
       ),
     };
   },

@@ -13,11 +13,11 @@ import { createCollabRecord } from './create-collab-record';
 export function createInitialCollabText({
   collabTextId,
   initialText,
-  creatorUserId,
+  authorId,
   afterSelection,
 }: {
   collabTextId: ObjectId;
-  creatorUserId: CollabRecordSchema['creatorUser']['_id'];
+  authorId: CollabRecordSchema['authorId'];
   initialText: string;
   afterSelection?: SelectionRangeSchema;
 }): {
@@ -38,9 +38,7 @@ export function createInitialCollabText({
   const collabRecords: CollabRecordSchema[] = serverState.records.map((record) =>
     createCollabRecord({
       collabTextId,
-      creatorUser: {
-        _id: creatorUserId,
-      },
+      authorId,
       userGeneratedId: record.idempotencyId,
       revision: record.revision,
       changeset: record.changeset,

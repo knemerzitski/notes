@@ -78,7 +78,7 @@ const MUTATION_ALL = `#graphql
           }
           recordConnection {
             records {
-              creatorUser {
+              author {
                 id
               }
               change {
@@ -278,7 +278,7 @@ describe('no existing notes', () => {
             recordConnection: {
               records: [
                 {
-                  creatorUser: {
+                  author: {
                     id: expect.any(String),
                   },
                   change: {
@@ -353,9 +353,7 @@ describe('no existing notes', () => {
         changeset: Changeset.fromText('initial content').serialize(),
         inverse: Changeset.create(15, []).serialize(),
         revision: 1,
-        creatorUser: {
-          _id: user._id,
-        },
+        authorId: user._id,
         userGeneratedId: expect.any(String),
         beforeSelection: Selection.create(0).serialize(),
         afterSelection: Selection.create(15).serialize(),

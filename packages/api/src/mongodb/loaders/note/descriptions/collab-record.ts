@@ -1,6 +1,6 @@
 import mapObject from 'map-obj';
 import { Document } from 'mongodb';
-import { assign, Infer, InferRaw, object, pick } from 'superstruct';
+import { assign, Infer, InferRaw, object, omit, pick } from 'superstruct';
 
 import { CollectionName } from '../../../collection-names';
 import { MongoDBCollectionsOnlyNames } from '../../../collections';
@@ -10,9 +10,9 @@ import { CollabRecordSchema } from '../../../schema/collab-record';
 import { UserSchema } from '../../../schema/user';
 
 export const QueryableCollabRecord = assign(
-  CollabRecordSchema,
+  omit(CollabRecordSchema, ['authorId']),
   object({
-    creatorUser: pick(UserSchema, ['_id', 'profile']),
+    author: pick(UserSchema, ['_id', 'profile']),
   })
 );
 
@@ -27,11 +27,19 @@ export const queryableCollabRecordDescription: DescriptionDeep<
   unknown,
   QueryableCollabRecordContext
 > = {
-  creatorUser: {
+  author: {
     $addStages({ fields, customContext, subStages, subLastProject, relativeQuery }) {
       return fields.flatMap<Document>(({ query, parentRelativePath }) => {
         if (isQueryOnlyId(query)) {
-          return [];
+          return [
+            {
+              $set: {
+                [`author`]: {
+                  _id: `$authorId`,
+                },
+              },
+            },
+          ];
         }
 
         return [
@@ -47,8 +55,8 @@ export const queryableCollabRecordDescription: DescriptionDeep<
             $lookup: {
               from: customContext.collections.users.collectionName,
               foreignField: '_id',
-              localField: `${parentRelativePath}.array.creatorUser._id`,
-              as: `${parentRelativePath}.array.creatorUser`,
+              localField: `${parentRelativePath}.array.authorId`,
+              as: `${parentRelativePath}.array.author`,
               pipeline: [
                 ...subStages(),
                 {
@@ -59,8 +67,8 @@ export const queryableCollabRecordDescription: DescriptionDeep<
           },
           {
             $set: {
-              [`${parentRelativePath}.array.creatorUser`]: {
-                $arrayElemAt: [`$${parentRelativePath}.array.creatorUser`, 0],
+              [`${parentRelativePath}.array.author`]: {
+                $arrayElemAt: [`$${parentRelativePath}.array.author`, 0],
               },
             },
           },

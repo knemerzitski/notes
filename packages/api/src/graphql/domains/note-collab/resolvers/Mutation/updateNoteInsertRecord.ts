@@ -1,7 +1,10 @@
 import { wrapRetryOnError } from '../../../../../../../utils/src/retry-on-error';
 
 import { QueryableCollabRecord } from '../../../../../mongodb/loaders/note/descriptions/collab-record';
-import { createValueQueryFn } from '../../../../../mongodb/query/query';
+import {
+  createValueQueryFn,
+  PartialQueryResultDeep,
+} from '../../../../../mongodb/query/query';
 import {
   retryOnMongoError,
   MongoErrorCodes,
@@ -48,12 +51,19 @@ const _updateNoteInsertRecord: NonNullable<
   });
   const collabTextIdQuery = CollabText_id_fromNoteQueryFn(noteQuery);
 
+  const queryableCollabRecord: PartialQueryResultDeep<QueryableCollabRecord> = {
+    ...insertionResult.record,
+    author: {
+      _id: insertionResult.record?.authorId,
+    },
+  };
+
   const payload: ResolversTypes['SignedInUserMutation'] = {
     __typename: 'UpdateNoteInsertRecordPayload',
     isDuplicateRecord: insertionResult.type === 'duplicate',
     newRecord: {
       parentId: collabTextIdQuery,
-      query: createValueQueryFn<QueryableCollabRecord>(() => insertionResult.record),
+      query: createValueQueryFn<QueryableCollabRecord>(() => queryableCollabRecord),
     },
     collabText: {
       id: collabTextIdQuery,

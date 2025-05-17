@@ -59,7 +59,7 @@ export async function insertNote({
   if (collabText?.initialText != null) {
     const initialCollabText = createInitialCollabText({
       collabTextId: note._id,
-      creatorUserId: userId,
+      authorId: userId,
       initialText: collabText.initialText,
     });
     note.collabText = initialCollabText.collabText;
@@ -91,7 +91,12 @@ export async function insertNote({
         ? {
             collabText: {
               ...note.collabText,
-              records: collabRecords,
+              records: collabRecords.map((record) => ({
+                ...record,
+                author: {
+                  _id: record.authorId,
+                },
+              })),
             },
           }
         : {
@@ -106,7 +111,16 @@ export async function insertNote({
             collabText: assign(
               CollabTextSchema,
               object({
-                records: array(CollabRecordSchema),
+                records: array(
+                  assign(
+                    CollabRecordSchema,
+                    object({
+                      author: object({
+                        _id: CollabRecordSchema.schema.authorId,
+                      }),
+                    })
+                  )
+                ),
               })
             ),
           })
