@@ -6,12 +6,11 @@ import { CollectionDescription } from '../collections';
 
 import { ChangesetSchema } from './changeset';
 
-// TODO rename to SelectionSchema
-export const SelectionRangeSchema = SelectionStruct;
+export const SelectionSchema = SelectionStruct;
 
-export type DBSelectionRangeSchema = InferRaw<typeof SelectionRangeSchema>;
+export type DBSelectionSchema = InferRaw<typeof SelectionSchema>;
 
-export type SelectionRangeSchema = Infer<typeof SelectionRangeSchema>;
+export type SelectionSchema = Infer<typeof SelectionSchema>;
 
 export const CollabRecordSchema = object({
   _id: instance(ObjectId),
@@ -27,8 +26,8 @@ export const CollabRecordSchema = object({
   revision: number(),
   changeset: ChangesetSchema,
   inverse: ChangesetSchema,
-  selectionInverse: SelectionRangeSchema,
-  selection: SelectionRangeSchema,
+  selectionInverse: SelectionSchema,
+  selection: SelectionSchema,
   /**
    * When record was inserted to DB
    */

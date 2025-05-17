@@ -2,7 +2,7 @@ import { ObjectId } from 'mongodb';
 
 import { Changeset, createServerState, Selection } from '../../../../../../collab2/src';
 
-import { CollabRecordSchema, SelectionRangeSchema } from '../../../schema/collab-record';
+import { CollabRecordSchema, SelectionSchema } from '../../../schema/collab-record';
 import { CollabTextSchema } from '../../../schema/collab-text';
 
 import { createCollabRecord } from './create-collab-record';
@@ -19,7 +19,7 @@ export function createInitialCollabText({
   collabTextId: ObjectId;
   authorId: CollabRecordSchema['authorId'];
   initialText: string;
-  selection?: SelectionRangeSchema;
+  selection?: SelectionSchema;
 }): {
   collabText: CollabTextSchema;
   collabRecords: CollabRecordSchema[];

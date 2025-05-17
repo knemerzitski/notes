@@ -14,7 +14,7 @@ import {
 
 import { CollectionDescription } from '../collections';
 
-import { SelectionRangeSchema } from './collab-record';
+import { SelectionSchema } from './collab-record';
 
 export const OpenNoteSchema = object({
   /**
@@ -37,7 +37,7 @@ export const OpenNoteSchema = object({
       /**
        * Latest text selection that appliest to collabText at {@link revision}
        */
-      latestSelection: SelectionRangeSchema,
+      latestSelection: SelectionSchema,
     })
   ),
   /**

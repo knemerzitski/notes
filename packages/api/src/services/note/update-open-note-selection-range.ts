@@ -11,7 +11,7 @@ import { MongoDBLoaders } from '../../mongodb/loaders';
 import { QueryableNote } from '../../mongodb/loaders/note/descriptions/note';
 import { updateOpenNote } from '../../mongodb/models/note/update-open-note';
 
-import { SelectionRangeSchema } from '../../mongodb/schema/collab-record';
+import { SelectionSchema } from '../../mongodb/schema/collab-record';
 import { OpenNoteSchema } from '../../mongodb/schema/open-note';
 
 import { MongoReadonlyDeep } from '../../mongodb/types';
@@ -43,7 +43,7 @@ export async function updateOpenNoteSelectionRange({
    * Selection revision for CollabText
    */
   revision: number;
-  selection: SelectionRangeSchema;
+  selection: SelectionSchema;
   openNoteDuration?: number;
 }) {
   if (!connectionId) {
