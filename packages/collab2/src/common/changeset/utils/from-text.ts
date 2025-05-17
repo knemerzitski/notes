@@ -1,5 +1,5 @@
 import { Changeset, InsertStrip } from '..';
 
-export function fromText(text: string): Changeset {
-  return Changeset.create(0, InsertStrip.create(text));
+export function fromText(text: string, inputLength = 0): Changeset {
+  return Changeset.create(inputLength, InsertStrip.create(text));
 }
