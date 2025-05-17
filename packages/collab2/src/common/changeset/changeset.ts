@@ -1,11 +1,3 @@
-import {
-  ChangesetError,
-  ChangesetStruct,
-  InsertStrip,
-  RangeStrip,
-  RetainStrip,
-  Strip,
-} from '.';
 import { applyToText } from './utils/appy-to-text';
 import { compact } from './utils/compact';
 import { assertIsComposable, compose, isComposable } from './utils/compose';
@@ -21,6 +13,15 @@ import { parse } from './utils/parse';
 import { stripsArray } from './utils/strips-array';
 import { toString } from './utils/to-string';
 import { withRemoveStrips } from './utils/with-remove-strips';
+
+import {
+  ChangesetError,
+  ChangesetStruct,
+  InsertStrip,
+  RangeStrip,
+  RetainStrip,
+  Strip,
+} from '.';
 
 /**
  * Represents how to change text.

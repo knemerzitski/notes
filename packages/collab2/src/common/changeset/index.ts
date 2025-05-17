@@ -1,6 +1,6 @@
 export { ChangesetError } from './error';
 
-// eslint-disable-next-line import/export
+ 
 export { Changeset } from './changeset';
 
 export { Strip } from './strip/strip';

@@ -1,14 +1,17 @@
+import { castDraft, produce, WritableDraft } from 'immer';
 import { expect, it } from 'vitest';
+
+import { Changeset } from '../../../common/changeset';
+import { Selection } from '../../../common/selection';
 import {
   HistoryServiceRecord,
   ServerHistoryServiceRecord,
   ViewHistoryServiceRecord,
 } from '../types';
 import { transformPartialProperties } from '../utils/partial-properties';
-import { castDraft, produce, WritableDraft } from 'immer';
+
 import { cleanupUndoStack } from './cleanup-undo-stack';
-import { Changeset } from '../../../common/changeset';
-import { Selection } from '../../../common/selection';
+
 
 function s(revision: number): WritableDraft<ServerHistoryServiceRecord> {
   return {

@@ -1,8 +1,9 @@
 import { castDraft, WritableDraft } from 'immer';
-import { Properties, ServerHistoryServiceRecord, State } from '../../types';
-import { asComputed } from '../../utils/as-computed';
+
 import { Changeset } from '../../../../common/changeset';
 import { followChangesetSelection } from '../../../../common/utils/follow-changeset-selection';
+import { Properties, ServerHistoryServiceRecord, State } from '../../types';
+import { asComputed } from '../../utils/as-computed';
 import { updateLocalRecord } from '../update-local-record';
 
 /**

@@ -11,9 +11,11 @@ import {
   string,
   union,
 } from 'superstruct';
-import { SerializedState, Serializer, State } from './types';
+
 import { ChangesetStruct } from '../../common/changeset';
 import { SelectionStruct } from '../../common/selection';
+
+import { SerializedState, Serializer, State } from './types';
 
 const ServerRecordStruct = object({
   revision: number(),

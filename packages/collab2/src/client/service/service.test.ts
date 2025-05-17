@@ -1,9 +1,14 @@
 import { assert, beforeEach, expect, it } from 'vitest';
-import { Changeset } from '../../common/changeset';
+
 import { createLogger } from '../../../../utils/src/logging';
-import { Service } from './service';
-import { MutableComputedState } from './computed-state';
+
+import { Changeset } from '../../common/changeset';
+
 import { Selection } from '../../common/selection';
+
+import { MutableComputedState } from './computed-state';
+import { Service } from './service';
+
 
 const cs = Changeset.parse;
 const s = Selection.parse;

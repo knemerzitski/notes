@@ -1,6 +1,8 @@
 import { faker } from '@faker-js/faker';
-import { Context } from '.';
+
 import { Selection } from '../../common/selection';
+
+import { Context } from '.';
 
 export function setCaret(ctx: Context) {
   return ctx.createAction({

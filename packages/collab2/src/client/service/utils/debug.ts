@@ -4,14 +4,19 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
+import mapObject from 'map-obj';
+
 import { isPlainObject } from '../../../../../utils/src/type-guards/is-plain-object';
+
 import { ComputedState, MutableComputedState } from '../computed-state';
 import { InvalidStateCollabServiceError } from '../errors';
 import { Service } from '../service';
-import mapObject from 'map-obj';
+
+import { State } from '../types';
+
 import { asComputed } from './as-computed';
 import { assertValidState } from './assert-valid-state';
-import { State } from '../types';
+
 
 declare module '../computed-state' {
   interface MutableComputedState {

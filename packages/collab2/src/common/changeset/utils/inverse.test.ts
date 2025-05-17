@@ -1,7 +1,8 @@
 import { expect, it } from 'vitest';
-import { parse as cs } from './parse';
-import { inverse } from './inverse';
+
 import { compose } from './compose';
+import { inverse } from './inverse';
+import { parse as cs } from './parse';
 
 it('overwrites and is smaller', () => {
   const A = cs('0:"between END! Deleted [B]"');

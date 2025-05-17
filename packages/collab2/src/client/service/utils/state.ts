@@ -1,5 +1,6 @@
 import { Changeset } from '../../../common/changeset';
 import { ServiceHeadRecord, State } from '../types';
+
 import { emptyState } from './empty-state';
 
 export function createFromHeadRecord(record: ServiceHeadRecord): State {

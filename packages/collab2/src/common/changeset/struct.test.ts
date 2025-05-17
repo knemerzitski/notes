@@ -1,5 +1,7 @@
 import { expect, it } from 'vitest';
+
 import { ChangesetStruct } from './struct';
+
 import { Changeset, InsertStrip, RetainStrip } from '.';
 
 function parse(value: string) {

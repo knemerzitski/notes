@@ -1,9 +1,12 @@
 import { assert, describe, expect, it, vi } from 'vitest';
+
 import { CollabService, spaceNewlineHook } from '../..';
+
+import { Changeset, InsertStrip } from '../../../common/changeset';
+import { Selection } from '../../../common/selection';
+
 import { Service } from './service';
 import { TextParser } from './text-parser';
-import { Selection } from '../../../common/selection';
-import { Changeset, InsertStrip } from '../../../common/changeset';
 
 describe('one field', () => {
   it('keeps insert within bounds', () => {

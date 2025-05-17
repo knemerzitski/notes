@@ -1,6 +1,8 @@
 import { WritableDraft } from 'immer';
-import { Context, State } from '../types';
+
 import { isDefined } from '../../../../../utils/src/type-guards/is-defined';
+
+import { Context, State } from '../types';
 import { getFirstHistoryRecord, getLastHistoryRecord } from '../utils/history-record';
 
 export function removeUnusedViewChanges(props: {

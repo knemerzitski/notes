@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
+
+import { ChangesetError } from '../error';
+
 import { compose } from './compose';
 import { parse as cs } from './parse';
-import { ChangesetError } from '../error';
 
 it('simple hello world', () => {
   const A = cs('0:"hello"');

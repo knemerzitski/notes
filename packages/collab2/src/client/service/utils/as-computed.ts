@@ -1,6 +1,8 @@
 import { WritableDraft } from 'immer';
+
 import { ComputedState, MutableComputedState } from '../computed-state';
 import { State } from '../types';
+
 import { castNormal } from './cast-normal';
 
 const cache = new WeakMap<WritableDraft<State> | State, MutableComputedState>();

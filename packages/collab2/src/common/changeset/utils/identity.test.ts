@@ -1,6 +1,7 @@
 import { expect, it } from 'vitest';
-import { parse as cs } from './parse';
+
 import { identity } from './identity';
+import { parse as cs } from './parse';
 
 it('length 0', () => {
   expect(identity(0).toString()).toStrictEqual(cs('').toString());

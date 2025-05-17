@@ -1,5 +1,6 @@
-import { IncomingServerMessage, State } from '../types';
 import { WritableDraft } from 'immer';
+
+import { IncomingServerMessage, State } from '../types';
 import { asComputed } from '../utils/as-computed';
 
 export function updateMissingRevisions(message: IncomingServerMessage) {

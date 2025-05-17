@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { parse as cs } from './utils/parse';
+
 import { StripsStruct, StripStruct } from './struct';
+import { parse as cs } from './utils/parse';
 
 function ss(value: string) {
   return StripsStruct.create(value);

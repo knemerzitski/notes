@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { expect, it } from 'vitest';
-import { toFieldChangeset } from './to-field-changeset';
+
 import { Changeset } from '../../../../common/changeset';
 import { TextParser } from '../text-parser';
+
 import { stringifiedMetadata } from './stringified-metadata';
+import { toFieldChangeset } from './to-field-changeset';
 
 it('simple insert at start', () => {
   const textParser = new TextParser({

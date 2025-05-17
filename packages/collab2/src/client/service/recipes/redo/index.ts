@@ -1,7 +1,9 @@
 import { WritableDraft } from 'immer';
+
 import { HistoryServiceRecord, State } from '../../types';
-import { view } from './view';
+
 import { server } from './server';
+import { view } from './view';
 
 export function redo(...args: Parameters<typeof server>) {
   const serverWithArgs = server(...args);

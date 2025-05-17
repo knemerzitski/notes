@@ -1,4 +1,8 @@
 import mitt from 'mitt';
+
+import { Logger } from '../../../../../utils/src/logging';
+
+import { Changeset, InsertStrip, RetainStrip } from '../../../common/changeset';
 import { Selection } from '../../../common/selection';
 import {
   PublicTyperEvents,
@@ -7,10 +11,10 @@ import {
   TyperEvents,
   TypingOptions,
 } from '../types';
-import { Service } from './service';
-import { Logger } from '../../../../../utils/src/logging';
-import { Changeset, InsertStrip, RetainStrip } from '../../../common/changeset';
+
 import { JsonServiceError } from './errors';
+import { Service } from './service';
+
 import { toFieldChangeset } from './utils/to-field-changeset';
 
 export class FieldTyper<T extends string> implements Typer {

@@ -1,10 +1,12 @@
 import mapObject from 'map-obj';
+
 import { CollabService } from '../..';
 import { Changeset, InsertStrip } from '../../../common/changeset';
+import { Selection } from '../../../common/selection';
 import { Typer } from '../types';
+
 import { FieldTyper } from './field-typer';
 import { Context, FieldText, ParsedViewText } from './types';
-import { Selection } from '../../../common/selection';
 
 export class Service<T extends string> {
   readonly on;

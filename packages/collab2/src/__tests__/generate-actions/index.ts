@@ -1,20 +1,24 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
+ 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { setCaret } from './set-caret';
-import { insertText } from './insert-text';
-import { deleteText } from './delete-text';
-import { undo } from './undo';
-import { submitStep } from './submit-step';
-import { redo } from './redo';
-import { createCollabSandbox } from '../helpers/collab-sandbox';
 import { faker } from '@faker-js/faker';
+
 import { Logger } from '../../../../utils/src/logging';
-import { fieldInsertText } from './field-insert-text';
+
 import { isDefined } from '../../../../utils/src/type-guards/is-defined';
-import { fieldSetCaret } from './field-set-caret';
+
+import { createCollabSandbox } from '../helpers/collab-sandbox';
+
+import { deleteText } from './delete-text';
 import { fieldDeleteText } from './field-delete-text';
+import { fieldInsertText } from './field-insert-text';
+import { fieldSetCaret } from './field-set-caret';
+import { insertText } from './insert-text';
+import { redo } from './redo';
+import { setCaret } from './set-caret';
+import { submitStep } from './submit-step';
+import { undo } from './undo';
 
 type ActionName =
   | 'setCaret'

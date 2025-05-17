@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { createCollabSandbox } from './helpers/collab-sandbox';
+
 import { Changeset } from '../common/changeset';
 import { Selection } from '../common/selection';
+
+import { createCollabSandbox } from './helpers/collab-sandbox';
 
 type Client = ReturnType<typeof createCollabSandbox>['client'][string];
 

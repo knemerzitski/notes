@@ -1,7 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+ 
+ 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { beforeAll, expect, it } from 'vitest';
+
 import { StructSerializer } from './struct-serializer';
 import { emptyState } from './utils/empty-state';
 

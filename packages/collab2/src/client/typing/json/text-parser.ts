@@ -1,5 +1,7 @@
 import mapObject from 'map-obj';
+
 import { Logger } from '../../../../../utils/src/logging';
+
 import { FieldMetadata, Parser } from './types';
 import { stringifiedMetadata } from './utils/stringified-metadata';
 

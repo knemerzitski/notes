@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
+ 
 import { assert, expect, it } from 'vitest';
+
 import { stringifiedMetadata } from './stringified-metadata';
 
 function expectObjectMetadata(obj: Record<string, string>, inner = false) {

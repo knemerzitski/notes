@@ -1,8 +1,9 @@
 import { expect, it } from 'vitest';
 
-import { deletionRecord } from './delete';
 import { Changeset } from '../../../common/changeset';
 import { Selection } from '../../../common/selection';
+
+import { deletionRecord } from './delete';
 
 it('deletes text in the middle', () => {
   const record = deletionRecord(5, 'preexisting text value', Selection.create(16));

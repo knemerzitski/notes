@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { textWithSelection, textWithSelections } from './selection';
 import { Selection } from '../../common/selection';
+
+import { textWithSelection, textWithSelections } from './selection';
 
 describe('textWithSelection', () => {
   it.each([

@@ -3,9 +3,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { describe, expect, it } from 'vitest';
+
 import { Changeset } from '../../common/changeset';
 import { Selection } from '../../common/selection';
 import { ServerRecord, SubmittedRecord } from '../types';
+
 import { submittedHeadComposable } from './submitted-head-composable';
 
 describe('changeset', () => {

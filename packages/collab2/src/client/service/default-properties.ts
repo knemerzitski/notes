@@ -1,7 +1,8 @@
+import { nanoid } from 'nanoid';
+
 import { MutableComputedState } from './computed-state';
 import { StructSerializer } from './struct-serializer';
 import { Context, Properties } from './types';
-import { nanoid } from 'nanoid';
 import { ServerFacades } from './utils/server-facades';
 
 const defaultContext: Context = {

@@ -9,9 +9,11 @@ import {
   Struct,
 } from 'superstruct';
 
-import { Changeset, InsertStrip, RetainStrip, Strip } from '.';
 import { isDefined } from '../../../../utils/src/type-guards/is-defined';
+
 import { stringSeparator } from './utils/string-separator';
+
+import { Changeset, InsertStrip, RetainStrip, Strip } from '.';
 
 const INPUT_LENGTH_SEPARATOR = ':';
 const STRIPS_SEPARATOR = ',';

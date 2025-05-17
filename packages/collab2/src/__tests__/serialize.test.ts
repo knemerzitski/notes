@@ -1,8 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+ 
 import { expect, it } from 'vitest';
-import { createCollabSandbox } from './helpers/collab-sandbox';
+
 import { Changeset } from '../common/changeset';
 import { Selection } from '../common/selection';
+
+import { createCollabSandbox } from './helpers/collab-sandbox';
 
 const cs = Changeset.parse;
 

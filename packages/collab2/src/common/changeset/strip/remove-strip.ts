@@ -1,5 +1,6 @@
-import { Changeset, RangeStrip, RangeStripFactory, Strip } from '..';
 import { EMPTY_ARRAY } from '../../../../../utils/src/array/empty';
+
+import { Changeset, RangeStrip, RangeStripFactory, Strip } from '..';
 
 class Factory implements RangeStripFactory<RemoveStrip> {
   newInstance(start: number, end?: number): RemoveStrip {

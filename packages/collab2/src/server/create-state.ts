@@ -1,5 +1,6 @@
 import { Changeset } from '../common/changeset';
 import { Selection } from '../common/selection';
+
 import { $record } from './record';
 import { $records } from './records';
 import { HeadRecord, ServerRecord, ServerState, TailRecord } from './types';

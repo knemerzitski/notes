@@ -1,7 +1,9 @@
 import { expect, it } from 'vitest';
-import { followChangesetSelection } from './follow-changeset-selection';
+
 import { Changeset } from '../changeset';
 import { Selection } from '../selection';
+
+import { followChangesetSelection } from './follow-changeset-selection';
 
 it('other inserts before', () => {
   // Text

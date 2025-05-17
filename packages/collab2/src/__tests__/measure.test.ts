@@ -1,4 +1,5 @@
 import { it } from 'vitest';
+
 import { createCollabSandbox } from './helpers/collab-sandbox';
 
 it.skip('measure increasing records count execution time', () => {

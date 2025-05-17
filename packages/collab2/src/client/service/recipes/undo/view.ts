@@ -1,10 +1,11 @@
 import { castDraft, WritableDraft } from 'immer';
-import { State, ViewHistoryServiceRecord } from '../../types';
-import { followChangesetSelection } from '../../../../common/utils/follow-changeset-selection';
+
 import { Changeset } from '../../../../common/changeset';
-import { updateLocalRecord } from '../update-local-record';
+import { followChangesetSelection } from '../../../../common/utils/follow-changeset-selection';
+import { State, ViewHistoryServiceRecord } from '../../types';
 import { castNormal } from '../../utils/cast-normal';
 import { getLastHistoryRecord } from '../../utils/history-record';
+import { updateLocalRecord } from '../update-local-record';
 
 /**
  * - `false` - External changes first

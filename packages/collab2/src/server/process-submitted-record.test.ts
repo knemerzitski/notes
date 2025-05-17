@@ -1,15 +1,18 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+ 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { it, expect } from 'vitest';
 
 import { mock } from 'vitest-mock-extended';
-import { Changeset } from '../common/changeset';
-import { HeadRecord, ServerRecord } from './types';
-import { Selection } from '../common/selection';
-import { processSubmittedRecord } from './process-submitted-record';
+
 import { stripSymbols } from '../__tests__/helpers/strip-symbols';
+import { Changeset } from '../common/changeset';
+
+import { Selection } from '../common/selection';
+
+import { processSubmittedRecord } from './process-submitted-record';
+import { HeadRecord, ServerRecord } from './types';
 
 const cs = Changeset.parse;
 const s = Selection.parse;

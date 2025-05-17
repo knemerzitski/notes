@@ -1,4 +1,5 @@
 import { Changeset, InsertStrip, RangeStrip, RemoveStrip, RetainStrip, Strip } from '..';
+
 import { compose, isComposable } from './compose';
 
 /**

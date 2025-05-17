@@ -1,4 +1,5 @@
 import { number, coerce, Struct, instance, string } from 'superstruct';
+
 import { Selection } from '.';
 
 const RANGE_SEPARATOR = ':';

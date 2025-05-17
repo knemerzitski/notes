@@ -1,5 +1,6 @@
-import { SelectionStruct } from '.';
 import { Changeset } from '../changeset';
+
+import { SelectionStruct } from '.';
 
 /**
  * Represents any kind of a selection between indices.

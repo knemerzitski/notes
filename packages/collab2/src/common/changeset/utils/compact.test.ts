@@ -1,5 +1,7 @@
 import { expect, it } from 'vitest';
+
 import { StripsStruct } from '../struct';
+
 import { compact } from './compact';
 
 function ss(value: string) {

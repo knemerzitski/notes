@@ -1,7 +1,9 @@
 import { expect, it } from 'vitest';
-import { createState } from './create-state';
+
 import { Changeset } from '../common/changeset';
 import { Selection } from '../common/selection';
+
+import { createState } from './create-state';
 
 it('empty', () => {
   const state = createState();

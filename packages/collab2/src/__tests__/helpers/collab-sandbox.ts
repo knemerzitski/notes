@@ -1,3 +1,10 @@
+import mapObject from 'map-obj';
+import mitt from 'mitt';
+
+import { createLogger } from '../../../../utils/src/logging';
+
+import { PartialBy } from '../../../../utils/src/types';
+
 import {
   CollabService,
   BasicSelection,
@@ -12,6 +19,9 @@ import {
   JsonTyperService,
   spaceNewlineHook,
 } from '../../client';
+import { TextParser } from '../../client/typing/json/text-parser';
+import { Changeset } from '../../common/changeset';
+import { Selection } from '../../common/selection';
 import {
   processSubmittedRecord,
   ServerRecord,
@@ -21,14 +31,12 @@ import {
   composeNewTail,
   createState,
 } from '../../server';
-import { Selection } from '../../common/selection';
+
 import { textWithSelection, textWithSelections } from './selection';
-import { createLogger } from '../../../../utils/src/logging';
-import mitt from 'mitt';
-import { Changeset } from '../../common/changeset';
-import mapObject from 'map-obj';
-import { TextParser } from '../../client/typing/json/text-parser';
-import { PartialBy } from '../../../../utils/src/types';
+
+
+
+
 
 export function createCollabSandbox<TClientName extends string>(options?: {
   server?: ConstructorParameters<typeof Server>[0];

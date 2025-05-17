@@ -1,10 +1,12 @@
+import { produce } from 'immer';
 import { describe, expect, it } from 'vitest';
-import { history_merge } from './add-local-typing';
+
 import { Changeset } from '../../../common/changeset';
 import { Selection } from '../../../common/selection';
-import { produce } from 'immer';
-import { emptyState } from '../utils/empty-state';
 import { ViewHistoryServiceRecord } from '../types';
+import { emptyState } from '../utils/empty-state';
+
+import { history_merge } from './add-local-typing';
 
 describe('history_merge', () => {
   it('calculates correct inverse when prevRecord.inverse is empty', () => {

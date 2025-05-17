@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { parse as cs } from './parse';
-import { followPosition } from './follow-position';
+
 import { Changeset } from '..';
+
+import { followPosition } from './follow-position';
+import { parse as cs } from './parse';
 
 describe('insert start +++*********', () => {
   let changeset: Changeset;

@@ -1,9 +1,13 @@
 import { Emitter } from 'mitt';
+
 import { Logger } from '../../../../utils/src/logging';
+
 import { Changeset } from '../../common/changeset';
 import { ServerRecord, SubmittedRecord, HeadRecord } from '../../server';
-import { MutableComputedState } from './computed-state';
+
 import { TextRecord } from '../../server/types';
+
+import { MutableComputedState } from './computed-state';
 import { ServerFacades } from './utils/server-facades';
 
 /**

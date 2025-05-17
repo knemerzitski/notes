@@ -1,12 +1,14 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
+ 
+ 
 import { it, expect } from 'vitest';
 
 import { Changeset } from '../common/changeset';
-import { ServerRecord, TailRecord } from './types';
+
 import { Selection } from '../common/selection';
+
 import { composeNewTail } from './compose-new-tail';
+import { ServerRecord, TailRecord } from './types';
 
 const cs = Changeset.parse;
 const s = Selection.parse;

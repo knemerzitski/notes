@@ -1,5 +1,6 @@
 import { ChangesetError, InsertStrip, RemoveStrip, RetainStrip, Strip } from '..';
 import { Changeset } from '../changeset';
+
 import { parallelWalk } from './parallel-walk';
 
 /**

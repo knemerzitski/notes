@@ -1,4 +1,5 @@
 import { Changeset } from '../../common/changeset';
+
 import { State, SubmittedServiceRecord, ViewRecord } from './types';
 import { emptyState } from './utils/empty-state';
 

@@ -1,11 +1,12 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
+ 
+ 
+ 
 import { faker } from '@faker-js/faker';
 
-import { generateActions } from './generate-actions';
 import { it } from 'vitest';
+
+import { generateActions } from './generate-actions';
 
 // Invoke actions in a random sequence to detect bugs
 it('generated actions', () => {

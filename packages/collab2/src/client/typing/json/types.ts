@@ -1,5 +1,6 @@
-import { CollabService } from '../..';
 import { Logger } from '../../../../../utils/src/logging';
+
+import { CollabService } from '../..';
 
 export interface Context<T extends string> {
   readonly logger?: Logger;

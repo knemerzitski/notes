@@ -1,4 +1,5 @@
 import mitt from 'mitt';
+
 import { Selection } from '../../../common/selection';
 import { Service } from '../../service';
 import {
@@ -8,6 +9,7 @@ import {
   TyperEvents,
   TypingOptions,
 } from '../types';
+
 import { deletionRecord } from './delete';
 import { insertionRecord } from './insert';
 

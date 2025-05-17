@@ -1,9 +1,10 @@
 import { castDraft, WritableDraft } from 'immer';
-import { State, ViewHistoryServiceRecord } from '../../types';
-import { getLastHistoryRecord } from '../../utils/history-record';
-import { castNormal } from '../../utils/cast-normal';
+
 import { Changeset } from '../../../../common/changeset';
 import { followChangesetSelection } from '../../../../common/utils/follow-changeset-selection';
+import { State, ViewHistoryServiceRecord } from '../../types';
+import { castNormal } from '../../utils/cast-normal';
+import { getLastHistoryRecord } from '../../utils/history-record';
 import { updateLocalRecord } from '../update-local-record';
 
 /**

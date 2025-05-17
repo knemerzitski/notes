@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { parse as cs } from './parse';
-import { isNoOp, removeNoOps } from './no-op';
+
 import { compose } from './compose';
+import { isNoOp, removeNoOps } from './no-op';
+import { parse as cs } from './parse';
 
 describe('isNoOp', () => {
   describe('truthy', () => {

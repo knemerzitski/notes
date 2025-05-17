@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
+
+import { Changeset } from '..';
+
+import { compose as _compose } from './compose';
 import { follow } from './follow';
 import { parse as cs } from './parse';
-import { compose as _compose } from './compose';
-import { Changeset } from '..';
 
 function compose(...changesets: Changeset[]) {
   return changesets.reduce(_compose);

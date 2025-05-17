@@ -1,13 +1,17 @@
 import { castDraft, WritableDraft } from 'immer';
-import { HistoryServiceRecord, LocalServiceRecord, State } from '../types';
+
+
+import { PartialBy } from '../../../../../utils/src/types';
 
 import { Changeset } from '../../../common/changeset';
 import { Selection } from '../../../common/selection';
 import { followChangesetSelection } from '../../../common/utils/follow-changeset-selection';
-import { updateLocalRecord } from './update-local-record';
-import { PartialBy } from '../../../../../utils/src/types';
+
+import { HistoryServiceRecord, LocalServiceRecord, State } from '../types';
 import { castNormal } from '../utils/cast-normal';
 import { getLastHistoryRecord } from '../utils/history-record';
+
+import { updateLocalRecord } from './update-local-record';
 
 type AddLocalTypingRecord = PartialBy<LocalServiceRecord, 'selectionInverse'> & {
   /**

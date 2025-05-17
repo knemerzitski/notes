@@ -1,8 +1,9 @@
 import { expect, it } from 'vitest';
 
-import { insertionRecord } from './insert';
 import { Changeset } from '../../../common/changeset';
 import { Selection } from '../../../common/selection';
+
+import { insertionRecord } from './insert';
 
 it('inserts to empty text', () => {
   const record = insertionRecord('first', '', Selection.create(0));

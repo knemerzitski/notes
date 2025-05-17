@@ -1,6 +1,8 @@
 import { faker } from '@faker-js/faker';
-import { Context } from '.';
+
 import { parseInsert } from './insert-text';
+
+import { Context } from '.';
 
 export function fieldInsertText(ctx: Context) {
   return ctx.createAction({

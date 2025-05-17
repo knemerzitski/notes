@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+
 import { stringSeparator } from './string-separator';
 
 it('separates without quotes strings', () => {

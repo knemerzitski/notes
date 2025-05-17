@@ -1,4 +1,5 @@
 import { Emitter } from 'mitt';
+
 import { Changeset } from '../../common/changeset';
 import { Selection } from '../../common/selection';
 
