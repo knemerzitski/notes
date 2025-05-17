@@ -297,7 +297,7 @@ it('inserts record on headText revision (newRecord = headText)', async () => {
       userGeneratedId: 'random',
       createdAt: expect.any(Date),
       selectionInverse: Selection.create(4).serialize(),
-      afterSelection: Selection.create(16).serialize(),
+      selection: Selection.create(16).serialize(),
     },
   ]);
 
@@ -391,7 +391,7 @@ it('inserts record on older revision (tailText < newRecord < headText)', async (
       userGeneratedId: 'aa',
       createdAt: expect.any(Date),
       selectionInverse: Selection.create(4).serialize(),
-      afterSelection: Selection.create(14).serialize(),
+      selection: Selection.create(14).serialize(),
     },
   ]);
 
@@ -488,7 +488,7 @@ it('returns existing record when new record is a duplicate of a previous one (id
       userGeneratedId: 'will_be_dup',
       createdAt: expect.any(Date),
       selectionInverse: Selection.create(4).serialize(),
-      afterSelection: Selection.create(16).serialize(),
+      selection: Selection.create(16).serialize(),
     },
   ]);
 });

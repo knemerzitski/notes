@@ -70,7 +70,7 @@ it('updates openNote with new selection when it exists', async () => {
     userId: user._id,
     collabText: {
       revision: headRevision,
-      latestSelection: collabRecords.at(-1)!.afterSelection,
+      latestSelection: collabRecords.at(-1)!.selection,
     },
     clients: [
       {
@@ -98,7 +98,7 @@ it('updates openNote with new selection when it exists', async () => {
     insertRecord: {
       changeset: Changeset.fromText('footext', 3),
       revision: headRevision++,
-      afterSelection: Selection.create(2, 3),
+      selection: Selection.create(2, 3),
       selectionInverse: Selection.ZERO,
       userGeneratedId: faker.string.nanoid(),
     },
@@ -142,11 +142,11 @@ it('handles inserting records with total size larger than 16MiB', async () => {
       userId: user._id,
       maxRecordsCount: 1_000_000,
       insertRecord: {
-        changeset: Changeset.fromText(value, inputLength),
-        revision: headRevision++,
-        afterSelection: Selection.ZERO,
-        selectionInverse: Selection.ZERO,
         userGeneratedId: faker.string.nanoid(),
+        revision: headRevision++,
+        changeset: Changeset.fromText(value, inputLength),
+        selectionInverse: Selection.ZERO,
+        selection: Selection.ZERO,
       },
     });
   }

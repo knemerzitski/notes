@@ -25,7 +25,7 @@ export function fakeCollabRecord(
     changeset: Changeset.EMPTY.serialize(),
     inverse: Changeset.EMPTY.serialize(),
     selectionInverse: Selection.ZERO.serialize(),
-    afterSelection: Selection.ZERO.serialize(),
+    selection: Selection.ZERO.serialize(),
     createdAt: new Date(),
     ...options?.override,
   };

@@ -23,11 +23,10 @@ export const CollabRecordSchema = object({
    * This record belongs to specific CollabText
    */
   collabTextId: instance(ObjectId),
-  // TODO rename to selection
-  afterSelection: SelectionRangeSchema,
   changeset: ChangesetSchema,
   inverse: ChangesetSchema,
   selectionInverse: SelectionRangeSchema,
+  selection: SelectionRangeSchema,
   /**
    * When record was inserted to DB
    */

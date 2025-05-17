@@ -64,7 +64,7 @@ export function fakeCollabText(
         changeset: recordChangeset,
         inverse: recordChangeset,
         selectionInverse: Selection.ZERO.serialize(),
-        afterSelection: Selection.create(initialText.length).serialize(),
+        selection: Selection.create(initialText.length).serialize(),
         ...options?.override,
       },
     });

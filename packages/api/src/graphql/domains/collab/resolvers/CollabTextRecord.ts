@@ -20,7 +20,7 @@ export const CollabTextRecord: CollabTextRecordResolvers = {
     return `${parentId}:${record.revision}`;
   },
   afterSelection: async (parent) => {
-    const selection = (await parent.query({ afterSelection: 1 }))?.afterSelection;
+    const selection = (await parent.query({ selection: 1 }))?.selection;
     if (!selection) {
       return null;
     }
@@ -45,7 +45,7 @@ export const CollabTextRecord: CollabTextRecordResolvers = {
     return (await parent.query({ selectionInverse: 1 }))?.selectionInverse;
   },
   selection: async (parent) => {
-    return (await parent.query({ afterSelection: 1 }))?.afterSelection;
+    return (await parent.query({ selection: 1 }))?.selection;
   },
   revision: async (parent) => {
     return (await parent.query({ revision: 1 }))?.revision;

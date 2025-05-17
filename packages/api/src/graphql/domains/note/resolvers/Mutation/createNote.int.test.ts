@@ -356,7 +356,7 @@ describe('no existing notes', () => {
         authorId: user._id,
         userGeneratedId: expect.any(String),
         selectionInverse: Selection.create(0).serialize(),
-        afterSelection: Selection.create(15).serialize(),
+        selection: Selection.create(15).serialize(),
         createdAt: expect.any(Date),
       },
     ]);

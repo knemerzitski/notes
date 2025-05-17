@@ -59,7 +59,7 @@ interface InsertCollabRecordParams {
    */
   insertRecord: Pick<
     CollabRecordSchema,
-    'afterSelection' | 'selectionInverse' | 'changeset' | 'revision' | 'userGeneratedId'
+    'userGeneratedId' | 'revision' | 'changeset' | 'selection' | 'selectionInverse'
   >;
   /**
    * Limit the records array by deleting older records
@@ -130,7 +130,7 @@ export function insertCollabRecord({
                       _id: 1,
                     },
                     selectionInverse: 1,
-                    afterSelection: 1,
+                    selection: 1,
                   },
                 },
                 users: {
@@ -196,7 +196,7 @@ export function insertCollabRecord({
           collabTextId: noteId,
           initialText: insertRecord.changeset.joinInsertions(),
           authorId: userId,
-          afterSelection: insertRecord.afterSelection,
+          selection: insertRecord.selection,
         });
 
         await updateSetCollabText({
@@ -281,12 +281,12 @@ export function insertCollabRecord({
         const originalInsertRecord: MongoReadonlyDeep<
           Pick<
             CollabRecordSchema,
-            | 'afterSelection'
-            | 'selectionInverse'
-            | 'changeset'
-            | 'revision'
             | 'userGeneratedId'
             | 'authorId'
+            | 'revision'
+            | 'changeset'
+            | 'selectionInverse'
+            | 'selection'
           >
         > = {
           ...insertRecord,
@@ -350,7 +350,7 @@ export function insertCollabRecord({
                   updateOpenNoteAndPrime({
                     openCollabText: {
                       revision: processedInsertRecord.revision,
-                      latestSelection: processedInsertRecord.afterSelection,
+                      latestSelection: processedInsertRecord.selection,
                     },
                     connectionId,
                     openNoteDuration,
@@ -465,12 +465,12 @@ function toSubmittedRecord(
   record: MongoReadonlyDeep<
     Pick<
       CollabRecordSchema,
-      | 'afterSelection'
-      | 'selectionInverse'
-      | 'changeset'
-      | 'revision'
       | 'userGeneratedId'
       | 'authorId'
+      | 'revision'
+      | 'changeset'
+      | 'selection'
+      | 'selectionInverse'
     >
   >
 ): SubmittedRecord {
@@ -480,7 +480,7 @@ function toSubmittedRecord(
     authorId: objectIdToStr(record.authorId),
     changeset: record.changeset,
     selectionInverse: record.selectionInverse,
-    selection: record.afterSelection,
+    selection: record.selection,
   };
 }
 
@@ -493,7 +493,7 @@ function toServerRecord(
       | 'changeset'
       | 'inverse'
       | 'selectionInverse'
-      | 'afterSelection'
+      | 'selection'
     > & {
       author: Pick<QueryableCollabRecord['author'], '_id'>;
     }
@@ -506,7 +506,7 @@ function toServerRecord(
     changeset: record.changeset,
     inverse: record.inverse,
     selectionInverse: record.selectionInverse,
-    selection: record.afterSelection,
+    selection: record.selection,
   };
 }
 
@@ -524,13 +524,13 @@ function toCollabRecord(
   original: MongoReadonlyDeep<Pick<CollabRecordSchema, 'authorId'>>
 ): Pick<
   CollabRecordSchema,
-  | 'afterSelection'
-  | 'selectionInverse'
-  | 'changeset'
-  | 'inverse'
-  | 'revision'
   | 'userGeneratedId'
   | 'authorId'
+  | 'revision'
+  | 'changeset'
+  | 'inverse'
+  | 'selectionInverse'
+  | 'selection'
 > {
   return {
     authorId: original.authorId,
@@ -539,6 +539,6 @@ function toCollabRecord(
     changeset: record.changeset,
     inverse: record.inverse,
     selectionInverse: record.selectionInverse,
-    afterSelection: record.selection,
+    selection: record.selection,
   };
 }

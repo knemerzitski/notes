@@ -37,8 +37,8 @@ const _updateNoteInsertRecord: NonNullable<
     insertRecord: {
       changeset: insertRecord.changeset,
       revision: insertRecord.targetRevision,
-      afterSelection: insertRecord.selection,
       selectionInverse: insertRecord.selectionInverse,
+      selection: insertRecord.selection,
       userGeneratedId: insertRecord.id,
     },
     connectionId: ctx.connectionId,

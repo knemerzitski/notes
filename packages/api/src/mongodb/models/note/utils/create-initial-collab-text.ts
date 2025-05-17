@@ -14,12 +14,12 @@ export function createInitialCollabText({
   collabTextId,
   initialText,
   authorId,
-  afterSelection,
+  selection,
 }: {
   collabTextId: ObjectId;
   authorId: CollabRecordSchema['authorId'];
   initialText: string;
-  afterSelection?: SelectionRangeSchema;
+  selection?: SelectionRangeSchema;
 }): {
   collabText: CollabTextSchema;
   collabRecords: CollabRecordSchema[];
@@ -31,7 +31,7 @@ export function createInitialCollabText({
       idempotencyId: '',
       revision: 1,
       selectionInverse: Selection.ZERO,
-      selection: afterSelection ?? Selection.create(initialText.length),
+      selection: selection ?? Selection.create(initialText.length),
     },
   ]);
 
@@ -44,7 +44,7 @@ export function createInitialCollabText({
       changeset: record.changeset,
       inverse: record.inverse,
       selectionInverse: record.selectionInverse,
-      afterSelection: record.selection,
+      selection: record.selection,
     })
   );
 
