@@ -68,23 +68,21 @@ const MUTATION_ALL = `#graphql
           id
         }
         collabText {
-          headText {
+          headRecord {
             revision
-            changeset
+            text
           }
-          tailText {
+          tailRecord {
             revision
-            changeset
+            text
           }
           recordConnection {
             records {
               author {
                 id
               }
-              change {
-                changeset
-                revision
-              }
+              changeset
+              revision
               selectionInverse
               selection
               createdAt
@@ -104,8 +102,8 @@ const SUBSCRIPTION = `#graphql
           note {
             id
             collabText {
-              headText {
-                changeset
+              headRecord {
+                text
               }
             }
           }
@@ -177,13 +175,13 @@ describe('no existing notes', () => {
           id: expect.any(String),
           shareAccess: null,
           collabText: {
-            headText: {
-              changeset: Changeset.EMPTY.serialize(),
+            headRecord: {
               revision: 0,
+              text: '',
             },
-            tailText: {
-              changeset: Changeset.EMPTY.serialize(),
+            tailRecord: {
               revision: 0,
+              text: '',
             },
             recordConnection: {
               records: [],
@@ -267,13 +265,13 @@ describe('no existing notes', () => {
           id: expect.any(String),
           shareAccess: null,
           collabText: {
-            headText: {
-              changeset: Changeset.fromText('initial content').serialize(),
+            headRecord: {
               revision: 1,
+              text: 'initial content',
             },
-            tailText: {
-              changeset: Changeset.EMPTY.serialize(),
+            tailRecord: {
               revision: 0,
+              text: '',
             },
             recordConnection: {
               records: [
@@ -281,10 +279,8 @@ describe('no existing notes', () => {
                   author: {
                     id: expect.any(String),
                   },
-                  change: {
-                    changeset: Changeset.fromText('initial content').serialize(),
-                    revision: 1,
-                  },
+                  revision: 1,
+                  changeset: Changeset.fromText('initial content').serialize(),
                   selectionInverse: Selection.create(0).serialize(),
                   selection: Selection.create(15).serialize(),
                   createdAt: expect.any(Date),
@@ -334,13 +330,13 @@ describe('no existing notes', () => {
       ],
       collabText: {
         updatedAt: expect.any(Date),
-        headText: {
-          changeset: Changeset.fromText('initial content').serialize(),
+        headRecord: {
           revision: 1,
+          text: 'initial content',
         },
-        tailText: {
-          changeset: Changeset.EMPTY.serialize(),
+        tailRecord: {
           revision: 0,
+          text: '',
         },
       },
     });
@@ -474,8 +470,8 @@ describe('no existing notes', () => {
                     note: {
                       id: expect.any(String),
                       collabText: {
-                        headText: {
-                          changeset: Changeset.fromText('content').serialize(),
+                        headRecord: {
+                          text: 'content',
                         },
                       },
                     },

@@ -83,7 +83,7 @@ export function insertCollabRecord({
     async ({ runSingleOperation }) => {
       // Load all relevent note data at once
       // noteForInsertion - all future records to be composed on, normally empty if no one else has inserted records
-      // noteForTailText - oldest records based on maxRecordCount for keeping tailText up-to-date and limiting record count
+      // noteForTailText - oldest records based on maxRecordCount for keeping tailRecord up-to-date and limiting record count
       const [note, noteForInsertion, noteForTailText] = await Promise.all([
         runSingleOperation((session) =>
           mongoDB.loaders.note.load(
@@ -114,9 +114,9 @@ export function insertCollabRecord({
               },
               query: {
                 collabText: {
-                  headText: {
-                    changeset: 1,
+                  headRecord: {
                     revision: 1,
+                    text: 1,
                   },
                   records: {
                     $pagination: {
@@ -158,8 +158,8 @@ export function insertCollabRecord({
                   },
                   query: {
                     collabText: {
-                      tailText: {
-                        changeset: 1,
+                      tailRecord: {
+                        text: 1,
                         revision: 1,
                       },
                       records: {
@@ -297,8 +297,8 @@ export function insertCollabRecord({
           toSubmittedRecord(originalInsertRecord),
           collabText.records.map(toServerRecord),
           {
-            revision: collabText.headText.revision,
-            text: collabText.headText.changeset,
+            revision: collabText.headRecord.revision,
+            text: Changeset.fromText(collabText.headRecord.text),
           }
         );
 
@@ -308,7 +308,7 @@ export function insertCollabRecord({
         });
 
         if (insertion.type === 'new') {
-          // Compose tailText, deleting older records
+          // Compose tailRecord, deleting older records
 
           let newTailText:
             | {
@@ -319,8 +319,8 @@ export function insertCollabRecord({
           if (noteForTailText?.collabText) {
             const newTailRecord = composeNewTail(
               {
-                revision: noteForTailText.collabText.tailText.revision,
-                text: noteForTailText.collabText.tailText.changeset,
+                revision: noteForTailText.collabText.tailRecord.revision,
+                text: Changeset.fromText(noteForTailText.collabText.tailRecord.text),
               },
               noteForTailText.collabText.records.map(toTailServerRecord)
             );
@@ -338,11 +338,14 @@ export function insertCollabRecord({
                 collections: mongoDB.collections,
               },
               noteId,
-              headText: {
+              headRecord: {
                 revision: insertion.headRecord.revision,
-                changeset: insertion.headRecord.text,
+                text: insertion.headRecord.text.getText(),
               },
-              tailText: newTailText,
+              tailRecord: newTailText && {
+                revision: newTailText.revision,
+                text: newTailText.changeset.getText(),
+              },
               newRecord: processedInsertRecord,
             }),
             ...(connectionId
@@ -376,12 +379,12 @@ export function insertCollabRecord({
             {
               _id: noteId,
               collabText: {
-                headText: {
+                headRecord: {
                   revision: insertion.headRecord.revision,
-                  changeset: insertion.headRecord.text,
+                  text: insertion.headRecord.text.getText(),
                 },
                 ...(newTailText && {
-                  tailText: newTailText,
+                  tailRecord: newTailText,
                 }),
               },
             }

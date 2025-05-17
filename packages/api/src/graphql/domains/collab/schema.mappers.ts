@@ -2,7 +2,7 @@ import { QueryableCollabRecord } from '../../../mongodb/loaders/note/description
 import { QueryableCollabText } from '../../../mongodb/loaders/note/descriptions/collab-text';
 import { CursorBoundPagination } from '../../../mongodb/pagination/cursor-struct';
 import { MongoQueryFn } from '../../../mongodb/query/query';
-import { RevisionChangesetSchema } from '../../../mongodb/schema/collab-text';
+import { TextRecordSchema } from '../../../mongodb/schema/collab-text';
 import { PreFetchedArrayGetItemFn } from '../../utils/pre-execute';
 import { ResolverTypeWrapper, ResolversTypes } from '../types.generated';
 
@@ -17,11 +17,11 @@ export interface CollabTextRecordMapper {
 }
 
 export interface RevisionChangesetMapper {
-  readonly query: MongoQueryFn<RevisionChangesetSchema>;
+  readonly query: MongoQueryFn<TextRecordSchema>;
 }
 
 export interface ComposedTextRecordMapper {
-  readonly query: MongoQueryFn<RevisionChangesetSchema>;
+  readonly query: MongoQueryFn<TextRecordSchema>;
 }
 
 export interface CollabTextRecordConnectionMapper {

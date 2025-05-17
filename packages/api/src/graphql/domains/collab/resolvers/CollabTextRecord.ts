@@ -1,7 +1,7 @@
 import { maybeCallFn } from '../../../../../../utils/src/maybe-call-fn';
 
 import { createMapQueryFn } from '../../../../mongodb/query/query';
-import { RevisionChangesetSchema } from '../../../../mongodb/schema/collab-text';
+import { TextRecordSchema } from '../../../../mongodb/schema/collab-text';
 import { UserSchema } from '../../../../mongodb/schema/user';
 import type { CollabTextRecordResolvers } from '../../types.generated';
 
@@ -58,7 +58,7 @@ export const CollabTextRecord: CollabTextRecordResolvers = {
   },
   change: (parent) => {
     return {
-      query: createMapQueryFn(parent.query)<RevisionChangesetSchema>()(
+      query: createMapQueryFn(parent.query)<TextRecordSchema>()(
         (query) => query,
         (result) => result
       ),

@@ -41,7 +41,7 @@ export const noteDescription: CollectionDescription = {
 };
 
 export enum NoteSearchIndexName {
-  COLLAB_TEXT_HEAD_TEXT = 'collabTextHeadText',
+  COLLAB_TEXT_HEAD_TEXT = 'collabText',
 }
 
 export const noteSearchIndexDescriptions: SearchIndexDescription[] = [
@@ -60,14 +60,14 @@ export const noteSearchIndexDescriptions: SearchIndexDescription[] = [
               },
             },
           },
-          // collabTexts headText changeset string value
+          // collabTexts headRecord.text
           collabText: {
             type: 'document',
             fields: {
-              headText: {
+              headRecord: {
                 type: 'document',
                 fields: {
-                  changeset: {
+                  text: {
                     type: 'string',
                     analyzer: 'lucene.english',
                   },

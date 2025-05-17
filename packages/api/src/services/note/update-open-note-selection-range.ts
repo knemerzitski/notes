@@ -66,10 +66,10 @@ export async function updateOpenNoteSelectionRange({
         },
       },
       collabText: {
-        headText: {
+        headRecord: {
           revision: 1,
         },
-        tailText: {
+        tailRecord: {
           revision: 1,
         },
       },
@@ -88,16 +88,16 @@ export async function updateOpenNoteSelectionRange({
   }
 
   if (note.collabText) {
-    if (note.collabText.headText.revision < revision) {
+    if (note.collabText.headRecord.revision < revision) {
       throw new NoteCollabTextInvalidRevisionError(
         revision,
         null,
-        note.collabText.headText.revision
+        note.collabText.headRecord.revision
       );
-    } else if (revision < note.collabText.tailText.revision) {
+    } else if (revision < note.collabText.tailRecord.revision) {
       throw new NoteCollabTextInvalidRevisionError(
         revision,
-        note.collabText.tailText.revision,
+        note.collabText.tailRecord.revision,
         null
       );
     }

@@ -1,25 +1,20 @@
-import { date, Infer, InferRaw, number, object } from 'superstruct';
-import { ChangesetSchema } from './changeset';
+import { date, Infer, InferRaw, number, object, string } from 'superstruct';
 
-// TODO rename to TextRecordSchema
-export const RevisionChangesetSchema = object({
-  // TODO rename to text and use plain string type
-  changeset: ChangesetSchema,
+export const TextRecordSchema = object({
   revision: number(),
+  text: string(),
 });
 
-export type DBRevisionChangesetSchema = InferRaw<typeof RevisionChangesetSchema>;
+export type DBTextRecordSchema = InferRaw<typeof TextRecordSchema>;
 
-export type RevisionChangesetSchema = Infer<typeof RevisionChangesetSchema>;
+export type TextRecordSchema = Infer<typeof TextRecordSchema>;
 
 export const CollabTextSchema = object({
-  // TODO rename to headRecord
-  headText: RevisionChangesetSchema,
-  // TODO rename to tailRecord
-  tailText: RevisionChangesetSchema,
+  headRecord: TextRecordSchema,
+  tailRecord: TextRecordSchema,
   /**
    * One to many relationship to CollabRecord document
-   * Records can be queried in range (tailText.revision, headText.revision]
+   * Records can be queried in range (tailRecord.revision, headRecord.revision]
    */
   // records: array(instance(ObjectId)),
   /**

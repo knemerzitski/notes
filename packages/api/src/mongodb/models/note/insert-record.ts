@@ -4,11 +4,8 @@ import { createRaw } from 'superstruct';
 
 import { CollectionName } from '../../collection-names';
 import { MongoDBCollections } from '../../collections';
-import {
-  RevisionChangesetSchema,
-  DBRevisionChangesetSchema,
-} from '../../schema/collab-text';
 import { CollabRecordSchema, DBCollabRecordSchema } from '../../schema/collab-record';
+import { TextRecordSchema, DBTextRecordSchema } from '../../schema/collab-text';
 import { TransactionContext } from '../../utils/with-transaction';
 
 interface InsertRecordParams {
@@ -20,22 +17,22 @@ interface InsertRecordParams {
     >;
   };
   noteId: ObjectId;
-  headText: RevisionChangesetSchema | DBRevisionChangesetSchema;
-  tailText?: RevisionChangesetSchema | DBRevisionChangesetSchema;
+  headRecord: TextRecordSchema | DBTextRecordSchema;
+  tailRecord?: TextRecordSchema | DBTextRecordSchema;
   newRecord: CollabRecordSchema | DBCollabRecordSchema;
 }
 
 export async function insertRecord({
   mongoDB,
   noteId,
-  headText,
-  tailText,
+  headRecord,
+  tailRecord,
   newRecord,
 }: InsertRecordParams) {
   const runSingleOperation = mongoDB.runSingleOperation ?? ((run) => run());
 
-  headText = createRaw(headText, RevisionChangesetSchema);
-  tailText = tailText ? createRaw(tailText, RevisionChangesetSchema) : undefined;
+  headRecord = createRaw(headRecord, TextRecordSchema);
+  tailRecord = tailRecord ? createRaw(tailRecord, TextRecordSchema) : undefined;
   newRecord = createRaw(newRecord, CollabRecordSchema);
 
   return Promise.all([
@@ -48,15 +45,15 @@ export async function insertRecord({
               document: newRecord,
             },
           },
-          // Delete records not newer than tailText
-          ...(tailText
+          // Delete records not newer than tailRecord
+          ...(tailRecord
             ? [
                 {
                   deleteMany: {
                     filter: {
                       collabTextId: noteId,
                       revision: {
-                        $lte: tailText.revision,
+                        $lte: tailRecord.revision,
                       },
                     },
                   },
@@ -76,9 +73,9 @@ export async function insertRecord({
         },
         {
           $set: {
-            ['collabText.headText']: headText,
-            ...(tailText && {
-              ['collabText.tailText']: tailText,
+            ['collabText.headRecord']: headRecord,
+            ...(tailRecord && {
+              ['collabText.tailRecord']: tailRecord,
             }),
           },
         },

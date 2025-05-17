@@ -1,7 +1,5 @@
 import { Infer } from 'superstruct';
 
-import { Changeset } from '../../../../collab2/src';
-
 import { QueryableCollabText } from '../../mongodb/loaders/note/descriptions/collab-text';
 import { QueryableNote } from '../../mongodb/loaders/note/descriptions/note';
 import { createMapQueryFn, MongoQueryFn } from '../../mongodb/query/query';
@@ -15,13 +13,13 @@ export async function CollabText_id_fromNoteQueryFn(
 
 const DEFAULT_COLLAB_TEXT: Infer<typeof QueryableCollabText> = {
   updatedAt: new Date(0),
-  headText: {
-    changeset: Changeset.EMPTY,
+  headRecord: {
     revision: 0,
+    text: '',
   },
-  tailText: {
-    changeset: Changeset.EMPTY,
+  tailRecord: {
     revision: 0,
+    text: '',
   },
   records: [],
 };

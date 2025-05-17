@@ -62,7 +62,7 @@ afterEach(() => {
 it('updates openNote with new selection when it exists', async () => {
   const connectionId = 'fooConnectionId';
 
-  let headRevision = note.collabText!.headText.revision;
+  let headRevision = note.collabText!.headRecord.revision;
 
   await mongoCollections.openNotes.insertOne({
     expireAt: faker.date.future(),
@@ -130,7 +130,7 @@ it('handles inserting records with total size larger than 16MiB', async () => {
 
   const recordLength = TOTAL_PAYLOAD_SIZE / RECORDS_COUNT;
 
-  let headRevision = note.collabText?.headText.revision ?? 1;
+  let headRevision = note.collabText?.headRecord.revision ?? 1;
   function insertText(value: string, inputLength: number) {
     return insertCollabRecord({
       mongoDB: {

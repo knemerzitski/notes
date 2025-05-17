@@ -119,9 +119,9 @@ beforeEach(async () => {
   ({ note: noteFixedRecords } = fakeNotePopulateQueue(user, {
     collabText: {
       override: {
-        headText: {
+        headRecord: {
+          text: 'abcdef',
           revision: 6,
-          changeset: Changeset.fromText('abcdef').serialize(),
         },
       },
       // Records with appending characters from "a" to "abcdef"
@@ -211,7 +211,7 @@ async function getCollabTextRecords(
   return collabRecords;
 }
 
-it('inserts record on headText revision (newRecord = headText)', async () => {
+it('inserts record on headRecord revision (newRecord = headRecord)', async () => {
   const response = await executeOperation(
     {
       noteId: note._id,
@@ -269,13 +269,13 @@ it('inserts record on headText revision (newRecord = headText)', async () => {
   expect(dbNote).toStrictEqual(
     expect.objectContaining({
       collabText: {
-        headText: {
-          changeset: Changeset.fromText('head. after head').serialize(),
+        headRecord: {
           revision: 15,
+          text: 'head. after head',
         },
-        tailText: {
-          changeset: Changeset.fromText('head').serialize(),
+        tailRecord: {
           revision: 10,
+          text: 'head',
         },
         updatedAt: expect.any(Date),
       },
@@ -304,7 +304,7 @@ it('inserts record on headText revision (newRecord = headText)', async () => {
   return;
 });
 
-it('inserts record on older revision (tailText < newRecord < headText)', async () => {
+it('inserts record on older revision (tailRecord < newRecord < headRecord)', async () => {
   const response = await executeOperation(
     {
       noteId: note._id,
@@ -362,13 +362,13 @@ it('inserts record on older revision (tailText < newRecord < headText)', async (
   expect(dbNote).toStrictEqual(
     expect.objectContaining({
       collabText: {
-        headText: {
-          changeset: Changeset.parse('0:"headtext on 12"').serialize(),
+        headRecord: {
           revision: 15,
+          text: 'headtext on 12',
         },
-        tailText: {
-          changeset: Changeset.parse('0:"head"').serialize(),
+        tailRecord: {
           revision: 10,
+          text: 'head',
         },
         updatedAt: expect.any(Date),
       },
@@ -459,13 +459,13 @@ it('returns existing record when new record is a duplicate of a previous one (id
   expect(dbNote).toStrictEqual(
     expect.objectContaining({
       collabText: {
-        headText: {
-          changeset: Changeset.parse('0:"head. after head"').serialize(),
+        headRecord: {
           revision: 15,
+          text: 'head. after head',
         },
-        tailText: {
-          changeset: Changeset.parse('0:"head"').serialize(),
+        tailRecord: {
           revision: 10,
+          text: 'head',
         },
         updatedAt: expect.any(Date),
       },
@@ -493,7 +493,7 @@ it('returns existing record when new record is a duplicate of a previous one (id
   ]);
 });
 
-it('api options maxRecordsCount limits records exactly when new record is composed on headText', async () => {
+it('api options maxRecordsCount limits records exactly when new record is composed on headRecord', async () => {
   const response = await executeOperation(
     {
       noteId: note._id,
@@ -528,13 +528,13 @@ it('api options maxRecordsCount limits records exactly when new record is compos
   expect(dbNote).toStrictEqual(
     expect.objectContaining({
       collabText: {
-        headText: {
-          changeset: Changeset.parse('0:"head. after head"').serialize(),
+        headRecord: {
           revision: 15,
+          text: 'head. after head',
         },
-        tailText: {
-          changeset: Changeset.parse('0:"head"').serialize(),
+        tailRecord: {
           revision: 12,
+          text: 'head',
         },
         updatedAt: expect.any(Date),
       },
@@ -584,13 +584,13 @@ it('api options maxRecordsCount keeps 1 extra record when new record is composed
   expect(dbNote).toStrictEqual(
     expect.objectContaining({
       collabText: {
-        headText: {
-          changeset: Changeset.parse('0:"headon 13"').serialize(),
+        headRecord: {
           revision: 15,
+          text: 'headon 13',
         },
-        tailText: {
-          changeset: Changeset.parse('0:"head"').serialize(),
+        tailRecord: {
           revision: 13,
+          text: 'head',
         },
         updatedAt: expect.any(Date),
       },
@@ -681,16 +681,13 @@ describe('with other MongoDB context', () => {
       expect(dbNote).toStrictEqual(
         expect.objectContaining({
           collabText: expect.objectContaining({
-            headText: {
-              changeset: expectOneOf([
-                Changeset.parse('0:"abcdefAB"').serialize(),
-                Changeset.parse('0:"abcdefBA"').serialize(),
-              ]),
+            headRecord: {
               revision: 8,
+              text: expectOneOf(['abcdefAB', 'abcdefBA']),
             },
-            tailText: {
-              changeset: expect.any(String),
+            tailRecord: {
               revision: 0,
+              text: expect.any(String),
             },
           }),
         })
@@ -884,13 +881,13 @@ describe('errors', () => {
     expectGraphQLResponseError(response, /note is read-only/i);
   });
 
-  it('throws error when new record revision is older than tailText (newRecord < tailText)', async () => {
+  it('throws error when new record revision is older than tailRecord (newRecord < tailRecord)', async () => {
     const response = await executeOperation(
       {
         noteId: note._id,
         insertRecord: {
           id: 'aa',
-          targetRevision: 9, // tailText is 10
+          targetRevision: 9, // tailRecord is 10
           changeset: Changeset.EMPTY,
           selectionInverse: Selection.ZERO,
           selection: Selection.create(18),
@@ -904,13 +901,13 @@ describe('errors', () => {
     expectGraphQLResponseError(response, /too old/i);
   });
 
-  it('throws error when new record revision is newer than headText (headText < newRecord)', async () => {
+  it('throws error when new record revision is newer than headRecord (headRecord < newRecord)', async () => {
     const response = await executeOperation(
       {
         noteId: note._id,
         insertRecord: {
           id: 'aa',
-          targetRevision: 15, // headText is 14
+          targetRevision: 15, // headRecord is 14
           changeset: Changeset.EMPTY,
           selectionInverse: Selection.ZERO,
           selection: Selection.create(18),
@@ -924,7 +921,7 @@ describe('errors', () => {
     expectGraphQLResponseError(response, /revision is invalid/i);
   });
 
-  it('throws error when record changeset cannot be composed on headText', async () => {
+  it('throws error when record changeset cannot be composed on headRecord', async () => {
     const response = await executeOperation(
       {
         noteId: note._id,

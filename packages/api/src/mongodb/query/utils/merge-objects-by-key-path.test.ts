@@ -206,7 +206,7 @@ it.each([
       {
         key: {
           collabText: {
-            headText: {
+            headRecord: {
               revision: 1,
             },
           },

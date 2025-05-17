@@ -108,8 +108,8 @@ export const collabTextDescription: DescriptionDeep<
             from: customContext.collections[CollectionName.COLLAB_RECORDS].collectionName,
             let: {
               collabTextId: '$_id',
-              tailRevision: `$${parentRelativePath}.tailText.revision`,
-              headRevision: `$${parentRelativePath}.headText.revision`,
+              tailRevision: `$${parentRelativePath}.tailRecord.revision`,
+              headRevision: `$${parentRelativePath}.headRecord.revision`,
             },
             as: relativePath,
             pipeline: [

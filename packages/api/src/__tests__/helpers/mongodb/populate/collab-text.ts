@@ -34,7 +34,7 @@ export function fakeCollabText(
         : options.records
       : 1;
   const headRevision =
-    (options?.override?.headText?.revision ?? recordsCount) + revisionOffset;
+    (options?.override?.headRecord?.revision ?? recordsCount) + revisionOffset;
   const tailRevision = revisionOffset;
 
   const initialText =
@@ -47,7 +47,6 @@ export function fakeCollabText(
     });
 
   const changeset = Changeset.fromText(initialText);
-  const textChangeset = changeset.serialize();
   const recordChangeset = Changeset.create(
     changeset.outputLength,
     changeset.strips
@@ -88,15 +87,15 @@ export function fakeCollabText(
     collabText: {
       updatedAt: new Date(),
       ...options?.override,
-      headText: {
+      headRecord: {
         revision: headRevision,
-        changeset: textChangeset,
-        ...options?.override?.headText,
+        text: initialText,
+        ...options?.override?.headRecord,
       },
-      tailText: {
+      tailRecord: {
         revision: tailRevision,
-        changeset: textChangeset,
-        ...options?.override?.tailText,
+        text: initialText,
+        ...options?.override?.tailRecord,
       },
     },
     collabRecords,

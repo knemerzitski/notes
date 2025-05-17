@@ -113,7 +113,7 @@ export async function batchLoad(
                             must: [
                               {
                                 text: {
-                                  path: 'collabText.headText.changeset',
+                                  path: 'collabText.headRecord.text',
                                   query: searchText,
                                 },
                               },

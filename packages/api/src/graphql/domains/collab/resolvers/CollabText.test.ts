@@ -34,9 +34,9 @@ describe('textAtRevision', () => {
     await expect(
       (await maybeCallFn(textAtRevision({} as any, { revision: -1 })))?.query({
         revision: 1,
-        changeset: 1,
+        text: 1,
       })
-    ).resolves.toStrictEqual({ revision: 0, changeset: Changeset.EMPTY });
+    ).resolves.toStrictEqual({ revision: 0, text: '' });
   });
 
   it('returns revision at tail', async () => {
@@ -47,9 +47,9 @@ describe('textAtRevision', () => {
             {
               id: 'random',
               query: createPartialValueQueryFn<QueryableCollabText>(() => ({
-                tailText: {
-                  changeset: Changeset.fromText('a'),
+                tailRecord: {
                   revision: 4,
+                  text: 'a',
                 },
                 records: [],
               })),
@@ -59,9 +59,9 @@ describe('textAtRevision', () => {
         )
       )?.query({
         revision: 1,
-        changeset: 1,
+        text: 1,
       })
-    ).resolves.toStrictEqual({ revision: 4, changeset: Changeset.fromText('a') });
+    ).resolves.toStrictEqual({ revision: 4, text: 'a' });
   });
 
   it('returns revision 1 after tail', async () => {
@@ -72,9 +72,9 @@ describe('textAtRevision', () => {
             {
               id: 'random',
               query: createPartialValueQueryFn<QueryableCollabText>(() => ({
-                tailText: {
-                  changeset: Changeset.fromText('a'),
+                tailRecord: {
                   revision: 4,
+                  text: 'a',
                 },
                 records: [
                   {
@@ -89,9 +89,9 @@ describe('textAtRevision', () => {
         )
       )?.query({
         revision: 1,
-        changeset: 1,
+        text: 1,
       })
-    ).resolves.toStrictEqual({ revision: 5, changeset: Changeset.fromText('ab') });
+    ).resolves.toStrictEqual({ revision: 5, text: 'ab' });
   });
 
   it('returns revision 2 after tail', async () => {
@@ -102,9 +102,9 @@ describe('textAtRevision', () => {
             {
               id: 'random',
               query: createPartialValueQueryFn<QueryableCollabText>(() => ({
-                tailText: {
-                  changeset: Changeset.fromText('a'),
+                tailRecord: {
                   revision: 4,
+                  text: 'a',
                 },
                 records: [
                   {
@@ -123,9 +123,9 @@ describe('textAtRevision', () => {
         )
       )?.query({
         revision: 1,
-        changeset: 1,
+        text: 1,
       })
-    ).resolves.toStrictEqual({ revision: 6, changeset: Changeset.fromText('abc') });
+    ).resolves.toStrictEqual({ revision: 6, text: 'abc' });
   });
 
   it('throws error for future revision', async () => {
@@ -136,9 +136,9 @@ describe('textAtRevision', () => {
             {
               id: 'random',
               query: createPartialValueQueryFn<QueryableCollabText>(() => ({
-                tailText: {
-                  changeset: Changeset.fromText('a'),
+                tailRecord: {
                   revision: 4,
+                  text: 'a',
                 },
                 records: [
                   {
@@ -153,7 +153,7 @@ describe('textAtRevision', () => {
         )
       )?.query({
         revision: 1,
-        changeset: 1,
+        text: 1,
       })
     ).rejects.toThrowError(new Error('Invalid revision 6'));
   });

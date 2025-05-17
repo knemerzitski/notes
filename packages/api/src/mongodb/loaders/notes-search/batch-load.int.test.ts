@@ -2,8 +2,6 @@
 import { faker } from '@faker-js/faker';
 import { beforeAll, it, expect, assert, describe } from 'vitest';
 
-import { Changeset } from '../../../../../collab2/src';
-
 import { dropAndCreateSearchIndexes } from '../../../__tests__/helpers/mongodb/indexes';
 import {
   resetDatabase,
@@ -33,8 +31,8 @@ function resultsByText(...texts: string[]) {
     cursor: expect.any(String),
     note: {
       collabText: {
-        headText: {
-          changeset: Changeset.fromText(text).serialize(),
+        headRecord: {
+          text,
         },
       },
     },
@@ -59,8 +57,8 @@ function createLoaderKey(
       note: {
         //@ts-expect-error
         collabText: {
-          headText: {
-            changeset: 1,
+          headRecord: {
+            text: 1,
           },
         },
         ...override?.query?.note,

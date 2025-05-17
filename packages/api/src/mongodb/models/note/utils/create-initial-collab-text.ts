@@ -51,13 +51,13 @@ export function createInitialCollabText({
   return {
     collabText: {
       updatedAt: new Date(),
-      headText: {
+      headRecord: {
         revision: serverState.headRecord.revision,
-        changeset: serverState.headRecord.text,
+        text: serverState.headRecord.text.getText(),
       },
-      tailText: {
+      tailRecord: {
         revision: serverState.tailRecord.revision,
-        changeset: serverState.tailRecord.text,
+        text: serverState.tailRecord.text.getText(),
       },
     },
     collabRecords,

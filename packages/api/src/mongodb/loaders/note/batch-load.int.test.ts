@@ -90,8 +90,8 @@ it('loads a simple note', async () => {
               readOnly: 1,
             },
             collabText: {
-              headText: {
-                changeset: 1,
+              headRecord: {
+                text: 1,
               },
               records: {
                 $pagination: {
@@ -116,7 +116,7 @@ it('loads a simple note', async () => {
         { readOnly: expect.any(Boolean), createdAt: expect.any(Date) },
       ],
       collabText: {
-        headText: { changeset: Changeset.parse('0:"head"').serialize() },
+        headRecord: { text: 'head' },
         records: [
           {
             revision: 9,
@@ -148,13 +148,13 @@ it('loads all fields', async () => {
               },
             },
             collabText: {
-              headText: {
-                changeset: 1,
+              headRecord: {
                 revision: 1,
+                text: 1,
               },
-              tailText: {
-                changeset: 1,
+              tailRecord: {
                 revision: 1,
+                text: 1,
               },
               records: {
                 $pagination: {
@@ -199,13 +199,13 @@ it('loads all fields', async () => {
         },
       ],
       collabText: {
-        headText: {
-          changeset: Changeset.parse('0:"head"').serialize(),
+        headRecord: {
           revision: expect.any(Number),
+          text: 'head',
         },
-        tailText: {
-          changeset: Changeset.parse('0:"head"').serialize(),
+        tailRecord: {
           revision: expect.any(Number),
+          text: 'head',
         },
         records: [
           {
