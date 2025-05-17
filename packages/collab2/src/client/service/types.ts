@@ -221,10 +221,23 @@ export type ServiceServerRecord = Pick<
   'revision' | 'authorId' | 'changeset' | 'selectionInverse' | 'selection'
 >;
 
-export interface IncomingServerMessage {
-  readonly type: 'local-typing-acknowledged' | 'external-typing';
-  readonly item: ServiceServerRecord;
-}
+export type IncomingServerMessage =
+  | {
+      type: 'local-typing-acknowledged';
+      item: Pick<ServiceServerRecord, 'revision' | 'changeset'>;
+    }
+  | {
+      type: 'external-typing';
+      item: Pick<
+        ServiceServerRecord,
+        'changeset' | 'selection' | 'selectionInverse' | 'revision' | 'authorId'
+      >;
+    };
+
+type ServerFacadeRecord = Pick<
+  ServerRecord,
+  'revision' | 'authorId' | 'changeset' | 'inverse' | 'selectionInverse' | 'selection'
+>;
 
 /**
  * A simplified interface/facade to access/query data from server.
@@ -247,20 +260,20 @@ export interface ServerFacade {
    * @param startRevision
    * @param endRevision Is exclusive
    */
-  range(startRevision: number, endRevision: number): readonly ServerRecord[];
+  range(startRevision: number, endRevision: number): readonly ServerFacadeRecord[];
 
   /**
    * Get record at {@link revision} or null if it's not available
    * @param revision
    */
-  at(revision: number): ServerRecord | undefined;
+  at(revision: number): ServerFacadeRecord | undefined;
 
   /**
    * Iterable that returns records starting at {@link startRevision} until oldest cached record.
    *
    * @param startRevision First returned revision
    */
-  olderIterable(startRevision: number): Iterable<ServerRecord>;
+  olderIterable(startRevision: number): Iterable<ServerFacadeRecord>;
 
   /**
    * @returns true if server has more records before {@link revision}.

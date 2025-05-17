@@ -6,7 +6,10 @@ import { INSERT_BIAS } from '../../../common/utils/insert-bias';
 import { getLastHistoryRecord } from '../utils/history-record';
 
 export function processExternalTyping(
-  externalRecord: ServiceServerRecord,
+  externalRecord: Pick<
+    ServiceServerRecord,
+    'changeset' | 'selection' | 'selectionInverse' | 'revision' | 'authorId'
+  >,
   context: Pick<Context, 'isExternalTypingHistory'>
 ) {
   return (draft: WritableDraft<State>) => {

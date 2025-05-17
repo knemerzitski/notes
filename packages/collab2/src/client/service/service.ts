@@ -3,7 +3,6 @@ import {
   IncomingServerMessage,
   State,
   SubmittedServiceRecord,
-  ServiceServerRecord,
   ServerFacade,
   Properties,
   SerializedState,
@@ -272,7 +271,7 @@ export class Service {
    * are not part of history stack.
    * @param record
    */
-  addExternalTyping(record: ServiceServerRecord): void {
+  addExternalTyping(record: Parameters<typeof $recipes.processExternalTyping>[0]): void {
     this.processIncomingServerMessage({
       type: 'external-typing',
       item: record,
@@ -283,7 +282,9 @@ export class Service {
    * Server has acknowledged currently submitted changes.
    * @param record Record that's been received from server.
    */
-  submittedChangesAcknowledged(record: ServiceServerRecord): void {
+  submittedChangesAcknowledged(
+    record: Parameters<typeof $recipes.acknowledgeSubmittedRecord>[0]
+  ): void {
     this.processIncomingServerMessage({
       type: 'local-typing-acknowledged',
       item: record,

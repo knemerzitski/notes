@@ -34,7 +34,7 @@ export function* processQueuedServerMessages(
       }
     }
 
-    if (message.type === 'external-typing') {
+    if (definedMessage.type === 'external-typing') {
       yield {
         type: 'message' as const,
         message: definedMessage,

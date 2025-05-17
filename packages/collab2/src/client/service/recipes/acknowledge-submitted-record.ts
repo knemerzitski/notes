@@ -3,7 +3,9 @@ import { castDraft, WritableDraft } from 'immer';
 import { asComputed } from '../utils/as-computed';
 import { Changeset } from '../../../common/changeset';
 
-export function acknowledgeSubmittedRecord(acknowledgedRecord: ServiceServerRecord) {
+export function acknowledgeSubmittedRecord(
+  acknowledgedRecord: Pick<ServiceServerRecord, 'revision' | 'changeset'>
+) {
   return (draft: WritableDraft<State>) => {
     const computedDraft = asComputed(draft);
     if (!computedDraft.haveSubmittedChanges) {
