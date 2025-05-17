@@ -9,7 +9,6 @@ import { Selection } from '../../common/selection';
 import { MutableComputedState } from './computed-state';
 import { Service } from './service';
 
-
 const cs = Changeset.parse;
 const s = Selection.parse;
 
@@ -38,7 +37,6 @@ it('haveLocalChanges=false when submit would make no visual difference', () => {
   assert(record != null);
 
   service.submittedChangesAcknowledged({
-    authorId: '',
     ...record,
     revision: record.targetRevision + 1,
   });
@@ -96,7 +94,6 @@ it('handles simple local and external typings', () => {
   const record1 = service.submitChanges();
   assert(record1 != null);
   service.submittedChangesAcknowledged({
-    authorId: '',
     ...record1,
     revision: record1.targetRevision + 1,
   });
@@ -121,7 +118,6 @@ it('handles simple local and external typings', () => {
   const record2 = service.submitChanges();
   if (record2) {
     service.submittedChangesAcknowledged({
-      authorId: '',
       ...record2,
       revision: record2.targetRevision + 1,
     });
@@ -226,7 +222,6 @@ it('handles out of order server messages', () => {
   const submittedRecord = service.submitChanges();
   assert(submittedRecord != null);
   service.submittedChangesAcknowledged({
-    authorId: '',
     ...submittedRecord,
     revision: submittedRecord.targetRevision + 1,
   });
@@ -352,7 +347,6 @@ it('undo/redo with external changes', () => {
   const submitted = service.submitChanges();
   assert(submitted != null);
   service.submittedChangesAcknowledged({
-    authorId: '',
     ...submitted,
     revision: submitted.targetRevision + 1,
   });

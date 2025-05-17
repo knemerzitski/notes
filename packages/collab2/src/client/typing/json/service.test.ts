@@ -200,7 +200,6 @@ describe('one field', () => {
     if (submittedRecord) {
       collabService.submittedChangesAcknowledged({
         ...submittedRecord,
-        authorId: '',
         revision: submittedRecord.targetRevision + 1,
       });
     }
@@ -218,7 +217,6 @@ describe('one field', () => {
     assert(submittedRecord2 != null);
     collabService.submittedChangesAcknowledged({
       ...submittedRecord2,
-      authorId: '',
       revision: submittedRecord2.targetRevision + 1,
     });
 
@@ -267,7 +265,6 @@ describe('one field', () => {
     if (submittedRecord) {
       collabService.submittedChangesAcknowledged({
         ...submittedRecord,
-        authorId: '',
         revision: collabService.serverRevision + 1,
       });
     }
@@ -284,7 +281,6 @@ describe('one field', () => {
     assert(submittedRecord2 != null);
     collabService.submittedChangesAcknowledged({
       ...submittedRecord2,
-      authorId: '',
       revision: collabService.serverRevision + 1,
     });
 
@@ -335,7 +331,6 @@ describe('one field', () => {
     if (submittedRecord) {
       collabService.submittedChangesAcknowledged({
         ...submittedRecord,
-        authorId: '',
         revision: collabService.serverRevision + 1,
       });
     }
@@ -523,7 +518,6 @@ describe('two fields', () => {
     assert(submittedRecord != null);
     collabService.submittedChangesAcknowledged({
       ...submittedRecord,
-      authorId: '',
       revision: collabService.serverRevision + 1,
     });
 
@@ -560,7 +554,6 @@ describe('two fields', () => {
     if (submittedRecord) {
       collabService.submittedChangesAcknowledged({
         ...submittedRecord,
-        authorId: '',
         revision: collabService.serverRevision + 1,
       });
     }
@@ -642,7 +635,6 @@ describe('two fields', () => {
     assert(submittedRecord != null);
     collabService.submittedChangesAcknowledged({
       ...submittedRecord,
-      authorId: '',
       revision: collabService.serverRevision + 1,
     });
 
@@ -679,7 +671,6 @@ describe('two fields', () => {
     if (submittedRecord) {
       collabService.submittedChangesAcknowledged({
         ...submittedRecord,
-        authorId: '',
         revision: collabService.serverRevision + 1,
       });
     }
