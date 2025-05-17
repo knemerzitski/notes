@@ -4,6 +4,7 @@ import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 import { beforeAll, it, expect, beforeEach } from 'vitest';
 
+import { Changeset } from '../../../../../collab2/src';
 import {
   resetDatabase,
   mongoCollections,
@@ -133,7 +134,7 @@ it('loads paginated notes', async () => {
                   },
                 ],
                 collabText: {
-                  headText: { changeset: ['head'] },
+                  headText: { changeset: Changeset.parse('0:"head"').serialize() },
                   records: [
                     {
                       revision: 1,
@@ -153,7 +154,7 @@ it('loads paginated notes', async () => {
                   },
                 ],
                 collabText: {
-                  headText: { changeset: ['head'] },
+                  headText: { changeset: Changeset.parse('0:"head"').serialize() },
                   records: [
                     {
                       revision: 1,

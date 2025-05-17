@@ -12,7 +12,7 @@ import { QueryableNote } from '../../mongodb/loaders/note/descriptions/note';
 import { updateOpenNote } from '../../mongodb/models/note/update-open-note';
 
 import { SelectionRangeSchema } from '../../mongodb/schema/collab-record';
-import { DBOpenNoteSchema, OpenNoteSchema } from '../../mongodb/schema/open-note';
+import { OpenNoteSchema } from '../../mongodb/schema/open-note';
 
 import { MongoReadonlyDeep } from '../../mongodb/types';
 
@@ -105,7 +105,7 @@ export async function updateOpenNoteSelectionRange({
     throw new NoteCollabTextInvalidRevisionError(revision, 0, 0);
   }
 
-  const openCollabText: DBOpenNoteSchema['collabText'] = {
+  const openCollabText: OpenNoteSchema['collabText'] = {
     revision,
     latestSelection: selection,
   };
@@ -146,7 +146,7 @@ export async function updateOpenNoteAndPrime({
   mongoDB,
   upsertOpenNote,
 }: {
-  openCollabText: DBOpenNoteSchema['collabText'];
+  openCollabText: OpenNoteSchema['collabText'];
   connectionId: string;
   userId: ObjectId;
   note: MongoReadonlyDeep<
@@ -219,10 +219,7 @@ export async function updateOpenNoteAndPrime({
           openNote: {
             collabText: {
               revision: 1,
-              latestSelection: {
-                start: 1,
-                end: 1,
-              },
+              latestSelection: 1,
             },
             expireAt: 1,
           },

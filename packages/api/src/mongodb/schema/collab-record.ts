@@ -1,39 +1,13 @@
 import { ObjectId } from 'mongodb';
-import {
-  coerce,
-  date,
-  Infer,
-  InferRaw,
-  instance,
-  number,
-  object,
-  optional,
-  string,
-} from 'superstruct';
+import { date, Infer, InferRaw, instance, number, object, string } from 'superstruct';
 
-import { SelectionRange } from '../../../../collab/src/client/selection-range';
-
+import { SelectionStruct } from '../../../../collab2/src';
 import { CollectionDescription } from '../collections';
 
 import { ChangesetSchema } from './changeset';
 
-const _SelectionRange = object({
-  /**
-   * Range start value
-   */
-  start: number(),
-  /**
-   * If undefined then start === end
-   */
-  end: optional(number()),
-});
-
-export const SelectionRangeSchema = coerce(
-  _SelectionRange,
-  _SelectionRange,
-  (value) => value,
-  (value) => SelectionRange.collapseSame(value)
-);
+// TODO rename to SelectionSchema
+export const SelectionRangeSchema = SelectionStruct;
 
 export type DBSelectionRangeSchema = InferRaw<typeof SelectionRangeSchema>;
 
@@ -45,17 +19,22 @@ export const CollabRecordSchema = object({
    * This record belongs to specific CollabText
    */
   collabTextId: instance(ObjectId),
+  // TODO rename to selection
   afterSelection: SelectionRangeSchema,
+  // TODO rename to selectionInverse
   beforeSelection: SelectionRangeSchema,
   changeset: ChangesetSchema,
+  inverse: ChangesetSchema,
   /**
    * When record was inserted to DB
    */
   createdAt: date(),
+  // TODO rename to author
   creatorUser: object({
     _id: instance(ObjectId),
   }),
   revision: number(),
+  // TODO rename to idempotencyId
   userGeneratedId: string(),
 });
 

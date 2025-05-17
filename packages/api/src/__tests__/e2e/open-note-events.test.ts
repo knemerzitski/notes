@@ -10,6 +10,7 @@ import { CustomHeaderName } from '../../../../api-app-shared/src/custom-headers'
 import { GraphQLErrorCode } from '../../../../api-app-shared/src/graphql/error-codes';
 import { createDeferred } from '../../../../utils/src/deferred';
 
+import { Selection } from '../../../../collab2/src';
 import {
   SignedInUserEventsInput,
   UpdateOpenNoteSelectionRangeInput,
@@ -36,10 +37,7 @@ const USER_EVENTS_SUBSCRIPTION = `#graphql
   fragment MySelectionRange on UpdateOpenNoteSelectionRangePayload {
     collabTextEditing {
       revision
-      latestSelection {
-        start
-        end
-      }
+      latestSelection
     }
     note {
       id
@@ -68,10 +66,7 @@ const NOTE_EVENTS_SUBSCRIPTION = `#graphql
   fragment MySelectionRange on UpdateOpenNoteSelectionRangePayload {
     collabTextEditing {
       revision
-      latestSelection {
-        start
-        end
-      }
+      latestSelection
     }
     note {
       id
@@ -95,10 +90,7 @@ const UPDATE_EDITOR = `#graphql
     updateOpenNoteSelectionRange(input: $input) {
       collabTextEditing {
         revision
-        latestSelection {
-          start
-          end
-        }
+        latestSelection
       }
       note {
         id
@@ -258,8 +250,8 @@ function createGraphQLOperations(http: Awaited<ReturnType<typeof createHttpOpera
 function createEditorApi(op: ReturnType<typeof createGraphQLOperations>) {
   type Event =
     | { type: 'subscribed'; userId: string }
-    | { type: 'initial_selection_updated'; start: number }
-    | { type: 'selection_updated'; start: number };
+    | { type: 'initial_selection_updated'; selection: string }
+    | { type: 'selection_updated'; selection: string };
 
   const noteOpened = createDeferred<boolean>();
 
@@ -279,7 +271,7 @@ function createEditorApi(op: ReturnType<typeof createGraphQLOperations>) {
   signedInEvents.on('UpdateOpenNoteSelectionRangePayload', (payload) => {
     events.push({
       type: 'initial_selection_updated',
-      start: payload.collabTextEditing.latestSelection.start,
+      selection: payload.collabTextEditing.latestSelection,
     });
   });
   signedInEvents.on('error', () => {
@@ -292,9 +284,7 @@ function createEditorApi(op: ReturnType<typeof createGraphQLOperations>) {
   ) {
     const { graphQLResponse } = await op.updateNoteEditorSelectionRange({
       revision: 1,
-      selectionRange: {
-        start,
-      },
+      selection: Selection.create(start),
     });
 
     if (expectedError) {
@@ -310,7 +300,7 @@ function createEditorApi(op: ReturnType<typeof createGraphQLOperations>) {
     noteEvents.on('UpdateOpenNoteSelectionRangePayload', (payload) => {
       events.push({
         type: 'selection_updated',
-        start: payload.collabTextEditing.latestSelection.start,
+        selection: payload.collabTextEditing.latestSelection,
       });
     });
   }
@@ -359,9 +349,9 @@ it('subscribes to noteEditorEvents and receives initial selection and updates', 
     // user 2 subscribed
     { type: 'subscribed', userId: objectIdToStr(opApi2.user._id) }, // global
     // selection change
-    { type: 'selection_updated', start: 2 },
+    { type: 'selection_updated', selection: '2' },
     // selection change
-    { type: 'selection_updated', start: 4 },
+    { type: 'selection_updated', selection: '4' },
   ]);
   expect(user2.events).toStrictEqual([
     // user 1 subscribed
@@ -369,9 +359,9 @@ it('subscribes to noteEditorEvents and receives initial selection and updates', 
     // user 2 subscribed, state of all connected users
     { type: 'subscribed', userId: objectIdToStr(opApi2.user._id) }, // self
     { type: 'subscribed', userId: objectIdToStr(opApi1.user._id) }, // other
-    { type: 'initial_selection_updated', start: 1 }, // other
+    { type: 'initial_selection_updated', selection: '1' }, // other
     // selection change
-    { type: 'selection_updated', start: 3 },
+    { type: 'selection_updated', selection: '3' },
   ]);
 });
 

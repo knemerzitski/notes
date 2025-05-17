@@ -6,9 +6,8 @@ import {
   ResourceType,
   InputType,
 } from '../../../../api-app-shared/src/graphql/error-codes';
-import { ChangesetOperationError } from '../../../../collab/src/changeset';
-import { InsertRecordError } from '../../../../collab/src/records/process-record-insertion';
 
+import { RecordSubmissionServerError } from '../../../../collab2/src';
 import { NoteNotFoundQueryLoaderError } from '../../mongodb/loaders/note/loader';
 import { objectIdToStr } from '../../mongodb/utils/objectid';
 import {
@@ -96,29 +95,29 @@ function newNoteErrorMapper() {
   );
 
   mapper.add(NoteCollabRecordInsertError, (error) => {
-    if (error.cause instanceof InsertRecordError) {
+    if (error.cause instanceof RecordSubmissionServerError) {
       switch (error.cause.code) {
         case 'REVISION_OLD':
-          return new GraphQLError('Note is too old to make changes', {
+          return new GraphQLError('Submitted changes are too old', {
             extensions: {
               code: GraphQLErrorCode.OUTDATED,
             },
           });
         case 'REVISION_INVALID':
-          return new GraphQLError('Note new record revision is invalid', {
+          return new GraphQLError('Submitted changes revision is invalid', {
             extensions: {
               code: GraphQLErrorCode.INVALID_INPUT,
               input: InputType.REVISION,
             },
           });
+        case 'CHANNGESET_INVALID':
+          return new GraphQLError('Submitted changeset is invalid', {
+            extensions: {
+              code: GraphQLErrorCode.INVALID_INPUT,
+              input: InputType.CHANGESET,
+            },
+          });
       }
-    } else if (error.cause instanceof ChangesetOperationError) {
-      return new GraphQLError('Note new record changeset is invalid', {
-        extensions: {
-          code: GraphQLErrorCode.INVALID_INPUT,
-          input: InputType.CHANGESET,
-        },
-      });
     }
     return;
   });

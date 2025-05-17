@@ -1,7 +1,6 @@
 import { ObjectId } from 'mongodb';
 
-import { Changeset } from '../../../../../../collab/src/changeset';
-import { SelectionRange } from '../../../../../../collab/src/client/selection-range';
+import { Changeset, createServerState, Selection } from '../../../../../../collab2/src';
 
 import { CollabRecordSchema, SelectionRangeSchema } from '../../../schema/collab-record';
 import { CollabTextSchema } from '../../../schema/collab-text';
@@ -23,42 +22,46 @@ export function createInitialCollabText({
   afterSelection?: SelectionRangeSchema;
 }): {
   collabText: CollabTextSchema;
-  collabRecord: CollabRecordSchema;
+  collabRecords: CollabRecordSchema[];
 } {
-  afterSelection = afterSelection
-    ? SelectionRange.collapseSame(afterSelection)
-    : undefined;
+  const serverState = createServerState([
+    {
+      authorId: '',
+      changeset: Changeset.fromText(initialText),
+      idempotencyId: '',
+      revision: 1,
+      selectionInverse: Selection.ZERO,
+      selection: afterSelection ?? Selection.create(initialText.length),
+    },
+  ]);
 
-  const changeset = Changeset.fromInsertion(initialText);
-
-  const collabRecord: CollabRecordSchema = createCollabRecord({
-    collabTextId,
-    creatorUser: {
-      _id: creatorUserId,
-    },
-    userGeneratedId: '',
-    revision: 1,
-    changeset,
-    beforeSelection: {
-      start: 0,
-    },
-    afterSelection: afterSelection ?? {
-      start: initialText.length,
-    },
-  });
+  const collabRecords: CollabRecordSchema[] = serverState.records.map((record) =>
+    createCollabRecord({
+      collabTextId,
+      creatorUser: {
+        _id: creatorUserId,
+      },
+      userGeneratedId: record.idempotencyId,
+      revision: record.revision,
+      changeset: record.changeset,
+      inverse: record.inverse,
+      beforeSelection: record.selectionInverse,
+      afterSelection: record.selection,
+    })
+  );
 
   return {
     collabText: {
       updatedAt: new Date(),
       headText: {
-        revision: 1,
-        changeset,
+        revision: serverState.headRecord.revision,
+        changeset: serverState.headRecord.text,
       },
       tailText: {
-        revision: 0,
-        changeset: Changeset.EMPTY,
+        revision: serverState.tailRecord.revision,
+        changeset: serverState.tailRecord.text,
       },
     },
-    collabRecord,
+    collabRecords,
   };
 }

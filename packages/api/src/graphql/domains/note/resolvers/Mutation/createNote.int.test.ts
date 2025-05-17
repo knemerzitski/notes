@@ -16,8 +16,9 @@ import {
   vi,
 } from 'vitest';
 
-import { Changeset } from '../../../../../../../collab/src/changeset';
 import { Subscription } from '../../../../../../../lambda-graphql/src/dynamodb/models/subscription';
+
+import { Changeset, Selection } from '../../../../../../../collab2/src';
 
 import { apolloServer } from '../../../../../__tests__/helpers/graphql/apollo-server';
 import {
@@ -84,14 +85,8 @@ const MUTATION_ALL = `#graphql
                 changeset
                 revision
               }
-              beforeSelection {
-                start
-                end
-              }
-              afterSelection {
-                start
-                end
-              }
+              selectionInverse
+              selection
               createdAt
             }
           }
@@ -273,7 +268,7 @@ describe('no existing notes', () => {
           shareAccess: null,
           collabText: {
             headText: {
-              changeset: Changeset.fromInsertion('initial content').serialize(),
+              changeset: Changeset.fromText('initial content').serialize(),
               revision: 1,
             },
             tailText: {
@@ -287,17 +282,11 @@ describe('no existing notes', () => {
                     id: expect.any(String),
                   },
                   change: {
-                    changeset: Changeset.fromInsertion('initial content').serialize(),
+                    changeset: Changeset.fromText('initial content').serialize(),
                     revision: 1,
                   },
-                  beforeSelection: {
-                    start: 0,
-                    end: null,
-                  },
-                  afterSelection: {
-                    start: 15,
-                    end: null,
-                  },
+                  selectionInverse: Selection.create(0).serialize(),
+                  selection: Selection.create(15).serialize(),
                   createdAt: expect.any(Date),
                 },
               ],
@@ -346,7 +335,7 @@ describe('no existing notes', () => {
       collabText: {
         updatedAt: expect.any(Date),
         headText: {
-          changeset: Changeset.fromInsertion('initial content').serialize(),
+          changeset: Changeset.fromText('initial content').serialize(),
           revision: 1,
         },
         tailText: {
@@ -361,18 +350,15 @@ describe('no existing notes', () => {
       {
         _id: expect.any(ObjectId),
         collabTextId: dbNote?._id,
-        changeset: Changeset.fromInsertion('initial content').serialize(),
+        changeset: Changeset.fromText('initial content').serialize(),
+        inverse: Changeset.create(15, []).serialize(),
         revision: 1,
         creatorUser: {
           _id: user._id,
         },
         userGeneratedId: expect.any(String),
-        beforeSelection: {
-          start: 0,
-        },
-        afterSelection: {
-          start: 15,
-        },
+        beforeSelection: Selection.create(0).serialize(),
+        afterSelection: Selection.create(15).serialize(),
         createdAt: expect.any(Date),
       },
     ]);
@@ -491,7 +477,7 @@ describe('no existing notes', () => {
                       id: expect.any(String),
                       collabText: {
                         headText: {
-                          changeset: Changeset.fromInsertion('content').serialize(),
+                          changeset: Changeset.fromText('content').serialize(),
                         },
                       },
                     },

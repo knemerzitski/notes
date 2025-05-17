@@ -2,7 +2,7 @@
 import { faker } from '@faker-js/faker';
 import { beforeAll, it, expect, assert, describe } from 'vitest';
 
-import { Changeset } from '../../../../../collab/src/changeset';
+import { Changeset } from '../../../../../collab2/src';
 
 import { dropAndCreateSearchIndexes } from '../../../__tests__/helpers/mongodb/indexes';
 import {
@@ -34,7 +34,7 @@ function resultsByText(...texts: string[]) {
     note: {
       collabText: {
         headText: {
-          changeset: Changeset.fromInsertion(text).serialize(),
+          changeset: Changeset.fromText(text).serialize(),
         },
       },
     },

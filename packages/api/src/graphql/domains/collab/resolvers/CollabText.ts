@@ -1,6 +1,6 @@
 import { GraphQLError } from 'graphql/index.js';
 
-import { Changeset } from '../../../../../../collab/src/changeset';
+import { Changeset } from '../../../../../../collab2/src';
 
 import { QueryableCollabRecord } from '../../../../mongodb/loaders/note/descriptions/collab-record';
 import { applyLimit } from '../../../../mongodb/pagination/cursor-array-pagination';
@@ -20,7 +20,23 @@ export const CollabText: CollabTextResolvers = {
       ),
     };
   },
+  headRecord: (parent) => {
+    return {
+      query: createMapQueryFn(parent.query)<RevisionChangesetSchema>()(
+        (query) => ({ headText: query }),
+        (result) => result.headText
+      ),
+    };
+  },
   tailText: (parent) => {
+    return {
+      query: createMapQueryFn(parent.query)<RevisionChangesetSchema>()(
+        (query) => ({ tailText: query }),
+        (result) => result.tailText
+      ),
+    };
+  },
+  tailRecord: (parent) => {
     return {
       query: createMapQueryFn(parent.query)<RevisionChangesetSchema>()(
         (query) => ({ tailText: query }),
@@ -77,7 +93,7 @@ export const CollabText: CollabTextResolvers = {
           return {
             revision: targetRevision,
             changeset: collabText.records.reduce(
-              (a, b) => a.compose(b.changeset),
+              (a, b) => Changeset.compose(a, b.changeset),
               collabText.tailText.changeset
             ),
           };

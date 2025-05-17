@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 
-import { Changeset } from '../../../../../../collab/src/changeset';
+import { Changeset, Selection } from '../../../../../../collab2/src';
 
 import { DBCollabRecordSchema } from '../../../../mongodb/schema/collab-record';
 import { MongoPartialDeep } from '../../../../mongodb/types';
@@ -22,20 +22,15 @@ export function fakeCollabRecord(
     userGeneratedId: faker.string.nanoid(6),
     revision: faker.number.int(),
     changeset: Changeset.EMPTY.serialize(),
+    inverse: Changeset.EMPTY.serialize(),
     createdAt: new Date(),
     ...options?.override,
     creatorUser: {
       _id: new ObjectId(),
       ...options?.override?.creatorUser,
     },
-    beforeSelection: {
-      start: 0,
-      ...options?.override?.beforeSelection,
-    },
-    afterSelection: {
-      start: 0,
-      ...options?.override?.afterSelection,
-    },
+    beforeSelection: options?.override?.beforeSelection ?? Selection.ZERO.serialize(),
+    afterSelection: options?.override?.afterSelection ?? Selection.ZERO.serialize(),
   };
 }
 

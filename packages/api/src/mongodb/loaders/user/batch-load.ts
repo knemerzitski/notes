@@ -179,7 +179,6 @@ export async function batchLoad(
     for (const processor of idProcessors) {
       const result = processor.getResultById(key.id);
       if (result) {
-        // @ts-expect-error QueryObjectDeep issue
         return mapQueryAggregateResult(key.query, mergedQuery, result, {
           descriptions: [queryableUserDescription],
         });
@@ -253,7 +252,6 @@ async function _queryableUserBatchLoadSeparatePerId(
     const result = results[getEqualObjectString(key.id)];
     if (!result?.user) return null;
 
-    // @ts-expect-error QueryObjectDeep issue
     return mapQueryAggregateResult(key.query, result.mergedQuery, result.user, {
       descriptions: [queryableUserDescription],
     });

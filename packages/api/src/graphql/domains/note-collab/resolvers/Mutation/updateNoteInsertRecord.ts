@@ -32,17 +32,11 @@ const _updateNoteInsertRecord: NonNullable<
     userId: currentUserId,
     maxRecordsCount: ctx.options.collabText.maxRecordsCount,
     insertRecord: {
-      changeset: insertRecord.change.changeset,
-      revision: insertRecord.change.revision,
-      afterSelection: {
-        start: insertRecord.afterSelection.start,
-        end: insertRecord.afterSelection.end ?? undefined,
-      },
-      beforeSelection: {
-        start: insertRecord.beforeSelection.start,
-        end: insertRecord.beforeSelection.end ?? undefined,
-      },
-      userGeneratedId: insertRecord.generatedId,
+      changeset: insertRecord.changeset,
+      revision: insertRecord.targetRevision,
+      afterSelection: insertRecord.selection,
+      beforeSelection: insertRecord.selectionInverse,
+      userGeneratedId: insertRecord.id,
     },
     connectionId: ctx.connectionId,
     openNoteDuration: ctx.options.note.openNoteDuration,

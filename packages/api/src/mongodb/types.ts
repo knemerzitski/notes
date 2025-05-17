@@ -1,7 +1,8 @@
 import { ObjectId } from 'mongodb';
 
-import { Changeset } from '../../../collab/src/changeset';
 import { Primitive, PartialDeep, ReadonlyDeep } from '../../../utils/src/types';
+
+import { Changeset, Selection } from '../../../collab2/src';
 
 /**
  * This interface conforms to $arrayToObject \
@@ -13,7 +14,7 @@ export interface Entry<Key, Value> {
   v: Value;
 }
 
-type ExtraPrimitives = ObjectId | Date | Changeset;
+type ExtraPrimitives = ObjectId | Date | Changeset | Selection;
 
 export type MongoPrimitive = Exclude<Primitive, undefined> | ExtraPrimitives;
 

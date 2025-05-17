@@ -3,7 +3,9 @@ import { date, Infer, InferRaw, object } from 'superstruct';
 import { RevisionChangesetSchema } from './changeset';
 
 export const CollabTextSchema = object({
+  // TODO rename to headRecord
   headText: RevisionChangesetSchema,
+  // TODO rename to tailRecord
   tailText: RevisionChangesetSchema,
   /**
    * One to many relationship to CollabRecord document

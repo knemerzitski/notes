@@ -2,17 +2,16 @@ import { MongoClient, ObjectId } from 'mongodb';
 
 import { assign, object, array } from 'superstruct';
 
-import { ChangesetError } from '../../../../collab/src/changeset';
-import { SelectionRange } from '../../../../collab/src/client/selection-range';
-import { processRecordInsertion } from '../../../../collab/src/records/process-record-insertion';
-import {
-  RevisionChangeset,
-  ServerRevisionRecord,
-} from '../../../../collab/src/records/record';
-import { RevisionRecords } from '../../../../collab/src/records/revision-records';
-
 import { Maybe } from '../../../../utils/src/types';
 
+import {
+  Changeset,
+  composeNewTail,
+  processSubmittedRecord,
+  ServerError,
+  ServerRecord,
+  SubmittedRecord,
+} from '../../../../collab2/src';
 import { CollectionName } from '../../mongodb/collection-names';
 import { MongoDBCollections } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';
@@ -39,12 +38,17 @@ import { updateOpenNoteAndPrime } from './update-open-note-selection-range';
 
 type ExistingRecord = Pick<
   CollabRecordSchema,
-  'afterSelection' | 'beforeSelection' | 'changeset' | 'revision' | 'userGeneratedId'
+  | 'afterSelection'
+  | 'beforeSelection'
+  | 'changeset'
+  | 'inverse'
+  | 'revision'
+  | 'userGeneratedId'
 > & {
   creatorUser: Pick<CollabRecordSchema['creatorUser'], '_id'>;
 };
 
-type InsertRecord = Omit<ExistingRecord, 'creatorUser'>;
+type InsertRecord = Omit<ExistingRecord, 'creatorUser' | 'inverse'>;
 
 interface InsertCollabRecordParams {
   mongoDB: {
@@ -75,30 +79,55 @@ interface InsertCollabRecordParams {
   connectionId?: string;
 }
 
-function toInsertionRecord(
-  record: MongoReadonlyDeep<ExistingRecord>
-): ServerRevisionRecord {
+// TODO move to bottom
+function toSubmittedRecord(
+  record: MongoReadonlyDeep<Omit<ExistingRecord, 'inverse'>>
+): SubmittedRecord {
   return {
+    id: record.userGeneratedId,
+    targetRevision: record.revision,
+    authorId: objectIdToStr(record.creatorUser._id),
     changeset: record.changeset,
-    revision: record.revision,
-    userGeneratedId: record.userGeneratedId,
-    creatorUserId: objectIdToStr(record.creatorUser._id),
-    beforeSelection: SelectionRange.expandSame(record.beforeSelection),
-    afterSelection: SelectionRange.expandSame(record.afterSelection),
+    selectionInverse: record.beforeSelection,
+    selection: record.afterSelection,
   };
 }
 
-function fromInsertionRecord(
-  record: ServerRevisionRecord,
-  original: MongoReadonlyDeep<ExistingRecord>
+// TODO move to bottom
+function toServerRecord(record: MongoReadonlyDeep<ExistingRecord>): ServerRecord {
+  return {
+    idempotencyId: record.userGeneratedId,
+    authorId: objectIdToStr(record.creatorUser._id),
+    revision: record.revision,
+    changeset: record.changeset,
+    inverse: record.inverse,
+    selectionInverse: record.beforeSelection,
+    selection: record.afterSelection,
+  };
+}
+
+function toServerForTailRecord(
+  record: Pick<MongoReadonlyDeep<ExistingRecord>, 'revision' | 'changeset'>
+): Pick<ServerRecord, 'revision' | 'changeset'> {
+  return {
+    revision: record.revision,
+    changeset: record.changeset,
+  };
+}
+
+// TODO move to bottom
+function toMongoRecord(
+  record: ServerRecord,
+  original: MongoReadonlyDeep<Omit<ExistingRecord, 'inverse'>>
 ): ExistingRecord {
   return {
-    changeset: record.changeset,
-    revision: record.revision,
-    userGeneratedId: record.userGeneratedId,
-    afterSelection: record.afterSelection,
-    beforeSelection: record.beforeSelection,
     creatorUser: original.creatorUser,
+    userGeneratedId: record.idempotencyId,
+    revision: record.revision,
+    changeset: record.changeset,
+    inverse: record.inverse,
+    beforeSelection: record.selectionInverse,
+    afterSelection: record.selection,
   };
 }
 
@@ -158,17 +187,12 @@ export function insertCollabRecord({
                     userGeneratedId: 1,
                     revision: 1,
                     changeset: 1,
+                    inverse: 1,
                     creatorUser: {
                       _id: 1,
                     },
-                    beforeSelection: {
-                      start: 1,
-                      end: 1,
-                    },
-                    afterSelection: {
-                      start: 1,
-                      end: 1,
-                    },
+                    beforeSelection: 1,
+                    afterSelection: 1,
                   },
                 },
                 users: {
@@ -244,10 +268,10 @@ export function insertCollabRecord({
           },
           noteId,
           collabText: newCollabText.collabText,
-          collabRecords: [newCollabText.collabRecord],
+          collabRecords: newCollabText.collabRecords,
         });
 
-        const newRecord = newCollabText.collabRecord;
+        const newRecord = newCollabText.collabRecords[0];
 
         mongoDB.loaders.note.prime(
           {
@@ -260,7 +284,7 @@ export function insertCollabRecord({
             _id: noteId,
             collabText: {
               ...newCollabText.collabText,
-              records: [newCollabText.collabRecord],
+              records: newCollabText.collabRecords,
             },
           },
           {
@@ -302,39 +326,49 @@ export function insertCollabRecord({
       }
 
       try {
-        const originalInsertRecord: MongoReadonlyDeep<ExistingRecord> = {
+        const originalInsertRecord: MongoReadonlyDeep<Omit<ExistingRecord, 'inverse'>> = {
           ...insertRecord,
           creatorUser: {
             _id: userId,
           },
         };
 
-        const insertion = processRecordInsertion({
-          headText: collabText.headText,
-          records: collabText.records.map(toInsertionRecord),
-          newRecord: toInsertionRecord(originalInsertRecord),
-        });
+        const insertion = processSubmittedRecord(
+          toSubmittedRecord(originalInsertRecord),
+          collabText.records.map(toServerRecord),
+          {
+            revision: collabText.headText.revision,
+            text: collabText.headText.changeset,
+          }
+        );
 
         const processedInsertRecord: CollabRecordSchema = createCollabRecord({
-          ...fromInsertionRecord(insertion.record, originalInsertRecord),
+          ...toMongoRecord(insertion.record, originalInsertRecord),
           collabTextId: noteId,
         });
 
         if (insertion.type === 'new') {
           // Compose tailText, deleting older records
-          let newTailText: RevisionChangeset | undefined;
-          const collabTextForTailCompose = noteForTailText?.collabText;
-          if (collabTextForTailCompose) {
-            const { records, tailText } = collabTextForTailCompose;
-            if (records.length > 0) {
-              const tailRevisionRecords = new RevisionRecords({
-                tailText,
-                records,
-              });
 
-              tailRevisionRecords.mergeToTail(tailRevisionRecords.items.length);
-              newTailText = tailRevisionRecords.tailText;
-            }
+          let newTailText:
+            | {
+                revision: number;
+                changeset: Changeset;
+              }
+            | undefined;
+          if (noteForTailText?.collabText) {
+            const newTailRecord = composeNewTail(
+              {
+                revision: noteForTailText.collabText.tailText.revision,
+                text: noteForTailText.collabText.tailText.changeset,
+              },
+              noteForTailText.collabText.records.map(toServerForTailRecord)
+            );
+
+            newTailText = {
+              revision: newTailRecord.revision,
+              changeset: newTailRecord.text,
+            };
           }
 
           await Promise.all([
@@ -344,7 +378,10 @@ export function insertCollabRecord({
                 collections: mongoDB.collections,
               },
               noteId,
-              headText: insertion.headText,
+              headText: {
+                revision: insertion.headRecord.revision,
+                changeset: insertion.headRecord.text,
+              },
               tailText: newTailText,
               newRecord: processedInsertRecord,
             }),
@@ -379,7 +416,10 @@ export function insertCollabRecord({
             {
               _id: noteId,
               collabText: {
-                headText: insertion.headText,
+                headText: {
+                  revision: insertion.headRecord.revision,
+                  changeset: insertion.headRecord.text,
+                },
                 ...(newTailText && {
                   tailText: newTailText,
                 }),
@@ -432,7 +472,7 @@ export function insertCollabRecord({
           note,
         };
       } catch (err) {
-        if (err instanceof ChangesetError) {
+        if (err instanceof ServerError) {
           throw new NoteCollabRecordInsertError(noteId, err);
         } else {
           throw err;

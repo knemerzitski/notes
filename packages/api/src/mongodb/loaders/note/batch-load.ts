@@ -97,7 +97,6 @@ export async function batchLoad(
       return new NoteNotFoundQueryLoaderError(key);
     }
 
-    // @ts-expect-error QueryObjectDeep issue
     return mapQueryAggregateResult(key.query, userResult.mergedQuery, note, {
       descriptions: [queryableNoteDescription],
     });

@@ -3,7 +3,6 @@ import { QueryableCollabText } from '../../../mongodb/loaders/note/descriptions/
 import { CursorBoundPagination } from '../../../mongodb/pagination/cursor-struct';
 import { MongoQueryFn } from '../../../mongodb/query/query';
 import { RevisionChangesetSchema } from '../../../mongodb/schema/changeset';
-import { SelectionRangeSchema } from '../../../mongodb/schema/collab-record';
 import { PreFetchedArrayGetItemFn } from '../../utils/pre-execute';
 import { ResolverTypeWrapper, ResolversTypes } from '../types.generated';
 
@@ -21,8 +20,8 @@ export interface RevisionChangesetMapper {
   readonly query: MongoQueryFn<RevisionChangesetSchema>;
 }
 
-export interface CollabTextSelectionRangeMapper {
-  readonly query: MongoQueryFn<SelectionRangeSchema>;
+export interface ComposedTextRecordMapper {
+  readonly query: MongoQueryFn<RevisionChangesetSchema>;
 }
 
 export interface CollabTextRecordConnectionMapper {

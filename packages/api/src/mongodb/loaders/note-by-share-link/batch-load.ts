@@ -89,7 +89,6 @@ export async function batchLoad(
       return new NoteByShareLinkNotFoundQueryLoaderError(key);
     }
 
-    // @ts-expect-error QueryObjectDeep issue
     return mapQueryAggregateResult(key.query, noteResult.mergedQuery, noteResult.note, {
       descriptions: [queryableNoteDescription],
     });

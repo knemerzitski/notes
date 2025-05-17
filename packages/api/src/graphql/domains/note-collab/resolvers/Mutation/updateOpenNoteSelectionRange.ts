@@ -24,10 +24,7 @@ export const updateOpenNoteSelectionRange: NonNullable<
     noteId,
     userId: currentUserId,
     revision: input.revision,
-    selection: {
-      start: input.selectionRange.start,
-      end: input.selectionRange.end ?? undefined,
-    },
+    selection: input.selection,
     openNoteDuration: ctx.options.note.openNoteDuration,
   });
 

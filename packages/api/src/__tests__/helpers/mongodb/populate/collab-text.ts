@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 
-import { Changeset } from '../../../../../../collab/src/changeset';
+import { Changeset, Selection } from '../../../../../../collab2/src';
 
 import { DBCollabRecordSchema } from '../../../../mongodb/schema/collab-record';
 import { DBCollabTextSchema } from '../../../../mongodb/schema/collab-text';
@@ -45,7 +45,13 @@ export function fakeCollabText(
         max: 10,
       },
     });
-  const headChangeset = Changeset.fromInsertion(initialText).serialize();
+
+  const changeset = Changeset.fromText(initialText);
+  const textChangeset = changeset.serialize();
+  const recordChangeset = Changeset.create(
+    changeset.outputLength,
+    changeset.strips
+  ).serialize();
 
   function createFakeCollabRecord(
     options?: FakeCollabRecordOptions
@@ -54,20 +60,17 @@ export function fakeCollabText(
       ...options,
       override: {
         revision: headRevision,
-        changeset: headChangeset,
+        changeset: recordChangeset,
+        inverse: recordChangeset,
         ...options?.override,
         creatorUser: {
           ...options?.override?.creatorUser,
           _id: creatorUserId,
         },
-        beforeSelection: {
-          start: 0,
-          ...options?.override?.beforeSelection,
-        },
-        afterSelection: {
-          start: initialText.length,
-          ...options?.override?.afterSelection,
-        },
+        beforeSelection: options?.override?.beforeSelection ?? Selection.ZERO.serialize(),
+        afterSelection:
+          options?.override?.afterSelection ??
+          Selection.create(initialText.length).serialize(),
       },
     });
   }
@@ -92,12 +95,12 @@ export function fakeCollabText(
       ...options?.override,
       headText: {
         revision: headRevision,
-        changeset: headChangeset,
+        changeset: textChangeset,
         ...options?.override?.headText,
       },
       tailText: {
         revision: tailRevision,
-        changeset: Changeset.EMPTY.serialize(),
+        changeset: textChangeset,
         ...options?.override?.tailText,
       },
     },

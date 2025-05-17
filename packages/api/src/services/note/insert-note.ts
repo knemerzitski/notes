@@ -55,7 +55,7 @@ export async function insertNote({
     ],
   };
 
-  const collabRecords: CollabRecordSchema[] = [];
+  let collabRecords: CollabRecordSchema[] = [];
   if (collabText?.initialText != null) {
     const initialCollabText = createInitialCollabText({
       collabTextId: note._id,
@@ -63,7 +63,7 @@ export async function insertNote({
       initialText: collabText.initialText,
     });
     note.collabText = initialCollabText.collabText;
-    collabRecords.push(initialCollabText.collabRecord);
+    collabRecords = initialCollabText.collabRecords;
   }
 
   await withTransaction(mongoDB.client, ({ runSingleOperation }) =>

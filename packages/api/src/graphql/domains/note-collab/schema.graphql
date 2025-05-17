@@ -191,7 +191,7 @@ type CollabTextEditing {
   """
   Latest updated selection range
   """
-  latestSelection: CollabTextSelectionRange!
+  latestSelection: Selection!
 }
 
 extend type OpenedNote {
@@ -222,7 +222,12 @@ input UpdateOpenNoteSelectionRangeInput {
   """
   New selection range
   """
-  selectionRange: CollabTextSelectionRangeInput!
+  selectionRange: CollabTextSelectionRangeInput
+    @deprecated(reason: "Use selection instead")
+  """
+  Latest new selection
+  """
+  selection: Selection!
 }
 
 """

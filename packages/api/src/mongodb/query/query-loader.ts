@@ -5,6 +5,7 @@ import { Infer, InferRaw, Struct } from 'superstruct';
 
 import { zip } from '../../../../utils/src/array/zip';
 import { callFnGrouped } from '../../../../utils/src/call-fn-grouped';
+import { Logger } from '../../../../utils/src/logging';
 import { splitObject } from '../../../../utils/src/object/split-object';
 import { isObjectLike } from '../../../../utils/src/type-guards/is-object-like';
 import { Maybe, MaybePromise } from '../../../../utils/src/types';
@@ -32,6 +33,7 @@ export interface QueryLoaderEvents<I, S extends Struct<any, any, any>> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface QueryLoaderParams<I, S extends Struct<any, any, any>, CG, CR> {
+  logger?: Logger;
   batchLoadFn: (
     keys: readonly QueryLoaderKey<I, Infer<S>, CR>['cache'][],
     context: QueryLoaderContext<CG, CR>
@@ -126,6 +128,8 @@ function splitQuery<T>(obj: T) {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class QueryLoader<I, S extends Struct<any, any, any>, CG = unknown, CR = unknown> {
+  private readonly logger?: Logger;
+
   private readonly eventBus?: Emitter<QueryLoaderEvents<I, S>>;
   private readonly loader: DataLoader<
     QueryLoaderKey<I, Infer<S>, CR>,
@@ -139,6 +143,8 @@ export class QueryLoader<I, S extends Struct<any, any, any>, CG = unknown, CR = 
   >;
 
   constructor(params: QueryLoaderParams<I, S, CG, CR>) {
+    this.logger = params.logger;
+
     this.eventBus = params.eventBus;
 
     const struct = params.struct;
@@ -271,6 +277,13 @@ export class QueryLoader<I, S extends Struct<any, any, any>, CG = unknown, CR = 
           this.loader.clear(leafLoaderKey);
         } else {
           isAlreadyCached = this.isKeyCached(leafLoaderKey.cache);
+        }
+
+        if (!isAlreadyCached) {
+          this.logger?.debug(
+            'cacheMiss',
+            memoizedGetEqualObjectString(leafLoaderKey.cache)
+          );
         }
 
         const leafValue = await this.loader.load(leafLoaderKey);

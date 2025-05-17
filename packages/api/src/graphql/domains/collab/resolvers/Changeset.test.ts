@@ -1,21 +1,15 @@
 import { ApolloServer } from '@apollo/server';
 import { assert, describe, expect, it } from 'vitest';
 
-import {
-  Changeset,
-  InsertStrip,
-  RetainStrip,
-} from '../../../../../../collab/src/changeset';
+import { Changeset } from '../../../../../../collab2/src';
 
 import { Changeset as ChangesetResolver } from './Changeset';
 
 describe('Changeset', () => {
   const appendHelloResolver = (_parent: unknown, { input }: { input: Changeset }) => {
-    return input.compose(
-      Changeset.from(
-        RetainStrip.create(0, input.strips.length - 1),
-        InsertStrip.create('hello')
-      )
+    return Changeset.compose(
+      input,
+      Changeset.parse(`${input.outputLength}:0-${input.outputLength - 1},"hello"`)
     );
   };
 
@@ -45,20 +39,20 @@ describe('Changeset', () => {
     const response = await apolloServer.executeOperation({
       query: query,
       variables: {
-        input: Changeset.new([new InsertStrip('echo ')]),
+        input: Changeset.parse('0:"echo "'),
       },
     });
 
     assert(response.body.kind === 'single');
     expect(response.body.singleResult.data).toEqual({
-      appendHello: ['echo hello'],
+      appendHello: Changeset.parse('0:"echo hello"').serialize(),
     });
   });
 
   it('parses literal', async () => {
     const query = `#graphql
       query TestChangeset {
-        appendHello(input: ["echo "])
+        appendHello(input: "0:\\"echo \\"")
       }
     `;
     const response = await apolloServer.executeOperation({
@@ -67,7 +61,7 @@ describe('Changeset', () => {
 
     assert(response.body.kind === 'single');
     expect(response.body.singleResult.data).toEqual({
-      appendHello: ['echo hello'],
+      appendHello: Changeset.parse('0:"echo hello"').serialize(),
     });
   });
 });

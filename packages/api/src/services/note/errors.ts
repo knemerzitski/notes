@@ -1,7 +1,6 @@
 import { ObjectId } from 'mongodb';
 
-import { ChangesetError } from '../../../../collab/src/changeset';
-
+import { ServerError } from '../../../../collab2/src';
 import { objectIdToStr } from '../../mongodb/utils/objectid';
 import { ServiceError } from '../errors';
 
@@ -21,9 +20,9 @@ export class NoteServiceError extends ServiceError<NoteServiceErrorCode> {}
 
 export class NoteCollabRecordInsertError extends NoteServiceError {
   readonly noteId: ObjectId;
-  override readonly cause: ChangesetError;
+  override readonly cause: ServerError;
 
-  constructor(noteId: ObjectId, cause: ChangesetError) {
+  constructor(noteId: ObjectId, cause: ServerError) {
     super(
       'NOTE_COLLAB_RECORD_INSERT',
       `Note '${objectIdToStr(noteId)}' failed to insert record: ${cause.message}`

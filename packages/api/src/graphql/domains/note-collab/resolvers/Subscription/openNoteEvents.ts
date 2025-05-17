@@ -59,10 +59,7 @@ export const openNoteEvents: NonNullable<SubscriptionResolvers['openNoteEvents']
               },
               collabText: {
                 revision: 1,
-                latestSelection: {
-                  start: 1,
-                  end: 1,
-                },
+                latestSelection: 1,
               },
             },
           },

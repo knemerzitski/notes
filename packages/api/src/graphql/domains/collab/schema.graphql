@@ -1,7 +1,12 @@
 """
-TODO desc
+Represents a change in text
 """
 scalar Changeset
+
+"""
+Text selection range
+"""
+scalar Selection
 
 """
 TODO desc
@@ -10,11 +15,25 @@ type RevisionChangeset {
   """
   Revision number
   """
-  revision: NonNegativeInt!
+  revision: NonNegativeInt! @deprecated(reason: "Do not use")
   """
   A set of text changes
   """
-  changeset: Changeset!
+  changeset: Changeset! @deprecated(reason: "Do not use")
+}
+
+"""
+Record that is a composition of previous records up to revision.
+"""
+type ComposedTextRecord {
+  """
+  Revision of this composed text
+  """
+  revision: NonNegativeInt!
+  """
+  Text at the revision
+  """
+  text: String!
 }
 
 """
@@ -24,11 +43,11 @@ input RevisionChangesetInput {
   """
   Changeset applies to text at this revision
   """
-  revision: NonNegativeInt!
+  revision: NonNegativeInt @deprecated(reason: "Do not use")
   """
   New changes to be applied to text
   """
-  changeset: Changeset! @length(max: 10000)
+  changeset: Changeset @length(max: 10000) @deprecated(reason: "Do not use")
 }
 
 """
@@ -38,11 +57,11 @@ type CollabTextSelectionRange {
   """
   Start index of selection
   """
-  start: NonNegativeInt!
+  start: NonNegativeInt! @deprecated(reason: "Do not use")
   """
   End index of selection. If null then start === end.
   """
-  end: NonNegativeInt
+  end: NonNegativeInt @deprecated(reason: "Do not use")
 }
 
 """
@@ -52,11 +71,11 @@ input CollabTextSelectionRangeInput {
   """
   Start index of selection
   """
-  start: NonNegativeInt!
+  start: NonNegativeInt @deprecated(reason: "Do not use")
   """
   End index of selection. If null then start === end.
   """
-  end: NonNegativeInt
+  end: NonNegativeInt @deprecated(reason: "Do not use")
 }
 
 """
@@ -70,19 +89,46 @@ type CollabTextRecord implements Node {
   """
   User who created this record
   """
-  creatorUser: User!
+  creatorUser: User! @deprecated(reason: "Use author instead")
+  """
+  Author of this record
+  """
+  author: User!
   """
   Changes this record makes to the text
   """
   change: RevisionChangeset!
+    @deprecated(reason: "Use revision and changeset directly on CollabTextRecord")
+  """
+  Revision number
+  """
+  revision: NonNegativeInt!
+  """
+  Describes how to change text
+  """
+  changeset: Changeset!
+  """
+  Inverse of changeset
+  """
+  inverse: Changeset!
+
   """
   Selection before changeset is composed
   """
   beforeSelection: CollabTextSelectionRange!
+    @deprecated(reason: "Use selectionInverse instead")
   """
   Selection after changeset is composed
   """
-  afterSelection: CollabTextSelectionRange!
+  afterSelection: CollabTextSelectionRange! @deprecated(reason: "Use selection instead")
+  """
+  Selection when inverse is composed
+  """
+  selectionInverse: Selection!
+  """
+  Selection when changeset is composed
+  """
+  selection: Selection!
   """
   Time when this record was created
   """
@@ -96,19 +142,44 @@ input CollabTextRecordInput {
   """
   Randomly generated string by client
   """
-  generatedId: String! @length(max: 16)
+  generatedId: String @length(max: 16) @deprecated(reason: "Use id instead")
+  """
+  User generated short id for idempotency
+  """
+  id: String! @length(max: 16)
   """
   Change to be made on the text
   """
-  change: RevisionChangesetInput!
+  change: RevisionChangesetInput
+    @deprecated(
+      reason: "Use targetRevision and changeset directly on CollabTextRecordInput"
+    )
+  """
+  Revision of record which changeset is composable on this revision
+  """
+  targetRevision: NonNegativeInt!
+  """
+  Change to text at targetRevision
+  """
+  changeset: Changeset! @length(max: 10000)
   """
   Selection before change is composed
   """
-  beforeSelection: CollabTextSelectionRangeInput!
+  beforeSelection: CollabTextSelectionRangeInput
+    @deprecated(reason: "Use selection instead")
   """
   Selection after change is composed
   """
-  afterSelection: CollabTextSelectionRangeInput!
+  afterSelection: CollabTextSelectionRangeInput
+    @deprecated(reason: "Use selectionInverse instead")
+  """
+  Selection before changeset is composed
+  """
+  selectionInverse: Selection! @length(max: 100)
+  """
+  Selection when changeset is composed
+  """
+  selection: Selection! @length(max: 100)
 }
 
 """
@@ -122,11 +193,19 @@ type CollabText {
   """
   Latest revision of this text.
   """
-  headText: RevisionChangeset!
+  headText: RevisionChangeset! @deprecated(reason: "Use headRecord instead")
+  """
+  Newest text
+  """
+  headRecord: ComposedTextRecord!
   """
   Oldest available revision of this text. tailText.compose(...records) => headText
   """
-  tailText: RevisionChangeset!
+  tailText: RevisionChangeset! @deprecated(reason: "Use tailRecord instead")
+  """
+  Oldest text
+  """
+  tailRecord: ComposedTextRecord!
   """
   Text at specific revision. Is a composition of all previous changesets.
   """

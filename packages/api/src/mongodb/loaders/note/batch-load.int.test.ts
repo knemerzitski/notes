@@ -3,7 +3,7 @@ import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 import { beforeAll, it, assert, expect, beforeEach } from 'vitest';
 
-import { Changeset } from '../../../../../collab/src/changeset';
+import { Changeset, Selection } from '../../../../../collab2/src';
 
 import {
   resetDatabase,
@@ -44,7 +44,7 @@ beforeAll(async () => {
             ...record,
             override: {
               ...record.override,
-              changeset: Changeset.fromInsertion(
+              changeset: Changeset.fromText(
                 `r_${record.override?.revision ?? 'unknown'}`
               ).serialize(),
             },
@@ -116,7 +116,7 @@ it('loads a simple note', async () => {
         { readOnly: expect.any(Boolean), createdAt: expect.any(Date) },
       ],
       collabText: {
-        headText: { changeset: ['head'] },
+        headText: { changeset: Changeset.parse('0:"head"').serialize() },
         records: [
           {
             revision: 9,
@@ -167,14 +167,8 @@ it('loads all fields', async () => {
                   _id: 1,
                 },
                 userGeneratedId: 1,
-                afterSelection: {
-                  start: 1,
-                  end: 1,
-                },
-                beforeSelection: {
-                  start: 1,
-                  end: 1,
-                },
+                afterSelection: 1,
+                beforeSelection: 1,
               },
             },
           },
@@ -205,22 +199,24 @@ it('loads all fields', async () => {
         },
       ],
       collabText: {
-        headText: { changeset: ['head'], revision: expect.any(Number) },
-        tailText: { changeset: [], revision: expect.any(Number) },
+        headText: {
+          changeset: Changeset.parse('0:"head"').serialize(),
+          revision: expect.any(Number),
+        },
+        tailText: {
+          changeset: Changeset.parse('0:"head"').serialize(),
+          revision: expect.any(Number),
+        },
         records: [
           {
             revision: 6,
-            changeset: ['r_6'],
+            changeset: Changeset.parse('0:"r_6"').serialize(),
             creatorUser: {
               _id: expect.any(ObjectId),
             },
             userGeneratedId: expect.any(String),
-            afterSelection: {
-              start: 4,
-            },
-            beforeSelection: {
-              start: 0,
-            },
+            afterSelection: Selection.create(4).serialize(),
+            beforeSelection: Selection.ZERO.serialize(),
           },
         ],
       },
@@ -301,9 +297,7 @@ it('loads users.openNote', async () => {
     userId: user._id,
     collabText: {
       revision: 10,
-      latestSelection: {
-        start: 12,
-      },
+      latestSelection: Selection.create(12).serialize(),
     },
     clients: [],
     expireAt: new Date(Date.now() + 100000),

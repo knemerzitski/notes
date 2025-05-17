@@ -23,7 +23,7 @@ export async function updateOpenNote(
 ) {
   const runSingleOperation = mongoDB.runSingleOperation ?? ((run) => run());
 
-  openNote = OpenNoteSchema.createRaw({
+  const rawOpenNote = OpenNoteSchema.createRaw({
     clients: [],
     ...openNote,
   });
@@ -31,17 +31,17 @@ export async function updateOpenNote(
   return runSingleOperation((session) =>
     mongoDB.collections.openNotes.updateOne(
       {
-        noteId: openNote.noteId,
-        userId: openNote.userId,
+        noteId: rawOpenNote.noteId,
+        userId: rawOpenNote.userId,
       },
       {
         $setOnInsert: {
-          noteId: openNote.noteId,
-          userId: openNote.userId,
+          noteId: rawOpenNote.noteId,
+          userId: rawOpenNote.userId,
         },
         $set: {
-          expireAt: openNote.expireAt,
-          collabText: openNote.collabText,
+          expireAt: rawOpenNote.expireAt,
+          collabText: rawOpenNote.collabText,
         },
       },
       {

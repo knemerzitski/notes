@@ -4,7 +4,7 @@ import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 
-import { Changeset } from '../../../../collab/src/changeset';
+import { Changeset, Selection } from '../../../../collab2/src';
 
 import {
   mongoClient,
@@ -96,16 +96,10 @@ it('updates openNote with new selection when it exists', async () => {
     userId: user._id,
     maxRecordsCount: 1_000_000,
     insertRecord: {
-      changeset: Changeset.fromInsertion('footext'),
+      changeset: Changeset.fromText('footext', 3),
       revision: headRevision++,
-      afterSelection: {
-        start: 2,
-        end: 3,
-      },
-      beforeSelection: {
-        start: 0,
-        end: 0,
-      },
+      afterSelection: Selection.create(2, 3),
+      beforeSelection: Selection.ZERO,
       userGeneratedId: faker.string.nanoid(),
     },
     connectionId,
@@ -121,10 +115,7 @@ it('updates openNote with new selection when it exists', async () => {
       },
     ],
     collabText: {
-      latestSelection: {
-        end: 3,
-        start: 2,
-      },
+      latestSelection: Selection.create(2, 3).serialize(),
       revision: 2,
     },
     expireAt: openNoteDate,
@@ -140,7 +131,7 @@ it('handles inserting records with total size larger than 16MiB', async () => {
   const recordLength = TOTAL_PAYLOAD_SIZE / RECORDS_COUNT;
 
   let headRevision = note.collabText?.headText.revision ?? 1;
-  function insertText(value: string) {
+  function insertText(value: string, inputLength: number) {
     return insertCollabRecord({
       mongoDB: {
         client: mongoClient,
@@ -151,16 +142,10 @@ it('handles inserting records with total size larger than 16MiB', async () => {
       userId: user._id,
       maxRecordsCount: 1_000_000,
       insertRecord: {
-        changeset: Changeset.fromInsertion(value),
+        changeset: Changeset.fromText(value, inputLength),
         revision: headRevision++,
-        afterSelection: {
-          start: 0,
-          end: 0,
-        },
-        beforeSelection: {
-          start: 0,
-          end: 0,
-        },
+        afterSelection: Selection.ZERO,
+        beforeSelection: Selection.ZERO,
         userGeneratedId: faker.string.nanoid(),
       },
     });
@@ -168,8 +153,10 @@ it('handles inserting records with total size larger than 16MiB', async () => {
 
   await expect(
     (async () => {
+      let inputLength = 3;
       for (let i = 0; i < RECORDS_COUNT; i++) {
-        await insertText('a'.repeat(recordLength));
+        await insertText('a'.repeat(recordLength), inputLength);
+        inputLength = recordLength;
       }
       return true;
     })()

@@ -2,8 +2,9 @@
 import { ObjectId } from 'mongodb';
 import { describe, expect, it } from 'vitest';
 
-import { Changeset } from '../../../../../../collab/src/changeset';
 import { maybeCallFn } from '../../../../../../utils/src/maybe-call-fn';
+
+import { Changeset } from '../../../../../../collab2/src';
 
 import { mockResolver } from '../../../../__tests__/helpers/graphql/mock-resolver';
 import { STRUCT_NUMBER } from '../../../../mongodb/constants';
@@ -35,7 +36,7 @@ describe('pageInfo', () => {
     const allRecords: PartialQueryResultDeep<QueryableCollabRecord>[] = [
       ...new Array<undefined>(recordCount),
     ].map((_, i) => ({
-      changeset: Changeset.parseValue([[0, 3 + i], 'a']),
+      changeset: Changeset.parse(`${4 + i}:0-${3 + i},"a"`),
       revision: i + tailRevision + 1,
     }));
 

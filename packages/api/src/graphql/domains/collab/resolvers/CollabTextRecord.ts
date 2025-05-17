@@ -2,7 +2,6 @@ import { maybeCallFn } from '../../../../../../utils/src/maybe-call-fn';
 
 import { createMapQueryFn } from '../../../../mongodb/query/query';
 import { RevisionChangesetSchema } from '../../../../mongodb/schema/changeset';
-import { SelectionRangeSchema } from '../../../../mongodb/schema/collab-record';
 import { UserSchema } from '../../../../mongodb/schema/user';
 import type { CollabTextRecordResolvers } from '../../types.generated';
 
@@ -20,21 +19,42 @@ export const CollabTextRecord: CollabTextRecordResolvers = {
 
     return `${parentId}:${record.revision}`;
   },
-  afterSelection: (parent) => {
+  afterSelection: async (parent) => {
+    const selection = (await parent.query({ afterSelection: 1 }))?.afterSelection;
+    if (!selection) {
+      return null;
+    }
+
     return {
-      query: createMapQueryFn(parent.query)<SelectionRangeSchema>()(
-        (query) => ({ afterSelection: query }),
-        (result) => result.afterSelection
-      ),
+      start: selection.start,
+      end: selection.end,
     };
   },
-  beforeSelection: (parent) => {
+  beforeSelection: async (parent) => {
+    const selection = (await parent.query({ beforeSelection: 1 }))?.beforeSelection;
+    if (!selection) {
+      return null;
+    }
+
     return {
-      query: createMapQueryFn(parent.query)<SelectionRangeSchema>()(
-        (query) => ({ beforeSelection: query }),
-        (result) => result.beforeSelection
-      ),
+      start: selection.start,
+      end: selection.end,
     };
+  },
+  selectionInverse: async (parent) => {
+    return (await parent.query({ beforeSelection: 1 }))?.beforeSelection;
+  },
+  selection: async (parent) => {
+    return (await parent.query({ afterSelection: 1 }))?.afterSelection;
+  },
+  revision: async (parent) => {
+    return (await parent.query({ revision: 1 }))?.revision;
+  },
+  changeset: async (parent) => {
+    return (await parent.query({ changeset: 1 }))?.changeset;
+  },
+  inverse: async (parent) => {
+    return (await parent.query({ inverse: 1 }))?.inverse;
   },
   change: (parent) => {
     return {
@@ -45,6 +65,22 @@ export const CollabTextRecord: CollabTextRecordResolvers = {
     };
   },
   creatorUser: (parent) => {
+    return {
+      userId: async () =>
+        (
+          await parent.query({
+            creatorUser: {
+              _id: 1,
+            },
+          })
+        )?.creatorUser._id,
+      query: createMapQueryFn(parent.query)<Pick<UserSchema, '_id' | 'profile'>>()(
+        (query) => ({ creatorUser: query }),
+        (result) => result.creatorUser
+      ),
+    };
+  },
+  author: (parent) => {
     return {
       userId: async () =>
         (

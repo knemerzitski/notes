@@ -3,8 +3,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, expect, it } from 'vitest';
 
-import { Changeset } from '../../../../../../collab/src/changeset';
 import { maybeCallFn } from '../../../../../../utils/src/maybe-call-fn';
+
+import { Changeset } from '../../../../../../collab2/src';
 
 import { mockResolver } from '../../../../__tests__/helpers/graphql/mock-resolver';
 import { QueryableCollabText } from '../../../../mongodb/loaders/note/descriptions/collab-text';
@@ -47,7 +48,7 @@ describe('textAtRevision', () => {
               id: 'random',
               query: createPartialValueQueryFn<QueryableCollabText>(() => ({
                 tailText: {
-                  changeset: Changeset.fromInsertion('a'),
+                  changeset: Changeset.fromText('a'),
                   revision: 4,
                 },
                 records: [],
@@ -60,7 +61,7 @@ describe('textAtRevision', () => {
         revision: 1,
         changeset: 1,
       })
-    ).resolves.toStrictEqual({ revision: 4, changeset: Changeset.fromInsertion('a') });
+    ).resolves.toStrictEqual({ revision: 4, changeset: Changeset.fromText('a') });
   });
 
   it('returns revision 1 after tail', async () => {
@@ -72,12 +73,12 @@ describe('textAtRevision', () => {
               id: 'random',
               query: createPartialValueQueryFn<QueryableCollabText>(() => ({
                 tailText: {
-                  changeset: Changeset.fromInsertion('a'),
+                  changeset: Changeset.fromText('a'),
                   revision: 4,
                 },
                 records: [
                   {
-                    changeset: Changeset.parseValue([0, 'b']),
+                    changeset: Changeset.parse('1:0,"b"'),
                     revision: 5,
                   },
                 ],
@@ -90,7 +91,7 @@ describe('textAtRevision', () => {
         revision: 1,
         changeset: 1,
       })
-    ).resolves.toStrictEqual({ revision: 5, changeset: Changeset.fromInsertion('ab') });
+    ).resolves.toStrictEqual({ revision: 5, changeset: Changeset.fromText('ab') });
   });
 
   it('returns revision 2 after tail', async () => {
@@ -102,16 +103,16 @@ describe('textAtRevision', () => {
               id: 'random',
               query: createPartialValueQueryFn<QueryableCollabText>(() => ({
                 tailText: {
-                  changeset: Changeset.fromInsertion('a'),
+                  changeset: Changeset.fromText('a'),
                   revision: 4,
                 },
                 records: [
                   {
-                    changeset: Changeset.parseValue([0, 'b']),
+                    changeset: Changeset.parse('1:0,"b"'),
                     revision: 5,
                   },
                   {
-                    changeset: Changeset.parseValue([[0, 1], 'c']),
+                    changeset: Changeset.parse('2:0-1,"c"'),
                     revision: 6,
                   },
                 ],
@@ -124,7 +125,7 @@ describe('textAtRevision', () => {
         revision: 1,
         changeset: 1,
       })
-    ).resolves.toStrictEqual({ revision: 6, changeset: Changeset.fromInsertion('abc') });
+    ).resolves.toStrictEqual({ revision: 6, changeset: Changeset.fromText('abc') });
   });
 
   it('throws error for future revision', async () => {
@@ -136,12 +137,12 @@ describe('textAtRevision', () => {
               id: 'random',
               query: createPartialValueQueryFn<QueryableCollabText>(() => ({
                 tailText: {
-                  changeset: Changeset.fromInsertion('a'),
+                  changeset: Changeset.fromText('a'),
                   revision: 4,
                 },
                 records: [
                   {
-                    changeset: Changeset.parseValue([0, 'b']),
+                    changeset: Changeset.parse('1:0,"b"'),
                     revision: 5,
                   },
                 ],

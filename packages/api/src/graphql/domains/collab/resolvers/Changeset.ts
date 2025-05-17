@@ -1,16 +1,14 @@
 import { GraphQLScalarType, Kind, ValueNode } from 'graphql/index.js';
 
-import { Changeset as ChangesetClass } from '../../../../../../collab/src/changeset';
+import { Changeset as ChangesetClass } from '../../../../../../collab2/src';
 
-function valueFromAST(value: ValueNode): unknown {
-  if (value.kind === Kind.LIST) {
-    return value.values.map((value) => valueFromAST(value));
-  } else if (value.kind === Kind.STRING) {
+// TODO move to bottom
+function valueFromAST(value: ValueNode): string {
+  if (value.kind === Kind.STRING) {
     return value.value;
-  } else if (value.kind === Kind.INT) {
-    return Number.parseInt(value.value);
   }
-  return null;
+
+  throw new Error('Value must be a String');
 }
 
 export const Changeset = new GraphQLScalarType({
@@ -20,15 +18,23 @@ export const Changeset = new GraphQLScalarType({
     if (value instanceof ChangesetClass) {
       return value.serialize();
     }
-    return ChangesetClass.parseValue(value).serialize();
+    if (typeof value === 'string') {
+      return ChangesetClass.parse(value).serialize();
+    }
+
+    throw new Error('Value must be either a Changeset instance or a String');
   },
   parseValue: (value) => {
     if (value instanceof ChangesetClass) {
       return value;
     }
-    return ChangesetClass.parseValue(value);
+    if (typeof value === 'string') {
+      return ChangesetClass.parse(value);
+    }
+
+    throw new Error('Value must be either a Changeset instance or a String');
   },
   parseLiteral: (ast) => {
-    return ChangesetClass.parseValue(valueFromAST(ast));
+    return ChangesetClass.parse(valueFromAST(ast));
   },
 });

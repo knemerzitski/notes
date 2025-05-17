@@ -4,7 +4,6 @@ import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import { Changeset } from '../../../../../../collab/src/changeset';
 import { Maybe } from '../../../../../../utils/src/types';
 
 import { apolloServer } from '../../../../__tests__/helpers/graphql/apollo-server';
@@ -52,9 +51,9 @@ describe('noteLink', () => {
         noteLink(by: {id: $noteId}){
           note {
             collabText {
-              headText {
+              headRecord {
                 revision
-                changeset
+                text
               }
               recordConnection(last: $recordsLast) {
                 edges {
@@ -144,9 +143,9 @@ describe('noteLink', () => {
         noteLink: {
           note: {
             collabText: {
-              headText: {
+              headRecord: {
                 revision: expect.any(Number),
-                changeset: expect.any(Array),
+                text: expect.any(String),
               },
               recordConnection: {
                 edges: [
@@ -299,9 +298,7 @@ describe('noteLink', () => {
             "note": {
               "collabText": {
                 "textAtRevision": {
-                  "changeset": [
-                    "canal fabulous",
-                  ],
+                  "changeset": "0:"canal fabulous"",
                   "revision": 1,
                 },
               },
@@ -373,9 +370,9 @@ describe('noteLinkConnection', () => {
               note {
                 id
                 collabText {
-                  headText {
+                  headRecord {
                     revision
-                    changeset
+                    text
                   }
                   recordConnection(last: 2) {
                     edges {
@@ -724,8 +721,8 @@ describe('noteLinkSearchConnection', () => {
             note {
               id
               collabText {
-                headText {
-                  changeset
+                headRecord {
+                  text
                 }
               }
             }
@@ -838,8 +835,8 @@ describe('noteLinkSearchConnection', () => {
   function getTexts(data: {
     signedInUser: { noteLinkSearchConnection: UserNoteLinkConnection };
   }) {
-    return data.signedInUser.noteLinkSearchConnection.noteLinks.map((noteLink) =>
-      Changeset.parseValue(noteLink.note.collabText.headText.changeset).joinInsertions()
+    return data.signedInUser.noteLinkSearchConnection.noteLinks.map(
+      (noteLink) => noteLink.note.collabText.headRecord.text
     );
   }
 

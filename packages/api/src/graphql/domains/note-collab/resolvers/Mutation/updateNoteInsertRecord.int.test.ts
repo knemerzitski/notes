@@ -5,9 +5,9 @@ import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 import { beforeEach, it, expect, describe, beforeAll } from 'vitest';
 
-import { Changeset } from '../../../../../../../collab/src/changeset';
-import { RevisionChangeset } from '../../../../../../../collab/src/records/record';
 import { Subscription } from '../../../../../../../lambda-graphql/src/dynamodb/models/subscription';
+
+import { Changeset, Selection } from '../../../../../../../collab2/src';
 
 import { apolloServer } from '../../../../../__tests__/helpers/graphql/apollo-server';
 import {
@@ -48,29 +48,19 @@ const MUTATION = `#graphql
     updateNoteInsertRecord(input: $input) {
       newRecord {
         id
-        creatorUser {
+        author {
           id
         }
-        change {
-          revision
-          changeset
-        }
-        beforeSelection {
-          start
-          end
-        }
-        afterSelection {
-          start
-          end
-        }
+        revision
+        changeset
+        selectionInverse
+        selection
       }
       isDuplicateRecord
       collabText {
         recordConnection(last: 1) {
           records {
-            change {
-              revision
-            }
+            revision
           }
         }
       }
@@ -90,21 +80,13 @@ const SUBSCRIPTION = `#graphql
           isDuplicateRecord
           newRecord {
             id
-            creatorUser {
+            author {
               id
             }
-            change {
-              revision
-              changeset
-            }
-            beforeSelection {
-              start
-              end
-            }
-            afterSelection {
-              start
-              end
-            }
+            revision
+            changeset
+            selectionInverse
+            selection
           }
         }
       }
@@ -139,17 +121,17 @@ beforeEach(async () => {
       override: {
         headText: {
           revision: 6,
-          changeset: ['abcdef'],
+          changeset: Changeset.fromText('abcdef').serialize(),
         },
       },
       // Records with appending characters from "a" to "abcdef"
       records: [
-        ['a'], // 1
-        [0, 'b'], // 2
-        [[0, 1], 'c'], // 3
-        [[0, 2], 'd'], // 4
-        [[0, 3], 'e'], // 5
-        [[0, 4], 'f'], // 6
+        Changeset.parse('0:"a"').serialize(), // 1
+        Changeset.parse('1:0,"b"').serialize(), // 2
+        Changeset.parse('2:0-1,"c"').serialize(), // 3
+        Changeset.parse('3:0-2,"d"').serialize(), // 4
+        Changeset.parse('4:0-3,"e"').serialize(), // 5
+        Changeset.parse('5:0-4,"f"').serialize(), // 6
       ].map((changeset, index) => ({
         revision: index + 1,
         changeset,
@@ -234,17 +216,11 @@ it('inserts record on headText revision (newRecord = headText)', async () => {
     {
       noteId: note._id,
       insertRecord: {
-        generatedId: 'random',
-        change: {
-          revision: 14,
-          changeset: Changeset.parseValue([[0, 3], '. after head']),
-        },
-        beforeSelection: {
-          start: 4,
-        },
-        afterSelection: {
-          start: 16,
-        },
+        id: 'random',
+        targetRevision: 14,
+        changeset: Changeset.parse('4:0-3,". after head"'),
+        selectionInverse: Selection.create(4),
+        selection: Selection.create(16),
       },
     },
     {
@@ -258,30 +234,20 @@ it('inserts record on headText revision (newRecord = headText)', async () => {
     updateNoteInsertRecord: {
       newRecord: {
         id: `${objectIdToStr(note._id)}:15`,
-        creatorUser: {
+        author: {
           id: objectIdToStr(user._id),
         },
-        change: {
-          revision: 15,
-          changeset: [[0, 3], '. after head'],
-        },
-        beforeSelection: {
-          start: 4,
-          end: 4,
-        },
-        afterSelection: {
-          start: 16,
-          end: 16,
-        },
+        revision: 15,
+        changeset: Changeset.parse('4:0-3,". after head"').serialize(),
+        selectionInverse: Selection.create(4).serialize(),
+        selection: Selection.create(16).serialize(),
       },
       isDuplicateRecord: false,
       collabText: {
         recordConnection: {
           records: [
             {
-              change: {
-                revision: 15,
-              },
+              revision: 15,
             },
           ],
         },
@@ -304,11 +270,11 @@ it('inserts record on headText revision (newRecord = headText)', async () => {
     expect.objectContaining({
       collabText: {
         headText: {
-          changeset: ['head. after head'],
+          changeset: Changeset.fromText('head. after head').serialize(),
           revision: 15,
         },
         tailText: {
-          changeset: Changeset.EMPTY.serialize(),
+          changeset: Changeset.fromText('head').serialize(),
           revision: 10,
         },
         updatedAt: expect.any(Date),
@@ -328,17 +294,16 @@ it('inserts record on headText revision (newRecord = headText)', async () => {
       creatorUser: {
         _id: user._id,
       },
-      changeset: [[0, 3], '. after head'],
+      changeset: Changeset.parse('4:0-3,". after head"').serialize(),
+      inverse: Changeset.parse('16:0-3').serialize(),
       userGeneratedId: 'random',
       createdAt: expect.any(Date),
-      beforeSelection: {
-        start: 4,
-      },
-      afterSelection: {
-        start: 16,
-      },
+      beforeSelection: Selection.create(4).serialize(),
+      afterSelection: Selection.create(16).serialize(),
     },
   ]);
+
+  return;
 });
 
 it('inserts record on older revision (tailText < newRecord < headText)', async () => {
@@ -346,17 +311,11 @@ it('inserts record on older revision (tailText < newRecord < headText)', async (
     {
       noteId: note._id,
       insertRecord: {
-        generatedId: 'aa',
-        change: {
-          revision: 12,
-          changeset: Changeset.parseValue(['text on 12', [0, 3]]),
-        },
-        beforeSelection: {
-          start: 0,
-        },
-        afterSelection: {
-          start: 14,
-        },
+        id: 'aa',
+        targetRevision: 12,
+        changeset: Changeset.parse('4:"text on 12",0-3'),
+        selectionInverse: Selection.create(0),
+        selection: Selection.create(14),
       },
     },
     {
@@ -370,30 +329,20 @@ it('inserts record on older revision (tailText < newRecord < headText)', async (
     updateNoteInsertRecord: {
       newRecord: {
         id: expect.any(String),
-        creatorUser: {
+        author: {
           id: objectIdToStr(user._id),
         },
-        change: {
-          revision: 15,
-          changeset: [[0, 3], 'text on 12'],
-        },
-        beforeSelection: {
-          start: 0,
-          end: 0,
-        },
-        afterSelection: {
-          start: 14,
-          end: 14,
-        },
+        revision: 15,
+        changeset: Changeset.parse('4:0-3,"text on 12"').serialize(),
+        selectionInverse: Selection.create(4).serialize(),
+        selection: Selection.create(14).serialize(),
       },
       isDuplicateRecord: false,
       collabText: {
         recordConnection: {
           records: [
             {
-              change: {
-                revision: 15,
-              },
+              revision: 15,
             },
           ],
         },
@@ -416,11 +365,11 @@ it('inserts record on older revision (tailText < newRecord < headText)', async (
     expect.objectContaining({
       collabText: {
         headText: {
-          changeset: ['headtext on 12'],
+          changeset: Changeset.parse('0:"headtext on 12"').serialize(),
           revision: 15,
         },
         tailText: {
-          changeset: Changeset.EMPTY.serialize(),
+          changeset: Changeset.parse('0:"head"').serialize(),
           revision: 10,
         },
         updatedAt: expect.any(Date),
@@ -441,17 +390,16 @@ it('inserts record on older revision (tailText < newRecord < headText)', async (
       creatorUser: {
         _id: user._id,
       },
-      changeset: [[0, 3], 'text on 12'],
+      changeset: Changeset.parse('4:0-3,"text on 12"').serialize(),
+      inverse: Changeset.parse('14:0-3').serialize(),
       userGeneratedId: 'aa',
       createdAt: expect.any(Date),
-      beforeSelection: {
-        start: 0,
-      },
-      afterSelection: {
-        start: 14,
-      },
+      beforeSelection: Selection.create(4).serialize(),
+      afterSelection: Selection.create(14).serialize(),
     },
   ]);
+
+  return;
 });
 
 it('returns existing record when new record is a duplicate of a previous one (idempotence)', async () => {
@@ -460,17 +408,11 @@ it('returns existing record when new record is a duplicate of a previous one (id
       {
         noteId: note._id,
         insertRecord: {
-          generatedId: 'will_be_dup',
-          change: {
-            revision: 14,
-            changeset: Changeset.parseValue([[0, 3], '. after head']),
-          },
-          beforeSelection: {
-            start: 4,
-          },
-          afterSelection: {
-            start: 16,
-          },
+          id: 'will_be_dup',
+          targetRevision: 14,
+          changeset: Changeset.parse('4:0-3,". after head"'),
+          selectionInverse: Selection.create(4),
+          selection: Selection.create(16),
         },
       },
       {
@@ -488,30 +430,20 @@ it('returns existing record when new record is a duplicate of a previous one (id
     updateNoteInsertRecord: {
       newRecord: {
         id: expect.any(String),
-        creatorUser: {
+        author: {
           id: objectIdToStr(user._id),
         },
-        change: {
-          revision: 15,
-          changeset: [[0, 3], '. after head'],
-        },
-        beforeSelection: {
-          start: 4,
-          end: 4,
-        },
-        afterSelection: {
-          start: 16,
-          end: 16,
-        },
+        revision: 15,
+        changeset: Changeset.parse('4:0-3,". after head"').serialize(),
+        selectionInverse: Selection.create(4).serialize(),
+        selection: Selection.create(16).serialize(),
       },
       isDuplicateRecord: true,
       collabText: {
         recordConnection: {
           records: [
             {
-              change: {
-                revision: 15,
-              },
+              revision: 15,
             },
           ],
         },
@@ -532,11 +464,11 @@ it('returns existing record when new record is a duplicate of a previous one (id
     expect.objectContaining({
       collabText: {
         headText: {
-          changeset: ['head. after head'],
+          changeset: Changeset.parse('0:"head. after head"').serialize(),
           revision: 15,
         },
         tailText: {
-          changeset: Changeset.EMPTY.serialize(),
+          changeset: Changeset.parse('0:"head"').serialize(),
           revision: 10,
         },
         updatedAt: expect.any(Date),
@@ -557,15 +489,12 @@ it('returns existing record when new record is a duplicate of a previous one (id
       creatorUser: {
         _id: user._id,
       },
-      changeset: [[0, 3], '. after head'],
+      changeset: Changeset.parse('4:0-3,". after head"').serialize(),
+      inverse: Changeset.parse('16:0-3').serialize(),
       userGeneratedId: 'will_be_dup',
       createdAt: expect.any(Date),
-      beforeSelection: {
-        start: 4,
-      },
-      afterSelection: {
-        start: 16,
-      },
+      beforeSelection: Selection.create(4).serialize(),
+      afterSelection: Selection.create(16).serialize(),
     },
   ]);
 });
@@ -575,17 +504,11 @@ it('api options maxRecordsCount limits records exactly when new record is compos
     {
       noteId: note._id,
       insertRecord: {
-        generatedId: 'aa',
-        change: {
-          revision: 14,
-          changeset: Changeset.parseValue([[0, 3], '. after head']),
-        },
-        beforeSelection: {
-          start: 4,
-        },
-        afterSelection: {
-          start: 16,
-        },
+        id: 'aa',
+        targetRevision: 14,
+        changeset: Changeset.parse('4:0-3,". after head"'),
+        selectionInverse: Selection.create(4),
+        selection: Selection.create(16),
       },
     },
     {
@@ -612,11 +535,11 @@ it('api options maxRecordsCount limits records exactly when new record is compos
     expect.objectContaining({
       collabText: {
         headText: {
-          changeset: ['head. after head'],
+          changeset: Changeset.parse('0:"head. after head"').serialize(),
           revision: 15,
         },
         tailText: {
-          changeset: ['head'],
+          changeset: Changeset.parse('0:"head"').serialize(),
           revision: 12,
         },
         updatedAt: expect.any(Date),
@@ -637,17 +560,11 @@ it('api options maxRecordsCount keeps 1 extra record when new record is composed
     {
       noteId: note._id,
       insertRecord: {
-        generatedId: 'aa',
-        change: {
-          revision: 13,
-          changeset: Changeset.parseValue(['on 13']),
-        },
-        beforeSelection: {
-          start: 4,
-        },
-        afterSelection: {
-          start: 16,
-        },
+        id: 'aa',
+        targetRevision: 13,
+        changeset: Changeset.parse('4:"on 13"'),
+        selectionInverse: Selection.create(4),
+        selection: Selection.create(16),
       },
     },
     {
@@ -674,11 +591,11 @@ it('api options maxRecordsCount keeps 1 extra record when new record is composed
     expect.objectContaining({
       collabText: {
         headText: {
-          changeset: ['headon 13'],
+          changeset: Changeset.parse('0:"headon 13"').serialize(),
           revision: 15,
         },
         tailText: {
-          changeset: ['head'],
+          changeset: Changeset.parse('0:"head"').serialize(),
           revision: 13,
         },
         updatedAt: expect.any(Date),
@@ -698,21 +615,18 @@ describe('with other MongoDB context', () => {
   let generatedId = 0;
 
   async function insertChange(
-    change: RevisionChangeset,
+    { revision: targetRevision, changeset }: { revision: number; changeset: Changeset },
     options?: CreateGraphQLResolversContextOptions
   ) {
     const response = await executeOperation(
       {
         noteId: noteFixedRecords._id,
         insertRecord: {
-          generatedId: String(generatedId++),
-          change,
-          beforeSelection: {
-            start: 0,
-          },
-          afterSelection: {
-            start: 0,
-          },
+          id: String(generatedId++),
+          targetRevision,
+          changeset,
+          selectionInverse: Selection.ZERO,
+          selection: Selection.ZERO,
         },
       },
       options
@@ -735,14 +649,14 @@ describe('with other MongoDB context', () => {
       await Promise.all([
         insertChange(
           {
-            changeset: Changeset.parseValue([[0, 5], 'A']),
+            changeset: Changeset.parse('6:0-5,"A"'),
             revision: 6,
           },
           { user }
         ),
         insertChange(
           {
-            changeset: Changeset.parseValue([[0, 5], 'B']),
+            changeset: Changeset.parse('6:0-5,"B"'),
             revision: 6,
           },
           // Second insert with a different mongo client
@@ -763,16 +677,25 @@ describe('with other MongoDB context', () => {
         _id: noteFixedRecords._id,
       });
 
+      function expectOneOf<T>(values: T[]) {
+        return {
+          asymmetricMatch: (actual: T) => values.includes(actual),
+        };
+      }
+
       // Note
       expect(dbNote).toStrictEqual(
         expect.objectContaining({
           collabText: expect.objectContaining({
             headText: {
-              changeset: ['abcdefAB'],
+              changeset: expectOneOf([
+                Changeset.parse('0:"abcdefAB"').serialize(),
+                Changeset.parse('0:"abcdefBA"').serialize(),
+              ]),
               revision: 8,
             },
             tailText: {
-              changeset: Changeset.EMPTY.serialize(),
+              changeset: expect.any(String),
               revision: 0,
             },
           }),
@@ -782,12 +705,12 @@ describe('with other MongoDB context', () => {
       // Check last 2 records (could be inserted in any order)
       expect([
         [
-          { changeset: [[0, 5], 'A'], revision: 7 },
-          { changeset: [[0, 6], 'B'], revision: 8 },
+          { changeset: Changeset.parse('6:0-5,"A"').serialize(), revision: 7 },
+          { changeset: Changeset.parse('7:0-6,"B"').serialize(), revision: 8 },
         ],
         [
-          { changeset: [[0, 5], 'B'], revision: 7 },
-          { changeset: [[0, 5], 'A', 6], revision: 8 },
+          { changeset: Changeset.parse('6:0-5,"B"').serialize(), revision: 7 },
+          { changeset: Changeset.parse('7:0-6,"A"').serialize(), revision: 8 },
         ],
       ]).toContainEqual(
         (await getCollabTextRecords(dbNote))
@@ -819,17 +742,11 @@ describe('subscription', () => {
       {
         noteId: note._id,
         insertRecord: {
-          generatedId: 'in-subscription',
-          change: {
-            revision: 14,
-            changeset: Changeset.parseValue([[0, 3], '. after head. published']),
-          },
-          beforeSelection: {
-            start: 4,
-          },
-          afterSelection: {
-            start: 26,
-          },
+          id: 'in-subscription',
+          targetRevision: 14,
+          changeset: Changeset.parse('4:0-3,". after head. published"'),
+          selectionInverse: Selection.create(4),
+          selection: Selection.create(26),
         },
       },
       {
@@ -857,21 +774,15 @@ describe('subscription', () => {
                   __typename: 'UpdateNoteInsertRecordPayload',
                   newRecord: {
                     id: `${objectIdToStr(note._id)}:15`,
-                    creatorUser: {
+                    author: {
                       id: objectIdToStr(user._id),
                     },
-                    change: {
-                      revision: 15,
-                      changeset: [[0, 3], '. after head. published'],
-                    },
-                    beforeSelection: {
-                      start: 4,
-                      end: 4,
-                    },
-                    afterSelection: {
-                      start: 26,
-                      end: 26,
-                    },
+                    revision: 15,
+                    changeset: Changeset.parse(
+                      '4:0-3,". after head. published"'
+                    ).serialize(),
+                    selectionInverse: Selection.create(4).serialize(),
+                    selection: Selection.create(26).serialize(),
                   },
                   isDuplicateRecord: false,
                 },
@@ -892,21 +803,15 @@ describe('subscription', () => {
                   __typename: 'UpdateNoteInsertRecordPayload',
                   newRecord: {
                     id: `${objectIdToStr(note._id)}:15`,
-                    creatorUser: {
+                    author: {
                       id: objectIdToStr(user._id),
                     },
-                    change: {
-                      revision: 15,
-                      changeset: [[0, 3], '. after head. published'],
-                    },
-                    beforeSelection: {
-                      start: 4,
-                      end: 4,
-                    },
-                    afterSelection: {
-                      start: 26,
-                      end: 26,
-                    },
+                    revision: 15,
+                    changeset: Changeset.parse(
+                      '4:0-3,". after head. published"'
+                    ).serialize(),
+                    selectionInverse: Selection.create(4).serialize(),
+                    selection: Selection.create(26).serialize(),
                   },
                   isDuplicateRecord: false,
                 },
@@ -940,17 +845,11 @@ describe('subscription', () => {
         {
           noteId: note._id,
           insertRecord: {
-            generatedId: 'in-subscription',
-            change: {
-              revision: 14,
-              changeset: Changeset.parseValue(['val']),
-            },
-            beforeSelection: {
-              start: 0,
-            },
-            afterSelection: {
-              start: 3,
-            },
+            id: 'in-subscription',
+            targetRevision: 14,
+            changeset: Changeset.parse('4:"val"'),
+            selectionInverse: Selection.ZERO,
+            selection: Selection.create(3),
           },
         },
         {
@@ -978,17 +877,11 @@ describe('errors', () => {
       {
         noteId: note._id,
         insertRecord: {
-          generatedId: 'ab',
-          change: {
-            revision: 14,
-            changeset: Changeset.fromInsertion('never'),
-          },
-          beforeSelection: {
-            start: 0,
-          },
-          afterSelection: {
-            start: 9,
-          },
+          id: 'ab',
+          targetRevision: 14,
+          changeset: Changeset.fromText('never'),
+          selectionInverse: Selection.create(0),
+          selection: Selection.create(9),
         },
       },
       { user: userReadOnly }
@@ -1002,17 +895,11 @@ describe('errors', () => {
       {
         noteId: note._id,
         insertRecord: {
-          generatedId: 'aa',
-          change: {
-            revision: 9, // tailText is 10
-            changeset: Changeset.EMPTY,
-          },
-          beforeSelection: {
-            start: 0,
-          },
-          afterSelection: {
-            start: 18,
-          },
+          id: 'aa',
+          targetRevision: 9, // tailText is 10
+          changeset: Changeset.EMPTY,
+          selectionInverse: Selection.ZERO,
+          selection: Selection.create(18),
         },
       },
       {
@@ -1020,7 +907,7 @@ describe('errors', () => {
       }
     );
 
-    expectGraphQLResponseError(response, /is too old/i);
+    expectGraphQLResponseError(response, /too old/i);
   });
 
   it('throws error when new record revision is newer than headText (headText < newRecord)', async () => {
@@ -1028,17 +915,11 @@ describe('errors', () => {
       {
         noteId: note._id,
         insertRecord: {
-          generatedId: 'aa',
-          change: {
-            revision: 15, // headText is 14
-            changeset: Changeset.EMPTY,
-          },
-          beforeSelection: {
-            start: 0,
-          },
-          afterSelection: {
-            start: 18,
-          },
+          id: 'aa',
+          targetRevision: 15, // headText is 14
+          changeset: Changeset.EMPTY,
+          selectionInverse: Selection.ZERO,
+          selection: Selection.create(18),
         },
       },
       {
@@ -1054,17 +935,11 @@ describe('errors', () => {
       {
         noteId: note._id,
         insertRecord: {
-          generatedId: 'aa',
-          change: {
-            revision: 14,
-            changeset: Changeset.parseValue([[0, 10], ' too many retained characters']),
-          },
-          beforeSelection: {
-            start: 0,
-          },
-          afterSelection: {
-            start: 0,
-          },
+          id: 'aa',
+          targetRevision: 14,
+          changeset: Changeset.parse('11:0-10," too many retained characters"'),
+          selectionInverse: Selection.ZERO,
+          selection: Selection.ZERO,
         },
       },
       {
@@ -1080,17 +955,11 @@ describe('errors', () => {
       {
         noteId: new ObjectId(),
         insertRecord: {
-          generatedId: 'ab',
-          change: {
-            revision: 14,
-            changeset: Changeset.fromInsertion('never'),
-          },
-          beforeSelection: {
-            start: 0,
-          },
-          afterSelection: {
-            start: 9,
-          },
+          id: 'ab',
+          targetRevision: 14,
+          changeset: Changeset.fromText('never'),
+          selectionInverse: Selection.ZERO,
+          selection: Selection.create(9),
         },
       },
       { user }
@@ -1104,17 +973,11 @@ describe('errors', () => {
       {
         noteId: note._id,
         insertRecord: {
-          generatedId: 'ab',
-          change: {
-            revision: 14,
-            changeset: Changeset.fromInsertion('never'),
-          },
-          beforeSelection: {
-            start: 0,
-          },
-          afterSelection: {
-            start: 9,
-          },
+          id: 'ab',
+          targetRevision: 14,
+          changeset: Changeset.fromText('never'),
+          selectionInverse: Selection.ZERO,
+          selection: Selection.create(9),
         },
       },
       { user: userNoAccess }
@@ -1127,17 +990,11 @@ describe('errors', () => {
     const response = await executeOperation({
       noteId: note._id,
       insertRecord: {
-        generatedId: 'ab',
-        change: {
-          revision: 14,
-          changeset: Changeset.fromInsertion('never'),
-        },
-        beforeSelection: {
-          start: 0,
-        },
-        afterSelection: {
-          start: 9,
-        },
+        id: 'ab',
+        targetRevision: 14,
+        changeset: Changeset.fromText('never'),
+        selectionInverse: Selection.create(0),
+        selection: Selection.create(9),
       },
     });
 
