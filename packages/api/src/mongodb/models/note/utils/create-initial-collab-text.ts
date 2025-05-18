@@ -1,6 +1,10 @@
 import { ObjectId } from 'mongodb';
 
-import { Changeset, createServerState, Selection } from '../../../../../../collab2/src';
+import {
+  Changeset,
+  createServerStateFromRecords,
+  Selection,
+} from '../../../../../../collab2/src';
 
 import { CollabRecordSchema, SelectionSchema } from '../../../schema/collab-record';
 import { CollabTextSchema } from '../../../schema/collab-text';
@@ -24,7 +28,7 @@ export function createInitialCollabText({
   collabText: CollabTextSchema;
   collabRecords: CollabRecordSchema[];
 } {
-  const serverState = createServerState([
+  const serverState = createServerStateFromRecords([
     {
       authorId: '',
       changeset: Changeset.fromText(initialText),

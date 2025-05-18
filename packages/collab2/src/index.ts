@@ -2,7 +2,7 @@ export { Changeset, ChangesetStruct } from './common/changeset';
 export { Selection, SelectionStruct } from './common/selection';
 
 export {
-  createState as createServerState,
+  createState as createServerStateFromRecords,
   composeNewTail,
   processSubmittedRecord,
   ServerError,
