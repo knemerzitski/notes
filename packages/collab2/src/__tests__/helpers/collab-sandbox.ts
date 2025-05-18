@@ -18,8 +18,8 @@ import {
   ControlledTyper,
   JsonTyperService,
   spaceNewlineHook,
+  TextParser,
 } from '../../client';
-import { TextParser } from '../../client/typing/json/text-parser';
 import { Changeset } from '../../common/changeset';
 import { Selection } from '../../common/selection';
 import {
@@ -272,7 +272,7 @@ class Client {
     requestMissingRevisions?: boolean;
     jsonTyper?: PartialBy<
       Omit<ConstructorParameters<typeof JsonTyperService>[0], 'collabService'>,
-      'parser'
+      'context'
     >;
   }) {
     this.name = options.name;
@@ -296,16 +296,18 @@ class Client {
         format: 'object',
       });
       const jsonService = new JsonTyperService({
-        parser: new TextParser({
-          logger: logger.extend('parser'),
-          hook: spaceNewlineHook,
-          keys: fieldNames,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          fallbackKey: fieldNames[0]!,
-        }),
-        logger,
-        ...options.jsonTyper,
         collabService: this.service,
+        context: {
+          logger,
+          parser: new TextParser({
+            logger: logger.extend('parser'),
+            hook: spaceNewlineHook,
+            keys: fieldNames,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            fallbackKey: fieldNames[0]!,
+          }),
+        },
+        ...options.jsonTyper,
       });
 
       this.json = {

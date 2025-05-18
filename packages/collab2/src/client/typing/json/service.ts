@@ -6,7 +6,7 @@ import { Selection } from '../../../common/selection';
 import { Typer } from '../types';
 
 import { FieldTyper } from './field-typer';
-import { Context, FieldText, ParsedViewText } from './types';
+import { FieldText, ParsedViewText, Properties } from './types';
 
 export class Service<T extends string> {
   readonly on;
@@ -20,12 +20,12 @@ export class Service<T extends string> {
 
   private readonly disposeHandlers: () => void;
 
-  constructor(readonly ctx: Context<T>) {
-    this.on = this.ctx.collabService.on;
-    this.off = this.ctx.collabService.on;
+  constructor(readonly props: Properties<T>) {
+    this.on = this.props.collabService.on;
+    this.off = this.props.collabService.on;
 
     this.typerByName = Object.fromEntries(
-      ctx.fieldNames.map((fieldName) => [
+      this.props.fieldNames.map((fieldName) => [
         fieldName,
         new FieldTyper({
           name: fieldName,
@@ -63,16 +63,20 @@ export class Service<T extends string> {
     return this.ctx.parser;
   }
 
+  private get ctx() {
+    return this.props.context;
+  }
+
   private get logger() {
     return this.ctx.logger;
   }
 
   private get collabService() {
-    return this.ctx.collabService;
+    return this.props.collabService;
   }
 
   private get fieldNames() {
-    return this.ctx.fieldNames;
+    return this.props.fieldNames;
   }
 
   addLocalTyping(...args: Parameters<CollabService['addLocalTyping']>) {

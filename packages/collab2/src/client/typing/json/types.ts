@@ -2,13 +2,9 @@ import { Logger } from '../../../../../utils/src/logging';
 
 import { CollabService } from '../..';
 
-export interface Context<T extends string> {
-  readonly logger?: Logger;
-
+export interface Properties<T extends string> {
+  readonly context: Context;
   readonly fieldNames: readonly T[];
-
-  readonly parser: Parser;
-
   readonly collabService: Pick<
     CollabService,
     | 'on'
@@ -18,6 +14,11 @@ export interface Context<T extends string> {
     | 'viewRevision'
     | 'addLocalTyping'
   >;
+}
+
+export interface Context {
+  readonly logger?: Logger;
+  readonly parser: Parser;
 }
 
 export interface Parser {

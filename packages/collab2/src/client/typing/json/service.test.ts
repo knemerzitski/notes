@@ -15,10 +15,12 @@ describe('one field', () => {
     const fieldNames = ['c'] as const;
     const jsonService = new Service({
       fieldNames,
-      parser: new TextParser({
-        keys: fieldNames,
-        fallbackKey: fieldNames[0],
-      }),
+      context: {
+        parser: new TextParser({
+          keys: fieldNames,
+          fallbackKey: fieldNames[0],
+        }),
+      },
       collabService,
     });
 
@@ -45,10 +47,12 @@ describe('one field', () => {
     const fieldNames = ['c'] as const;
     const jsonService = new Service({
       fieldNames,
-      parser: new TextParser({
-        keys: fieldNames,
-        fallbackKey: fieldNames[0],
-      }),
+      context: {
+        parser: new TextParser({
+          keys: fieldNames,
+          fallbackKey: fieldNames[0],
+        }),
+      },
       collabService,
     });
 
@@ -74,10 +78,12 @@ describe('one field', () => {
     const fieldNames = ['c'] as const;
     const jsonService = new Service({
       fieldNames,
-      parser: new TextParser({
-        keys: fieldNames,
-        fallbackKey: fieldNames[0],
-      }),
+      context: {
+        parser: new TextParser({
+          keys: fieldNames,
+          fallbackKey: fieldNames[0],
+        }),
+      },
       collabService,
     });
     expect(collabService.viewText).toStrictEqual('{"c":""}');
@@ -103,11 +109,13 @@ describe('one field', () => {
     const fieldNames = ['c'] as const;
     const jsonService = new Service({
       fieldNames,
-      parser: new TextParser({
-        hook: spaceNewlineHook,
-        keys: fieldNames,
-        fallbackKey: fieldNames[0],
-      }),
+      context: {
+        parser: new TextParser({
+          hook: spaceNewlineHook,
+          keys: fieldNames,
+          fallbackKey: fieldNames[0],
+        }),
+      },
       collabService,
     });
 
@@ -128,11 +136,13 @@ describe('one field', () => {
     const fieldNames = ['c'] as const;
     const jsonService = new Service({
       fieldNames,
-      parser: new TextParser({
-        hook: spaceNewlineHook,
-        keys: fieldNames,
-        fallbackKey: fieldNames[0],
-      }),
+      context: {
+        parser: new TextParser({
+          hook: spaceNewlineHook,
+          keys: fieldNames,
+          fallbackKey: fieldNames[0],
+        }),
+      },
       collabService,
     });
 
@@ -158,11 +168,13 @@ describe('one field', () => {
     const fieldNames = ['c'] as const;
     const jsonService = new Service({
       fieldNames,
-      parser: new TextParser({
-        hook: spaceNewlineHook,
-        keys: fieldNames,
-        fallbackKey: fieldNames[0],
-      }),
+      context: {
+        parser: new TextParser({
+          hook: spaceNewlineHook,
+          keys: fieldNames,
+          fallbackKey: fieldNames[0],
+        }),
+      },
       collabService,
     });
 
@@ -188,11 +200,13 @@ describe('one field', () => {
     const fieldNames = ['c'] as const;
     const jsonService = new Service({
       fieldNames,
-      parser: new TextParser({
-        hook: spaceNewlineHook,
-        keys: fieldNames,
-        fallbackKey: fieldNames[0],
-      }),
+      context: {
+        parser: new TextParser({
+          hook: spaceNewlineHook,
+          keys: fieldNames,
+          fallbackKey: fieldNames[0],
+        }),
+      },
       collabService,
     });
 
@@ -253,11 +267,13 @@ describe('one field', () => {
     const fieldNames = ['c'] as const;
     const jsonService = new Service({
       fieldNames,
-      parser: new TextParser({
-        hook: spaceNewlineHook,
-        keys: fieldNames,
-        fallbackKey: fieldNames[0],
-      }),
+      context: {
+        parser: new TextParser({
+          hook: spaceNewlineHook,
+          keys: fieldNames,
+          fallbackKey: fieldNames[0],
+        }),
+      },
       collabService,
     });
 
@@ -319,11 +335,13 @@ describe('one field', () => {
     const fieldNames = ['c'] as const;
     const jsonService = new Service({
       fieldNames,
-      parser: new TextParser({
-        hook: spaceNewlineHook,
-        keys: fieldNames,
-        fallbackKey: fieldNames[0],
-      }),
+      context: {
+        parser: new TextParser({
+          hook: spaceNewlineHook,
+          keys: fieldNames,
+          fallbackKey: fieldNames[0],
+        }),
+      },
       collabService,
     });
 
@@ -361,10 +379,13 @@ describe('two fields', () => {
     const fieldNames = ['t', 'c'] as const;
     const jsonService = new Service({
       fieldNames,
-      parser: new TextParser({
-        keys: fieldNames,
-        fallbackKey: fieldNames[1],
-      }),
+      context: {
+        parser: new TextParser({
+          hook: spaceNewlineHook,
+          keys: fieldNames,
+          fallbackKey: fieldNames[1],
+        }),
+      },
       collabService,
     });
 
@@ -381,10 +402,13 @@ describe('two fields', () => {
     const fieldNames = ['t', 'c'] as const;
     const jsonService = new Service({
       fieldNames,
-      parser: new TextParser({
-        keys: fieldNames,
-        fallbackKey: fieldNames[1],
-      }),
+      context: {
+        parser: new TextParser({
+          hook: spaceNewlineHook,
+          keys: fieldNames,
+          fallbackKey: fieldNames[1],
+        }),
+      },
       collabService,
     });
 
@@ -402,10 +426,13 @@ describe('two fields', () => {
     const fieldNames = ['t', 'c'] as const;
     const jsonService = new Service({
       fieldNames,
-      parser: new TextParser({
-        keys: fieldNames,
-        fallbackKey: fieldNames[1],
-      }),
+      context: {
+        parser: new TextParser({
+          hook: spaceNewlineHook,
+          keys: fieldNames,
+          fallbackKey: fieldNames[1],
+        }),
+      },
       collabService,
     });
 
@@ -442,10 +469,13 @@ describe('two fields', () => {
     const fieldNames = ['t', 'c'] as const;
     const jsonService = new Service({
       fieldNames,
-      parser: new TextParser({
-        keys: fieldNames,
-        fallbackKey: fieldNames[1],
-      }),
+      context: {
+        parser: new TextParser({
+          hook: spaceNewlineHook,
+          keys: fieldNames,
+          fallbackKey: fieldNames[1],
+        }),
+      },
       collabService,
     });
 
@@ -469,10 +499,13 @@ describe('two fields', () => {
     const fieldNames = ['t', 'c'] as const;
     const jsonService = new Service({
       fieldNames,
-      parser: new TextParser({
-        keys: fieldNames,
-        fallbackKey: fieldNames[1],
-      }),
+      context: {
+        parser: new TextParser({
+          hook: spaceNewlineHook,
+          keys: fieldNames,
+          fallbackKey: fieldNames[1],
+        }),
+      },
       collabService,
     });
 
@@ -494,10 +527,13 @@ describe('two fields', () => {
     const fieldNames = ['t', 'c'] as const;
     const jsonService = new Service({
       fieldNames,
-      parser: new TextParser({
-        keys: fieldNames,
-        fallbackKey: fieldNames[1],
-      }),
+      context: {
+        parser: new TextParser({
+          hook: spaceNewlineHook,
+          keys: fieldNames,
+          fallbackKey: fieldNames[1],
+        }),
+      },
       collabService,
     });
 
@@ -611,10 +647,13 @@ describe('two fields', () => {
     const fieldNames = ['t', 'c'] as const;
     const jsonService = new Service({
       fieldNames,
-      parser: new TextParser({
-        keys: fieldNames,
-        fallbackKey: fieldNames[1],
-      }),
+      context: {
+        parser: new TextParser({
+          hook: spaceNewlineHook,
+          keys: fieldNames,
+          fallbackKey: fieldNames[1],
+        }),
+      },
       collabService,
     });
 
@@ -738,11 +777,13 @@ describe('two fields', () => {
     const fieldNames = ['CONTENT', 'TITLE'] as const;
     const jsonService = new Service({
       fieldNames,
-      parser: new TextParser({
-        hook: spaceNewlineHook,
-        keys: fieldNames,
-        fallbackKey: fieldNames[0],
-      }),
+      context: {
+        parser: new TextParser({
+          hook: spaceNewlineHook,
+          keys: fieldNames,
+          fallbackKey: fieldNames[0],
+        }),
+      },
       collabService,
     });
 
@@ -785,11 +826,13 @@ describe('two fields', () => {
     const fieldNames = ['CONTENT', 'TITLE'] as const;
     const jsonService = new Service({
       fieldNames,
-      parser: new TextParser({
-        hook: spaceNewlineHook,
-        keys: fieldNames,
-        fallbackKey: fieldNames[0],
-      }),
+      context: {
+        parser: new TextParser({
+          hook: spaceNewlineHook,
+          keys: fieldNames,
+          fallbackKey: fieldNames[0],
+        }),
+      },
       collabService,
     });
 
@@ -832,11 +875,13 @@ describe('two fields', () => {
     const fieldNames = ['CONTENT', 'TITLE'] as const;
     const jsonService = new Service({
       fieldNames,
-      parser: new TextParser({
-        hook: spaceNewlineHook,
-        keys: fieldNames,
-        fallbackKey: fieldNames[0],
-      }),
+      context: {
+        parser: new TextParser({
+          hook: spaceNewlineHook,
+          keys: fieldNames,
+          fallbackKey: fieldNames[0],
+        }),
+      },
       collabService,
     });
 
