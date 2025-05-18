@@ -135,9 +135,6 @@ export class Service {
     return this.state.viewRevision;
   }
 
-  /**
-   * @see {@link MutableComputedState.historySize}
-   */
   get historySize() {
     return this.computedState.historySize;
   }
