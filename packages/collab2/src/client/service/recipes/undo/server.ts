@@ -2,7 +2,7 @@ import { castDraft, WritableDraft } from 'immer';
 
 import { Changeset } from '../../../../common/changeset';
 import { followChangesetSelection } from '../../../../common/utils/follow-changeset-selection';
-import { Context, Properties, ServerHistoryServiceRecord, State } from '../../types';
+import { Properties, ServerHistoryServiceRecord, State } from '../../types';
 import { asComputed } from '../../utils/as-computed';
 import { collectValuesUntil } from '../../utils/collect-values-until';
 import { updateLocalRecord } from '../update-local-record';
@@ -17,13 +17,11 @@ const INSERT_BIAS = false;
  * Redoes a server records by retrieving record from server
  */
 export function server(
-  props: Pick<Properties, 'serverFacades'> & {
-    readonly context: Pick<Context, 'isExternalTypingHistory'>;
-  }
+  props: Pick<Properties, 'serverFacades' | 'isExternalTypingHistory'>
 ) {
   return (record: ServerHistoryServiceRecord, draft: WritableDraft<State>) => {
     const computedDraft = asComputed(draft);
-    const isExternalTypingHistory = props.context.isExternalTypingHistory;
+    const isExternalTypingHistory = props.isExternalTypingHistory;
 
     const serverFacades = props.serverFacades;
     if (serverFacades.size === 0) {

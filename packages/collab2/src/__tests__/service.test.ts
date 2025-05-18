@@ -1,4 +1,3 @@
- 
 import { expect, it } from 'vitest';
 
 import { Changeset } from '../common/changeset';
@@ -37,9 +36,7 @@ it('emits correct events with insert, submit, undo', () => {
     clients: ['A'],
     client: {
       service: {
-        context: {
-          isExternalTypingHistory: () => true,
-        },
+        isExternalTypingHistory: () => true,
       },
     },
   });

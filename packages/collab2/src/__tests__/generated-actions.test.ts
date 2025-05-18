@@ -1,7 +1,3 @@
- 
- 
- 
- 
 import { faker } from '@faker-js/faker';
 
 import { it } from 'vitest';

@@ -25,6 +25,12 @@ export interface Properties {
   readonly context: Context;
 
   /**
+   * Decide whether to make external typing part of history
+   * @default () => false
+   */
+  readonly isExternalTypingHistory: (record: ServiceServerRecord) => boolean;
+
+  /**
    * Server facades enable service to undo server records not in local history stack.
    */
   readonly serverFacades: ServerFacades;
@@ -133,12 +139,6 @@ export interface Context {
    * @default nanoid(6)
    */
   readonly generateSubmitId: () => string;
-
-  /**
-   * Decide whether to make external typing part of history
-   * @default () => false
-   */
-  readonly isExternalTypingHistory: (record: ServiceServerRecord) => boolean;
 
   /**
    * How many history records are stored at most.

@@ -20,7 +20,6 @@ import {
 } from './types';
 import { asComputed } from './utils/as-computed';
 
-
 import {
   transformPartialProperties,
   PartialProperties,
@@ -331,7 +330,7 @@ export class Service {
     // Check if server has any records that's considered part of history
     let revision = firstRecord.revision + 1;
     for (const serverRecord of this.serverFacades.olderIterable(revision)) {
-      if (this.context.isExternalTypingHistory(serverRecord)) {
+      if (this.props.isExternalTypingHistory(serverRecord)) {
         return true;
       }
       revision = serverRecord.revision;
@@ -476,7 +475,7 @@ export class Service {
 
     for (const { recipe, ...restProps } of $meals.processQueuedServerMessages(
       this.computedState.asImmutable(),
-      this.context
+      this.props
     )) {
       this.logger?.debug('processMessage', {
         ...restProps,

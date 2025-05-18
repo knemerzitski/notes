@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
- 
- 
- 
+
 import { expect, it } from 'vitest';
 
 import { logAll } from '../../../utils/src/log-all';
@@ -832,10 +830,8 @@ it('can undo "d" after setting new headText', () => {
     clients: ['A', 'B'],
     client: {
       service: {
-        context: {
-          // Both clients are treated as same user
-          isExternalTypingHistory: () => true,
-        },
+        // Both clients are treated as same user
+        isExternalTypingHistory: () => true,
       },
     },
   });

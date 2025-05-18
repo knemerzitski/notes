@@ -34,10 +34,6 @@ import {
 
 import { textWithSelection, textWithSelections } from './selection';
 
-
-
-
-
 export function createCollabSandbox<TClientName extends string>(options?: {
   server?: ConstructorParameters<typeof Server>[0];
   clients?: (
@@ -152,14 +148,14 @@ class Server {
     const client = new Client({
       ...options,
       service: {
+        isExternalTypingHistory: (record) => record.authorId === authorId,
+        state: createStateFromHeadRecord(this.headRecord),
         ...options?.service,
-        state: options?.service?.state ?? createStateFromHeadRecord(this.headRecord),
+        // Any typing from same author is part of history
         context: {
           logger: createLogger(`${name}:service`, {
             format: 'object',
           }),
-          // Any typing from same author is part of history
-          isExternalTypingHistory: (record) => record.authorId === authorId,
           ...options?.service?.context,
         },
       },

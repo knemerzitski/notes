@@ -2,11 +2,11 @@ import { WritableDraft } from 'immer';
 
 import { ComputedState } from '../computed-state';
 import { $recipes } from '../recipes';
-import { Context, IncomingServerMessage, State } from '../types';
+import { IncomingServerMessage, Properties, State } from '../types';
 
 export function* processQueuedServerMessages(
   computedState: ComputedState,
-  context: Context
+  props: Pick<Properties, 'isExternalTypingHistory'>
 ) {
   let prevMessage: IncomingServerMessage | undefined;
   let message: IncomingServerMessage | undefined;
@@ -40,7 +40,7 @@ export function* processQueuedServerMessages(
         type: 'message' as const,
         message: definedMessage,
         recipe: (draft: WritableDraft<State>) => {
-          $recipes.processExternalTyping(definedMessage.item, context)(draft);
+          $recipes.processExternalTyping(definedMessage.item, props)(draft);
           draft.messagesQueue.shift();
         },
       };

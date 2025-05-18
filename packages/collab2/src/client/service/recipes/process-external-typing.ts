@@ -2,7 +2,7 @@ import { castDraft, WritableDraft } from 'immer';
 
 import { Changeset } from '../../../common/changeset';
 import { INSERT_BIAS } from '../../../common/utils/insert-bias';
-import { Context, ServiceServerRecord, State } from '../types';
+import { Properties, ServiceServerRecord, State } from '../types';
 import { asComputed } from '../utils/as-computed';
 import { getLastHistoryRecord } from '../utils/history-record';
 
@@ -11,7 +11,7 @@ export function processExternalTyping(
     ServiceServerRecord,
     'changeset' | 'selection' | 'selectionInverse' | 'revision' | 'authorId'
   >,
-  context: Pick<Context, 'isExternalTypingHistory'>
+  props: Pick<Properties, 'isExternalTypingHistory'>
 ) {
   return (draft: WritableDraft<State>) => {
     const computedDraft = asComputed(draft);
@@ -70,7 +70,7 @@ export function processExternalTyping(
 
     const viewComposableInverse = Changeset.inverse(viewComposableChange, draft.viewText);
 
-    if (context.isExternalTypingHistory(externalRecord)) {
+    if (props.isExternalTypingHistory(externalRecord)) {
       // A * X * Y
       //   * B
       // A * B * X' * Y'
