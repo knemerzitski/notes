@@ -227,7 +227,7 @@ export type ServiceServerRecord = Pick<
 
 export type IncomingServerMessage =
   | {
-      type: 'local-typing-acknowledged';
+      type: 'submitted-changes-acknowledged';
       item: Pick<ServiceServerRecord, 'revision' | 'changeset'>;
     }
   | {

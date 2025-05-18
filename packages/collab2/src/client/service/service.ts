@@ -290,7 +290,7 @@ export class Service {
     record: Parameters<typeof $recipes.acknowledgeSubmittedRecord>[0]
   ): void {
     this.processIncomingServerMessage({
-      type: 'local-typing-acknowledged',
+      type: 'submitted-changes-acknowledged',
       item: record,
     });
   }

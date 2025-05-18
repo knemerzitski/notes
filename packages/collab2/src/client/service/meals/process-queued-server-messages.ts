@@ -45,7 +45,7 @@ export function* processQueuedServerMessages(
         },
       };
     } else {
-      // local-typing-acknowledged
+      // submitted-changes-acknowledged
       yield {
         type: 'message' as const,
         message: definedMessage,

@@ -88,7 +88,7 @@ const ExternalTypingRecordRecord = assign(
 );
 
 const IncomingServerMessageStruct = object({
-  type: enums(['local-typing-acknowledged', 'external-typing']),
+  type: enums(['submitted-changes-acknowledged', 'external-typing']),
   item: ServiceServerRecordStruct,
 });
 
