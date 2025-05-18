@@ -4,6 +4,7 @@ export type {
   TailRecord,
   SubmittedRecord,
   ServerState,
+  TextRecord,
 } from './types';
 
 export { createState } from './create-state';

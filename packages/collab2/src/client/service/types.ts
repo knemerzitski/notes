@@ -238,7 +238,7 @@ export type IncomingServerMessage =
       >;
     };
 
-type ServerFacadeRecord = Pick<
+export type ServerFacadeRecord = Pick<
   ServerRecord,
   'revision' | 'authorId' | 'changeset' | 'inverse' | 'selectionInverse' | 'selection'
 >;
