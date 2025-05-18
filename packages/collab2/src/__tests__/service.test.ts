@@ -70,7 +70,7 @@ it('emits correct events with insert, submit, undo', () => {
       "localTyping:applied",
       "view:changed",
       "submittedChanges:have",
-      "records:restored",
+      "records:updated",
       "submittedChanges:acknowledged",
       "serverRevision:changed",
       "undo:applied",

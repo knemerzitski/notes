@@ -70,7 +70,7 @@ export interface ServiceEvents {
   /**
    * More older records are available. canUndo might succeed now
    */
-  'records:restored': BaseEvent;
+  'records:updated': BaseEvent;
 }
 
 export class Service {
@@ -445,7 +445,7 @@ export class Service {
 
   private recordsRestored() {
     this.eventPhaseQueue.addAndFlush(() => {
-      this.eventBus.emit('records:restored', this.createEvent());
+      this.eventBus.emit('records:updated', this.createEvent());
     });
   }
 
