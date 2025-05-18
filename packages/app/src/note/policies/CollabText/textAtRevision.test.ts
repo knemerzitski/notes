@@ -7,12 +7,13 @@ import { it, expect, beforeAll, describe, beforeEach } from 'vitest';
 import { createGraphQLService } from '../../../graphql/create/service';
 import { createDefaultGraphQLServiceParams } from '../../../graphql-service';
 import { getCollabTextId } from '../../utils/id';
+import { Changeset } from '../../../../../collab2/src';
 
 const TextAtRevision_CollabTextFragment = gql(`
   fragment TextAtRevision_CollabTextFragment on CollabText {
     textAtRevision(revision: $revision) {
       revision
-      changeset
+      text
     }
   }
 `);
@@ -47,14 +48,14 @@ describe('read', () => {
         id: '1',
         textAtRevision: [
           {
-            __typename: 'RevisionChangeset',
+            __typename: 'ComposedTextRecord',
             revision: 3,
-            changeset: ['a'],
+            text: 'a',
           },
           {
-            __typename: 'RevisionChangeset',
+            __typename: 'ComposedTextRecord',
             revision: 5,
-            changeset: ['abc'],
+            text: 'abc',
           },
         ],
         recordConnection: {
@@ -65,11 +66,8 @@ describe('read', () => {
               node: {
                 __typename: 'CollabTextRecord',
                 id: '1',
-                change: {
-                  __typename: 'RevisionChangeset',
-                  revision: 4,
-                  changeset: [0, 'b'],
-                },
+                revision: 4,
+                changeset: Changeset.parse('1:0,"b"').serialize(),
               },
             },
             {
@@ -77,11 +75,8 @@ describe('read', () => {
               node: {
                 __typename: 'CollabTextRecord',
                 id: '2',
-                change: {
-                  __typename: 'RevisionChangeset',
-                  revision: 6,
-                  changeset: [[0, 2], 'd'],
-                },
+                revision: 6,
+                changeset: Changeset.parse('3:0-2,"d"').serialize(),
               },
             },
             {
@@ -89,11 +84,8 @@ describe('read', () => {
               node: {
                 __typename: 'CollabTextRecord',
                 id: '3',
-                change: {
-                  __typename: 'RevisionChangeset',
-                  revision: 8,
-                  changeset: [[0, 4], 'f'],
-                },
+                revision: 8,
+                changeset: Changeset.parse('5:0-4,"f"').serialize(),
               },
             },
           ],
@@ -115,7 +107,7 @@ describe('read', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(collabText?.textAtRevision.revision).toStrictEqual(5);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    expect(collabText?.textAtRevision.changeset.serialize()).toStrictEqual(['abc']);
+    expect(collabText?.textAtRevision.text).toStrictEqual('abc');
   });
 
   it('composes text from records: 3 * 4', () => {
@@ -131,7 +123,7 @@ describe('read', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(collabText?.textAtRevision.revision).toStrictEqual(4);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    expect(collabText?.textAtRevision.changeset.serialize()).toStrictEqual(['ab']);
+    expect(collabText?.textAtRevision.text).toStrictEqual('ab');
   });
 
   it('composes text from records: 5 * 6', () => {
@@ -147,7 +139,7 @@ describe('read', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(collabText?.textAtRevision.revision).toStrictEqual(6);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    expect(collabText?.textAtRevision.changeset.serialize()).toStrictEqual(['abcd']);
+    expect(collabText?.textAtRevision.text).toStrictEqual('abcd');
   });
 
   it('returns oldest revision without arguments', () => {
@@ -160,7 +152,7 @@ describe('read', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(collabText?.textAtRevision.revision).toStrictEqual(3);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    expect(collabText?.textAtRevision.changeset.serialize()).toStrictEqual(['a']);
+    expect(collabText?.textAtRevision.text).toStrictEqual('a');
   });
 
   describe('returns null for unreachable revisions', () => {
@@ -197,11 +189,11 @@ describe('merge', () => {
         id: '1',
         textAtRevision: [
           {
-            __typename: 'RevisionChangeset',
+            __typename: 'ComposedTextRecord',
             revision: 20,
           },
           {
-            __typename: 'RevisionChangeset',
+            __typename: 'ComposedTextRecord',
             revision: 50,
             foo: 'bar',
           },
@@ -214,11 +206,8 @@ describe('merge', () => {
               node: {
                 __typename: 'CollabTextRecord',
                 id: '1',
-                change: {
-                  __typename: 'RevisionChangeset',
-                  revision: 21,
-                  changeset: ['a'],
-                },
+                revision: 21,
+                changeset: Changeset.parse('0:"a"').serialize(),
               },
             },
           ],
@@ -234,14 +223,14 @@ describe('merge', () => {
       data: {
         textAtRevision: {
           revision: 4,
-          changeset: ['new'],
+          text: 'new',
         },
       },
     });
 
     expect(cache.extract()[collabTextDataId]?.textAtRevision).toContainEqual({
       revision: 4,
-      changeset: ['new'],
+      text: 'new',
     });
   });
 
@@ -252,15 +241,15 @@ describe('merge', () => {
       data: {
         textAtRevision: {
           revision: 50,
-          changeset: ['foo must exist'],
+          text: 'foo must exist',
         },
       },
     });
 
     expect(cache.extract()[collabTextDataId]?.textAtRevision).toContainEqual({
-      __typename: 'RevisionChangeset',
+      __typename: 'ComposedTextRecord',
       revision: 50,
-      changeset: ['foo must exist'],
+      text: 'foo must exist',
       foo: 'bar',
     });
   });

@@ -7,7 +7,7 @@ import { MapRecordCollabTextRecordFragmentFragmentDoc } from '../../__generated_
 import { useUserId } from '../../user/context/user-id';
 import { useNoteId } from '../context/note-id';
 import { useCollabService } from '../hooks/useCollabService';
-import { cacheRecordToCollabServiceRecord } from '../utils/map-record';
+import { cacheRecordToCollabServerRecord } from '../utils/map-record';
 
 const SyncMissingRecords_Query = gql(`
   query SyncMissingRecords_Query($userBy: UserByInput!, $noteBy: NoteByInput!, $after: NonNegativeInt!, $first: PositiveInt!) {
@@ -79,7 +79,7 @@ export function SyncMissingRecords({
         const missingRevisions = collabService.getMissingRevisions();
         if (!missingRevisions) return;
 
-        const { start, end } = missingRevisions;
+        const { startRevision, endRevision } = missingRevisions;
 
         await client
           .query({
@@ -91,8 +91,8 @@ export function SyncMissingRecords({
               noteBy: {
                 id: noteId,
               },
-              after: start - 1,
-              first: end - start + 1,
+              after: startRevision - 1,
+              first: endRevision - startRevision + 1,
             },
           })
           .then(({ data }) => {
@@ -102,9 +102,7 @@ export function SyncMissingRecords({
                 edge.node
               );
 
-              collabService.handleExternalChange(
-                cacheRecordToCollabServiceRecord(record)
-              );
+              collabService.addExternalTyping(cacheRecordToCollabServerRecord(record));
             });
           });
       } finally {
@@ -119,7 +117,7 @@ export function SyncMissingRecords({
       void fetchMissingRecords();
     }
 
-    return collabService.eventBus.on('missingRevisions', () => {
+    return collabService.on('queuedMessages:missing', () => {
       void fetchMissingRecords();
     });
   }, [client, userId, noteId, collabService, fetchDelay]);

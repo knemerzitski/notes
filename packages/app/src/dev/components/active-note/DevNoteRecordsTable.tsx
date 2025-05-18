@@ -11,7 +11,7 @@ import {
   TableBody,
 } from '@mui/material';
 
-import { Changeset } from '../../../../../collab/src/changeset';
+import { Changeset } from '../../../../../collab2/src';
 
 import { isDefined } from '../../../../../utils/src/type-guards/is-defined';
 
@@ -31,10 +31,8 @@ const DevNoteRecordsTable_Query = gql(`
           edges {
             node {
               id
-              change {
-                revision
-                changeset
-              }
+              revision
+              changeset
               createdAt
             }
           }
@@ -86,10 +84,8 @@ export function DevNoteRecordsTable() {
             .filter(isDefined)
             .map((node, index) => (
               <TableRow key={node.id ?? index}>
-                <TableCell>{node.change?.revision ?? <RemoveIcon />}</TableCell>
-                <TableCell>
-                  {node.change?.changeset?.toString() ?? <RemoveIcon />}
-                </TableCell>
+                <TableCell>{node.revision ?? <RemoveIcon />}</TableCell>
+                <TableCell>{node.changeset?.toString() ?? <RemoveIcon />}</TableCell>
                 <TableCell>{node.createdAt?.toString() ?? <RemoveIcon />}</TableCell>
               </TableRow>
             ))}

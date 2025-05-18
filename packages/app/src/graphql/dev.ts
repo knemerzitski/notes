@@ -1,9 +1,8 @@
 import { loadDevMessages, loadErrorMessages } from '@apollo/client/dev';
 import { maybeExcludeClone, maybeExcludeFreeze } from '@apollo/client/utilities';
 
-import { CollabService } from '../../../collab/src/client/collab-service';
-import { KeySimpleText } from '../../../collab/src/editor/json-text';
-import { SimpleTextEditor } from '../../../collab/src/editor/simple-text';
+import { CollabService, JsonTyperService, JsonFieldTyper } from '../../../collab2/src';
+import { InsertStrip } from '../../../collab2/src/common/changeset';
 
 import { NoteExternalState } from '../note/utils/external-state';
 
@@ -13,11 +12,12 @@ if (import.meta.env.DEV) {
 
   maybeExcludeFreeze(NoteExternalState.prototype);
   maybeExcludeFreeze(CollabService.prototype);
-  maybeExcludeFreeze(SimpleTextEditor.prototype);
-  maybeExcludeFreeze(KeySimpleText.prototype);
+  maybeExcludeFreeze(JsonTyperService.prototype);
+  maybeExcludeFreeze(JsonFieldTyper.prototype);
+  maybeExcludeFreeze(InsertStrip.prototype);
 
   maybeExcludeClone(NoteExternalState.prototype);
   maybeExcludeClone(CollabService.prototype);
-  maybeExcludeClone(SimpleTextEditor.prototype);
-  maybeExcludeClone(KeySimpleText.prototype);
+  maybeExcludeClone(JsonTyperService.prototype);
+  maybeExcludeClone(JsonFieldTyper.prototype);
 }

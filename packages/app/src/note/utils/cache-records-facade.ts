@@ -1,17 +1,5 @@
 import { ApolloCache } from '@apollo/client';
-import mitt, { Emitter, ReadEmitter } from 'mitt';
-
-import { Changeset } from '../../../../collab/src/changeset';
-import { CollabServiceRecord } from '../../../../collab/src/client/collab-service';
-
-import { RevisionChangeset } from '../../../../collab/src/records/record';
-
-import {
-  ServerRecordsFacade,
-  ServerRecordsFacadeEvents,
-} from '../../../../collab/src/types';
-
-import { Maybe } from '../../../../utils/src/types';
+import mitt from 'mitt';
 
 import { getFragmentData, gql } from '../../__generated__';
 
@@ -19,18 +7,33 @@ import {
   MapRecordCollabTextRecordFragmentFragment,
   MapRecordCollabTextRecordFragmentFragmentDoc,
 } from '../../__generated__/graphql';
-import { identifyOrError } from '../../graphql/utils/identify';
 
-import { getCollabTextId } from './id';
+import { cacheRecordToCollabServerRecord } from './map-record';
+import {
+  Changeset,
+  CollabServiceServerFacade,
+  CollabServiceServerFacadeEvents,
+  HeadRecord,
+  TextRecord,
+  CollabServiceServerFacadeRecord,
+} from '../../../../collab2/src';
 
-import { cacheRecordToCollabServiceRecord } from './map-record';
+const CacheRecordsFacadeHeadRecord_CollabTextFragment = gql(`
+  fragment CacheRecordsFacadeHeadRecord_CollabTextFragment on CollabText {
+    id
+    headRecord {
+      revision
+      text
+    }
+  }
+`);
 
 const CacheRecordsFacadeTextAtRevision_CollabTextFragment = gql(`
   fragment CacheRecordsFacadeTextAtRevision_CollabTextFragment on CollabText {
     id
     textAtRevision(revision: $revision) {
       revision
-      changeset
+      text
     }
   }
 `);
@@ -38,7 +41,7 @@ const CacheRecordsFacadeTextAtRevision_CollabTextFragment = gql(`
 const CacheRecordsFacadeReadRecords_CollabTextFragment = gql(`
   fragment CacheRecordsFacadeReadRecords_CollabTextFragment on CollabText {
     id
-    recordConnection(after: $after, first: $first) {
+    recordConnection(after: $after, first: $first, before: $before, last: $last) {
       edges {
         node {
           ...MapRecord_CollabTextRecordFragment
@@ -48,16 +51,23 @@ const CacheRecordsFacadeReadRecords_CollabTextFragment = gql(`
   }
 `);
 
-const CacheRecordsFacadeWatch_CollabTextFragment = gql(`
-  fragment CacheRecordsFacadeWatch_CollabTextFragment on CollabText {
+const CacheRecordsFacadeWatchHeadRecord_CollabTextFragment = gql(`
+  fragment CacheRecordsFacadeWatchHeadRecord_CollabTextFragment on CollabText {
+    id
+    headRecord {
+      revision
+    }
+  }
+`);
+
+const CacheRecordsFacadeWatchRecords_CollabTextFragment = gql(`
+  fragment CacheRecordsFacadeWatchRecords_CollabTextFragment on CollabText {
     id
     recordConnection {
       edges {
         node {
           id
-          change {
-            revision
-          }
+          revision
         }
       }
       pageInfo {
@@ -67,68 +77,146 @@ const CacheRecordsFacadeWatch_CollabTextFragment = gql(`
   }
 `);
 
-export class CacheRecordsFacade implements ServerRecordsFacade<CollabServiceRecord> {
-  private readonly _eventBus: Emitter<ServerRecordsFacadeEvents<CollabServiceRecord>> =
-    mitt();
-  get eventBus(): ReadEmitter<ServerRecordsFacadeEvents<CollabServiceRecord>> {
-    return this._eventBus;
-  }
+export class CacheRecordsFacade implements CollabServiceServerFacade {
+  private readonly eventBus = mitt<CollabServiceServerFacadeEvents>();
+  readonly on = this.eventBus.on.bind(this.eventBus);
+  readonly off = this.eventBus.off.bind(this.eventBus);
 
-  private readonly cache;
-  private readonly cacheWatchSubscription;
+  private readonly disposeHandlers: () => void;
 
-  private readonly collabTextDataId;
-
-  private readonly initialTailText;
-
-  private readonly noteId;
-
-  get tailText(): RevisionChangeset {
-    const tailText = this.readTextAtRevision();
-    return tailText ?? this.initialTailText;
-  }
-
-  constructor({
-    initialTailText,
-    cache,
-    noteId,
-  }: {
-    initialTailText: RevisionChangeset;
-    cache: ApolloCache<unknown>;
-    noteId: string;
-  }) {
-    this.noteId = noteId;
-    this.initialTailText = initialTailText;
-    this.cache = cache;
-
-    this.collabTextDataId = identifyOrError(
-      {
-        __typename: 'CollabText',
-        id: getCollabTextId(noteId),
-      },
-      cache
-    );
-
-    const observable = cache.watchFragment({
-      fragment: CacheRecordsFacadeWatch_CollabTextFragment,
+  constructor(
+    readonly cache: ApolloCache<unknown>,
+    readonly collabTextDataId: string
+  ) {
+    const headObservable = cache.watchFragment({
+      fragment: CacheRecordsFacadeWatchHeadRecord_CollabTextFragment,
       from: this.collabTextDataId,
       optimistic: false,
     });
-
-    this.cacheWatchSubscription = observable.subscribe((value) => {
+    const headWatch = headObservable.subscribe((value) => {
       if (!value.complete) {
         return;
       }
-      this._eventBus.emit('recordsUpdated', {
-        source: this,
+      const headRecord = this.head();
+      if (!headRecord) {
+        return;
+      }
+      this.eventBus.emit('head:updated', {
+        facade: this,
+        headRecord,
       });
     });
+
+    const recordsObservable = cache.watchFragment({
+      fragment: CacheRecordsFacadeWatchRecords_CollabTextFragment,
+      from: this.collabTextDataId,
+      optimistic: false,
+    });
+    const recordsWatch = recordsObservable.subscribe((value) => {
+      if (!value.complete) {
+        return;
+      }
+      this.eventBus.emit('records:updated', {
+        facade: this,
+      });
+    });
+
+    this.disposeHandlers = () => {
+      headWatch.unsubscribe();
+      recordsWatch.unsubscribe();
+    };
   }
 
-  hasMoreRecords(): boolean {
+  dispose() {
+    this.disposeHandlers();
+  }
+
+  head(): HeadRecord | undefined {
     const collabText = this.cache.readFragment({
       id: this.collabTextDataId,
-      fragment: CacheRecordsFacadeWatch_CollabTextFragment,
+      fragment: CacheRecordsFacadeHeadRecord_CollabTextFragment,
+    });
+
+    if (!collabText) {
+      return;
+    }
+
+    const headRecord = collabText.headRecord;
+
+    return {
+      revision: headRecord.revision,
+      text: Changeset.fromText(headRecord.text),
+    };
+  }
+
+  text(targetRevision?: number): TextRecord | undefined {
+    const collabText = this.cache.readFragment({
+      id: this.collabTextDataId,
+      fragment: CacheRecordsFacadeTextAtRevision_CollabTextFragment,
+      variables: {
+        revision: targetRevision,
+      },
+    });
+
+    if (!collabText) {
+      return;
+    }
+
+    const record = collabText.textAtRevision;
+
+    return {
+      revision: record.revision,
+      text: Changeset.fromText(record.text),
+    };
+  }
+
+  range(
+    startRevision: number,
+    endRevision: number
+  ): readonly CollabServiceServerFacadeRecord[] {
+    const records = this.readRecords({
+      after: startRevision - 1,
+      first: endRevision - startRevision,
+    });
+
+    return records.map(cacheRecordToCollabServerRecord);
+  }
+
+  at(revision: number): CollabServiceServerFacadeRecord | undefined {
+    const records = this.readRecords({
+      after: revision - 1,
+      first: 1,
+    });
+
+    const record = records[0];
+    if (!record) {
+      return;
+    }
+
+    return cacheRecordToCollabServerRecord(record);
+  }
+
+  *olderIterable(startRevision: number): Iterable<CollabServiceServerFacadeRecord> {
+    const records = this.readRecords({
+      before: startRevision + 1,
+    });
+
+    for (let i = records.length; i >= 0; i--) {
+      const record = records[i];
+      if (!record) {
+        continue;
+      }
+
+      yield cacheRecordToCollabServerRecord(record);
+    }
+
+    return;
+  }
+
+  hasOlderThan(revision: number): boolean {
+    const collabText = this.cache.readFragment({
+      id: this.collabTextDataId,
+      fragment: CacheRecordsFacadeWatchRecords_CollabTextFragment,
     });
 
     const recordConnection = collabText?.recordConnection;
@@ -143,35 +231,21 @@ export class CacheRecordsFacade implements ServerRecordsFacade<CollabServiceReco
       return false;
     }
 
-    const isFirstEverRecord = firstRecord.change.revision <= 1;
+    if (firstRecord.revision <= revision) {
+      return true;
+    }
+
+    const isFirstEverRecord = firstRecord.revision <= 1;
     const serverHasMoreRecords = recordConnection.pageInfo.hasPreviousPage;
 
     return !isFirstEverRecord && serverHasMoreRecords;
   }
 
-  cleanUp() {
-    this.cacheWatchSubscription.unsubscribe();
-  }
-
-  readTextAtRevision(revision?: number): RevisionChangeset | undefined {
-    const collabText = this.cache.readFragment({
-      id: this.collabTextDataId,
-      fragment: CacheRecordsFacadeTextAtRevision_CollabTextFragment,
-      variables: {
-        revision,
-      },
-    });
-
-    if (!collabText) {
-      return;
-    }
-
-    return collabText.textAtRevision;
-  }
-
-  readRecords(variables: {
-    before?: number;
+  private readRecords(variables: {
     after?: number;
+    before?: number;
+    first?: number;
+    last?: number;
   }): MapRecordCollabTextRecordFragmentFragment[] {
     const collabText = this.cache.readFragment({
       id: this.collabTextDataId,
@@ -187,81 +261,5 @@ export class CacheRecordsFacade implements ServerRecordsFacade<CollabServiceReco
     return collabText.recordConnection.edges.map((edge) =>
       getFragmentData(MapRecordCollabTextRecordFragmentFragmentDoc, edge.node)
     );
-  }
-
-  newestRecordsIterable(headRevision: number): Iterable<Readonly<CollabServiceRecord>> {
-    const records = this.readRecords({
-      before: headRevision + 1,
-    });
-    if (records.length === 0) {
-      return {
-        [Symbol.iterator]: () => ({
-          next: () => {
-            return {
-              done: true,
-              value: undefined,
-            };
-          },
-        }),
-      };
-    }
-
-    let index = records.length - 1;
-
-    return {
-      [Symbol.iterator]: () => ({
-        next: () => {
-          const value = records[index--];
-          if (value != null) {
-            const filter: ServerRecordsFacadeEvents<CollabServiceRecord>['filterNewestRecordIterable'] =
-              {
-                resultRecord: cacheRecordToCollabServiceRecord(value),
-              };
-            this._eventBus.emit('filterNewestRecordIterable', filter);
-
-            const record = filter.resultRecord;
-            if (!record) {
-              return {
-                done: true,
-                value: null,
-              };
-            }
-
-            return {
-              done: false,
-              value: record,
-            };
-          } else {
-            return { done: true, value: null };
-          }
-        },
-      }),
-    };
-  }
-
-  getTextAtMaybe(revision: number): Maybe<Readonly<RevisionChangeset>> {
-    if (revision <= 0) {
-      return {
-        revision: 0,
-        changeset: Changeset.EMPTY,
-      };
-    }
-
-    return this.readTextAtRevision(revision);
-  }
-
-  getTextAt(revision: number): Readonly<RevisionChangeset> {
-    const revisionChangeset = this.getTextAtMaybe(revision);
-    if (!revisionChangeset) {
-      throw new Error(
-        `Failed to get note "${this.noteId}" text at revision "${revision}"`
-      );
-    }
-
-    return revisionChangeset;
-  }
-
-  hasTextAt(revision: number) {
-    return Boolean(this.readTextAtRevision(revision));
   }
 }

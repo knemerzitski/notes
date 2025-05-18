@@ -90,7 +90,7 @@ export function useCreateNote(): {
       return Promise.resolve(true);
     }
 
-    const service = getCollabService({ id: noteId }, client.cache);
+    const service = getCollabService({ id: userId }, { id: noteId }, client.cache);
     const submittedRecord = service.submitChanges();
 
     setNotePendingStatus({ noteId }, NotePendingStatus.SUBMITTING, client.cache);

@@ -1,11 +1,13 @@
 import { getFragmentData, gql } from '../../__generated__';
 import { MapRecordCollabTextRecordFragmentFragmentDoc } from '../../__generated__/graphql';
 import { mutationDefinition } from '../../graphql/utils/mutation-definition';
+import { getCurrentUserId } from '../../user/models/signed-in-user/get-current';
 import { getCollabService } from '../models/note/get-collab-service';
 import { updateOpenNoteSelectionRange } from '../models/opened-note/update-selection';
 import { addRecordToConnection } from '../models/record-connection/add';
+import { findVariablesAuthUserId } from '../utils/find-variables-auth-user-id';
 import { getUserNoteLinkId } from '../utils/id';
-import { cacheRecordToCollabServiceRecord } from '../utils/map-record';
+import { cacheRecordToCollabServerRecord } from '../utils/map-record';
 
 export const UpdateNoteInsertRecordPayload = mutationDefinition(
   gql(`
@@ -21,7 +23,7 @@ export const UpdateNoteInsertRecordPayload = mutationDefinition(
       }
     }
   `),
-  (cache, { data }, { context }) => {
+  (cache, { data }, { context, variables }) => {
     if (!data) {
       return;
     }
@@ -36,20 +38,22 @@ export const UpdateNoteInsertRecordPayload = mutationDefinition(
     // Add record to recordConnection
     addRecordToConnection(collabText.id, newRecord, cache);
 
-    const service = getCollabService({ id: note.id }, cache);
-
     if (context?.isSubscriptionOperation) {
-      service.handleExternalChange(cacheRecordToCollabServiceRecord(newRecord));
+      const userId = getCurrentUserId(cache);
+      const service = getCollabService({ id: userId }, { id: note.id }, cache);
+      service.addExternalTyping(cacheRecordToCollabServerRecord(newRecord));
     } else {
-      service.submittedChangesAcknowledged(cacheRecordToCollabServiceRecord(newRecord));
+      const userId = findVariablesAuthUserId(variables) ?? getCurrentUserId(cache);
+      const service = getCollabService({ id: userId }, { id: note.id }, cache);
+      service.submittedChangesAcknowledged(cacheRecordToCollabServerRecord(newRecord));
     }
 
     // Update open note selection from record
     updateOpenNoteSelectionRange(
-      getUserNoteLinkId(note.id, newRecord.creatorUser.id),
+      getUserNoteLinkId(note.id, newRecord.author.id),
       {
-        revision: newRecord.change.revision,
-        selectionRange: newRecord.afterSelection,
+        revision: newRecord.revision,
+        selection: newRecord.selection,
       },
       cache
     );

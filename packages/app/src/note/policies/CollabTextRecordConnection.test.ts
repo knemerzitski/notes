@@ -15,9 +15,7 @@ const Edges_CollabTextFragment = gql(`
     recordConnection(after: $after, first: $first, before: $before, last: $last) {
       edges {
         node {
-          change {
-            revision
-          }
+          revision
         }
       }
     }
@@ -42,10 +40,7 @@ describe('read', () => {
     return revisions.map((revision) => ({
       __typename: 'CollabTextRecord',
       id: getCollabTextRecordId('1', revision),
-      change: {
-        __typename: 'RevisionChangeset',
-        revision,
-      },
+      revision,
     }));
   }
 
@@ -78,7 +73,7 @@ describe('read', () => {
 
     expect(
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-      collabText?.recordConnection.edges.map((edge: any) => edge.node.change.revision)
+      collabText?.recordConnection.edges.map((edge: any) => edge.node.revision)
     ).toStrictEqual([4, 5, 6, 7, 9, 10, 11, 15, 16]);
   });
 
@@ -104,7 +99,7 @@ describe('read', () => {
 
       expect(
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-        collabText?.recordConnection.edges.map((edge: any) => edge.node.change.revision)
+        collabText?.recordConnection.edges.map((edge: any) => edge.node.revision)
       ).toStrictEqual(expected);
     });
   });
@@ -130,7 +125,7 @@ describe('read', () => {
 
       expect(
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-        collabText?.recordConnection.edges.map((edge: any) => edge.node.change.revision)
+        collabText?.recordConnection.edges.map((edge: any) => edge.node.revision)
       ).toStrictEqual(expected);
     });
   });

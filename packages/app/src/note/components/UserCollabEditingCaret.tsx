@@ -2,10 +2,9 @@ import { useApolloClient, useFragment } from '@apollo/client';
 
 import { RefObject, useState, useRef, useEffect } from 'react';
 
-import { SelectionRange } from '../../../../collab/src/client/selection-range';
+import { Selection } from '../../../../collab2/src';
 
 import { gql } from '../../__generated__';
-import { useUserId } from '../../user/context/user-id';
 import { useLogger } from '../../utils/context/logger';
 import { stringToColor } from '../../utils/string-to-color';
 import { useNoteId } from '../context/note-id';
@@ -19,6 +18,7 @@ import {
 } from '../utils/selection';
 
 import { InputCaret } from './InputCaret';
+import { User } from '../../__generated__/graphql';
 
 const UserCollabEditingCaret_UserNoteLinkFragment = gql(`
   fragment UserCollabEditingCaret_UserNoteLinkFragment on UserNoteLink {
@@ -33,16 +33,19 @@ const UserCollabEditingCaret_UserNoteLinkFragment = gql(`
       active @client
       collabTextEditing {
         revision
-        latestSelection {
-          start
-          end
-        }
+        latestSelection
       }
     }
   }
 `);
 
-export function UserCollabEditingCaret({ inputRef }: { inputRef: RefObject<unknown> }) {
+export function UserCollabEditingCaret({
+  inputRef,
+  userId,
+}: {
+  inputRef: RefObject<unknown>;
+  userId: User['id'];
+}) {
   const logger = useLogger('UserCollabEditingCaret');
   const service = useCollabService();
   const client = useApolloClient();
@@ -53,17 +56,16 @@ export function UserCollabEditingCaret({ inputRef }: { inputRef: RefObject<unkno
 
   const prevRevisionSelectionRef = useRef<{
     revision: number;
-    selection: SelectionRange;
+    selection: Selection;
   }>();
 
   useEffect(() => {
-    return service.eventBus.on(['appliedTypingOperation', 'headRevisionChanged'], () => {
+    return service.on(['localTyping:applied', 'serverRevision:changed'], () => {
       setRerenderCounter((prev) => prev + 1);
     });
   }, [service]);
 
   const noteId = useNoteId();
-  const userId = useUserId();
   const { complete, data: userNoteLink } = useFragment({
     fragment: UserCollabEditingCaret_UserNoteLinkFragment,
     from: {
@@ -96,17 +98,21 @@ export function UserCollabEditingCaret({ inputRef }: { inputRef: RefObject<unkno
     return null;
   }
 
-  const headTextSelection = getUserHeadTextSelection(noteId, userId, {
-    cache: client.cache,
-    service,
-    logger,
-  });
+  const headTextSelection = getUserHeadTextSelection(
+    noteId,
+    userId,
+    service.serverRevision,
+    {
+      cache: client.cache,
+      logger,
+    }
+  );
   if (!headTextSelection) {
     logger?.debug('getUserHeadTextSelection:noHeadTextSelection');
     // Selection for user is not known
     return null;
   }
-  if (headTextSelection.revision !== service.headRevision) {
+  if (headTextSelection.revision !== service.serverRevision) {
     logger?.debug('headTextSelection:invalidRevision');
     return null;
   }
@@ -126,14 +132,11 @@ export function UserCollabEditingCaret({ inputRef }: { inputRef: RefObject<unkno
 
   // When selection moves, reset blink start animation
   const latestRevision = openNote.collabTextEditing.revision;
-  const latestSelection = SelectionRange.from(openNote.collabTextEditing.latestSelection);
+  const latestSelection = openNote.collabTextEditing.latestSelection;
   const selectionChanged =
     prevRevisionSelectionRef.current &&
     (prevRevisionSelectionRef.current.revision !== latestRevision ||
-      !SelectionRange.isEqual(
-        latestSelection,
-        prevRevisionSelectionRef.current.selection
-      ));
+      !latestSelection.isEqual(prevRevisionSelectionRef.current.selection));
   if (selectionChanged) {
     resetBlinkRef.current += 1;
   }

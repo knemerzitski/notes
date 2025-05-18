@@ -1,14 +1,17 @@
 import { FieldPolicy } from '@apollo/client';
 
-import { Changeset as CollabChangeset } from '../../../../collab/src/changeset';
+import { Changeset as CollabChangeset } from '../../../../collab2/src';
 
 function parseChangeset(value: unknown) {
   if (value == null) {
     return value;
   } else if (value instanceof CollabChangeset) {
     return value;
+  } else if (typeof value === 'string') {
+    return CollabChangeset.parse(value);
   } else {
-    return CollabChangeset.parseValue(value);
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string
+    throw new Error(`Failed parse Changeset: ${String(value)}`);
   }
 }
 function createChangesetPolicy(nullable?: boolean): FieldPolicy<unknown, unknown> {

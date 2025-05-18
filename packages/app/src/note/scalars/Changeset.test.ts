@@ -4,7 +4,7 @@ import { ApolloClient, gql, InMemoryCache } from '@apollo/client';
 import { MockLink } from '@apollo/client/testing';
 import { it, expect } from 'vitest';
 
-import { Changeset as CollabChangeset } from '../../../../collab/src/changeset';
+import { Changeset as CollabChangeset } from '../../../../collab2/src';
 
 import { Changeset } from './Changeset';
 
@@ -27,7 +27,7 @@ it('returns a changeset instance and serializes on extract', async () => {
           __typename: 'Query',
           changesetQuery: {
             __typename: 'ChangesetType',
-            changeset: CollabChangeset.fromInsertion('a').serialize(),
+            changeset: CollabChangeset.fromText('a').serialize(),
           },
         },
       },
@@ -54,7 +54,7 @@ it('returns a changeset instance and serializes on extract', async () => {
   });
 
   expect(data.changesetQuery.changeset).toBeInstanceOf(CollabChangeset);
-  expect(data.changesetQuery.changeset).toEqual(CollabChangeset.fromInsertion('a'));
+  expect(data.changesetQuery.changeset).toEqual(CollabChangeset.fromText('a'));
 
   expect(cache.extract()).toMatchInlineSnapshot(`
     {
@@ -62,9 +62,7 @@ it('returns a changeset instance and serializes on extract', async () => {
         "__typename": "Query",
         "changesetQuery": {
           "__typename": "ChangesetType",
-          "changeset": [
-            "a",
-          ],
+          "changeset": "0:"a"",
         },
       },
     }

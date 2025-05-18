@@ -22,10 +22,7 @@ const UnsavedCollabServiceNotesTable_Query = gql(`
         id
         unsavedCollabServices {
           id
-          note {
-            id
-            collabService
-          }
+          collabService
         }
       }
     }
@@ -57,24 +54,20 @@ export function UnsavedCollabServiceNotesTable() {
       <Table size="small">
         <TableHead>
           <TableRow>
-            <TableCell>Note.ID</TableCell>
+            <TableCell>UserNoteLink.ID</TableCell>
             <TableCell>Local changes</TableCell>
             <TableCell>Submitted changes</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {unsavedCollabServices.map(({ id, note }) => (
+          {unsavedCollabServices.map(({ id, collabService }) => (
             <TableRow key={id}>
-              <TableCell>{note.id}</TableCell>
+              <TableCell>{id}</TableCell>
               <TableCell>
-                {note.collabService.haveLocalChanges() ? <CheckIcon /> : <RemoveIcon />}
+                {collabService.haveLocalChanges() ? <CheckIcon /> : <RemoveIcon />}
               </TableCell>
               <TableCell>
-                {note.collabService.haveSubmittedChanges() ? (
-                  <CheckIcon />
-                ) : (
-                  <RemoveIcon />
-                )}
+                {collabService.haveSubmittedChanges() ? <CheckIcon /> : <RemoveIcon />}
               </TableCell>
             </TableRow>
           ))}

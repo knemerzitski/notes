@@ -12,7 +12,7 @@ export function CollabServiceStatus() {
       return;
     }
 
-    return collabService.eventBus.on('headRevisionChanged', () => {
+    return collabService.on('serverRevision:changed', () => {
       setRenderCounter((prev) => prev + 1);
     });
   });
@@ -25,7 +25,7 @@ export function CollabServiceStatus() {
     <NoLayoutDiv
       aria-hidden="true"
       aria-label="collab service status"
-      data-revision={collabService.headRevision}
+      data-revision={collabService.serverRevision}
     />
   );
 }

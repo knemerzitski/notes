@@ -10,6 +10,6 @@
     /* Modules */
     "paths": {}
   },
-  "include": ["src", "cypress", "../api-app-shared/src", "../collab/src", "../utils/src"],
+  "include": ["src", "cypress", "../api-app-shared/src", "../collab2/src", "../utils/src"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

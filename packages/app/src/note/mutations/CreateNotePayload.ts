@@ -11,7 +11,8 @@ import { getCollabService } from '../models/note/get-collab-service';
 import { addNoteToConnection } from '../models/note-connection/add';
 import { addRecordToConnection } from '../models/record-connection/add';
 import { parseUserNoteLinkId } from '../utils/id';
-import { cacheRecordToCollabServiceRecord } from '../utils/map-record';
+import { Changeset } from '../../../../collab2/src';
+import { cacheRecordToCollabServerRecord } from '../utils/map-record';
 
 /**
  * Will acknowledge submitted changes in service
@@ -29,9 +30,9 @@ export const CreateNotePayload = mutationDefinition(
         id
         collabText {
           id
-          headText {
+          headRecord {
             revision
-            changeset
+            text
           }
         }
       }
@@ -91,14 +92,22 @@ export const CreateNotePayload = mutationDefinition(
       addRecordToConnection(data.userNoteLink.note.collabText.id, firstRecord, cache);
     }
 
-    const service = getCollabService({ id: data.userNoteLink.note.id }, cache);
+    const service = getCollabService(
+      { id: userId },
+      { id: data.userNoteLink.note.id },
+      cache
+    );
 
     if (options.context?.isSubscriptionOperation) {
-      service.replaceHeadText(data.userNoteLink.note.collabText.headText);
+      const headRecord = data.userNoteLink.note.collabText.headRecord;
+      service.reset({
+        revision: headRecord.revision,
+        text: Changeset.fromText(headRecord.text),
+      });
     } else {
       if (firstRecord) {
         service.submittedChangesAcknowledged(
-          cacheRecordToCollabServiceRecord(firstRecord)
+          cacheRecordToCollabServerRecord(firstRecord)
         );
       }
     }

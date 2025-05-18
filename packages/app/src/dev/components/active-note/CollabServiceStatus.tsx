@@ -18,12 +18,12 @@ export function CollabServiceStatus() {
 
   useEffect(
     () =>
-      collabService?.eventBus.on(
+      collabService?.on(
         [
-          'appliedTypingOperation',
-          'headRevisionChanged',
-          'handledExternalChanges',
-          'submittedRecord',
+          'localTyping:applied',
+          'serverRevision:changed',
+          'externalTyping:applied',
+          'submittedChanges:have',
         ],
         () => {
           setRenderCounter((prev) => prev + 1);
@@ -52,28 +52,28 @@ export function CollabServiceStatus() {
         </TableHead>
         <TableBody>
           <TableRow>
-            <TableCell>Head Revision</TableCell>
-            <TableCell>{collabService.headRevision}</TableCell>
+            <TableCell>Server Revision</TableCell>
+            <TableCell>{collabService.serverRevision}</TableCell>
           </TableRow>
           <TableRow>
-            <TableCell>History Records</TableCell>
-            <TableCell>{collabService.history.records.length}</TableCell>
+            <TableCell>History Size</TableCell>
+            <TableCell>{collabService.historySize}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Server</TableCell>
-            <TableCell>{collabService.client.server.toString()}</TableCell>
+            <TableCell>{collabService.serverText.toString()}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Submitted</TableCell>
-            <TableCell>{collabService.client.submitted.toString()}</TableCell>
+            <TableCell>{collabService.submittedChanges.toString()}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Local</TableCell>
-            <TableCell>{collabService.client.local.toString()}</TableCell>
+            <TableCell>{collabService.localChanges.toString()}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>View</TableCell>
-            <TableCell>{collabService.client.view.toString()}</TableCell>
+            <TableCell>{collabService.viewText}</TableCell>
           </TableRow>
         </TableBody>
       </Table>

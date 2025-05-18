@@ -20,9 +20,9 @@ const SearchLocalNotes_Query = gql(`
       id
       allNoteLinks {
         id
+        collabService
         note {
           id
-          collabService
         }
         ...NotesCardGrid_UserNoteLinkFragment
       }
@@ -60,7 +60,7 @@ export function SearchLocalNotes({
       return;
     }
     const itemsForFuse = data.signedInUser.allNoteLinks.map((noteLink) => {
-      const text = noteLink.note.collabService.viewText;
+      const text = noteLink.collabService.viewText;
 
       return {
         text,

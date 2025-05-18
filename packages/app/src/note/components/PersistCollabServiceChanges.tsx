@@ -43,7 +43,7 @@ export function PersistCollabServiceChanges({
     }
     const service = maybeService;
 
-    const eventBusOff = service.eventBus.on('appliedTypingOperation', () => {
+    const eventBusOff = service.on('localTyping:applied', () => {
       void debouncedPersist();
     });
 

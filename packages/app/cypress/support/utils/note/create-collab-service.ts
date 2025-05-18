@@ -1,7 +1,6 @@
 import { gql } from '@apollo/client';
 
-import { CollabService } from '../../../../../collab/src/client/collab-service';
-import { SimpleText } from '../../../../../collab/src/types';
+import { CollabService } from '../../../../../collab2/src';
 
 import { Note, NoteTextFieldName } from '../../../../src/__generated__/graphql';
 import { GraphQLService } from '../../../../src/graphql/types';
@@ -51,6 +50,6 @@ export function createCollabService({
     collabService: data.note.collabService,
     fields: Object.fromEntries(
       data.note.textFields.map(({ name, editor }) => [name, editor])
-    ) as Record<NoteTextFieldName, SimpleText>,
+    ) as Record<NoteTextFieldName, NoteTextFieldEditor>,
   };
 }

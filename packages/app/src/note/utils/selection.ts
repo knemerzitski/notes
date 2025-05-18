@@ -1,9 +1,7 @@
 import { ApolloCache } from '@apollo/client';
 
-import { CollabService } from '../../../../collab/src/client/collab-service';
-import { SelectionRange } from '../../../../collab/src/client/selection-range';
+import { Changeset, CollabService, Selection } from '../../../../collab2/src';
 
-import { SimpleText } from '../../../../collab/src/types';
 import { Logger } from '../../../../utils/src/logging';
 import { Maybe } from '../../../../utils/src/types';
 
@@ -12,25 +10,23 @@ import { Note, User } from '../../__generated__/graphql';
 import { getCollabTextRecords } from '../models/record-connection/get';
 
 import { getUserNoteLinkId } from './id';
+import { NoteTextFieldEditor } from '../types';
 
-const GetTmp_UserNoteLinkFragment = gql(`
-  fragment GetTmp_UserNoteLinkFragment on UserNoteLink {
+const CollabTextEditingSelection_UserNoteLinkFragment = gql(`
+  fragment CollabTextEditingSelection_UserNoteLinkFragment on UserNoteLink {
     id
     open {
       collabTextEditing {
         revision
-        latestSelection {
-          start
-          end
-        }
+        latestSelection
       }
     }
   }
 `);
 
-export interface RevisionSelectionRange {
-  selection: SelectionRange;
-  revision: number;
+interface SelectionRecord {
+  readonly revision: number;
+  readonly selection: Selection;
 }
 
 /**
@@ -39,14 +35,14 @@ export interface RevisionSelectionRange {
 export function getUserHeadTextSelection(
   noteId: Note['id'],
   userId: User['id'],
+  serverRevision: number,
   ctx: {
     cache: Pick<ApolloCache<unknown>, 'identify' | 'readFragment' | 'readQuery'>;
-    service: CollabService;
     logger?: Maybe<Logger>;
   }
-): Readonly<RevisionSelectionRange> | undefined {
+): SelectionRecord | undefined {
   const userNoteLink = ctx.cache.readFragment({
-    fragment: GetTmp_UserNoteLinkFragment,
+    fragment: CollabTextEditingSelection_UserNoteLinkFragment,
     id: ctx.cache.identify({
       __typename: 'UserNoteLink',
       id: getUserNoteLinkId(noteId, userId),
@@ -72,14 +68,14 @@ export function getUserHeadTextSelection(
   }
 
   // Last known caret position and revision
-  let serviceSelection: Readonly<RevisionSelectionRange> = {
-    selection: SelectionRange.from(openNote.collabTextEditing.latestSelection),
+  let selectionRecord: Readonly<SelectionRecord> = {
+    selection: openNote.collabTextEditing.latestSelection,
     revision: openNote.collabTextEditing.revision,
   };
 
-  const initialSelectionRevision = serviceSelection.revision;
+  const initialRevision = selectionRecord.revision;
 
-  const revisionOffset = ctx.service.headRevision - initialSelectionRevision;
+  const revisionOffset = serverRevision - initialRevision;
 
   if (revisionOffset < 0) {
     ctx.logger?.debug('selectionInFuture');
@@ -92,7 +88,7 @@ export function getUserHeadTextSelection(
     const records = getCollabTextRecords(
       noteId,
       {
-        after: initialSelectionRevision,
+        after: initialRevision,
         first: needRecordsCount,
       },
       ctx.cache
@@ -104,93 +100,96 @@ export function getUserHeadTextSelection(
     }
 
     for (const record of records) {
-      const isOwnRecord = record.creatorUser.id === userId;
+      const isOwnRecord = record.author.id === userId;
       if (isOwnRecord) {
         // User selection in collabTextEditing field is old, have record that replaces it
-        serviceSelection = {
-          revision: record.change.revision,
-          selection: SelectionRange.from(record.afterSelection),
+        selectionRecord = {
+          revision: record.revision,
+          selection: record.selection,
         };
       } else {
         // Adjust selection to other user record
-        serviceSelection = {
-          revision: record.change.revision,
-          selection: SelectionRange.closestRetainedPosition(
-            serviceSelection.selection,
-            record.change.changeset
-          ),
+        selectionRecord = {
+          revision: record.revision,
+          selection: selectionRecord.selection.follow(record.changeset, true),
         };
       }
     }
   }
 
-  // Ensure selection matches headRevision
-  if (serviceSelection.revision !== ctx.service.headRevision) {
+  // Ensure selection matches serverRevision
+  if (selectionRecord.revision !== serverRevision) {
     ctx.logger?.debug('invalidRevision');
     return;
   }
 
   // Adjust to submitted and local changes?
 
-  return serviceSelection;
+  return selectionRecord;
 }
 
 /**
  * @returns Transformed editor selection to headText selection
  */
 export function editorSelectionToHeadTextSelection(
-  editorSelection: SelectionRange,
+  localTyperSelection: Selection,
   {
     service,
     editor,
   }: {
-    editor: SimpleText;
+    editor: NoteTextFieldEditor;
     service: CollabService;
   }
-): Readonly<RevisionSelectionRange> {
-  const localTextSelection = editor.transformToServiceSelection(editorSelection);
-  const submittedText = service.client.server.compose(service.client.submitted);
-  const undoLocal = service.client.local.inverse(submittedText);
-  const undoSubmitted = service.client.submitted.inverse(service.client.server);
+): SelectionRecord | undefined {
+  const localServiceSelection = editor.toServiceSelection(localTyperSelection);
+  if (!localServiceSelection) {
+    return;
+  }
 
-  // Current selection applies to localText, transform it for headText
-  const headTextSelection = [undoLocal, undoSubmitted].reduce(
-    SelectionRange.closestRetainedPosition,
-    localTextSelection
+  const undoLocal = Changeset.inverse(
+    service.localChanges,
+    Changeset.compose(service.serverText, service.submittedChanges)
+  );
+  const undoSubmitted = Changeset.inverse(service.submittedChanges, service.serverText);
+
+  // Current selection applies to localChanges, transform it to serverText
+  const serverSelection = [undoLocal, undoSubmitted].reduce(
+    // TODO is true/left correct?
+    (a, b) => a.follow(b, true),
+    localServiceSelection
   );
 
   return {
-    selection: headTextSelection,
-    revision: service.headRevision,
+    revision: service.serverRevision,
+    selection: serverSelection,
   };
 }
 
 export function headTextSelectionToEditorSelection(
-  headTextSelection: Readonly<SelectionRange>,
+  serverServiceSelection: Selection,
   {
     service,
     editor,
   }: {
-    editor: SimpleText;
+    editor: NoteTextFieldEditor;
     service: CollabService;
   }
-): SelectionRange | undefined {
-  const localTextSelection = [service.client.submitted, service.client.local].reduce(
-    SelectionRange.closestRetainedPosition,
-    headTextSelection
+): Selection | undefined {
+  const localServiceSelection = [service.submittedChanges, service.localChanges].reduce(
+    // TODO is true/left correct?
+    (a, b) => a.follow(b, true),
+    serverServiceSelection
   );
 
-  const editorSelection = editor.transformToEditorSelection(localTextSelection);
+  const localTyperSelection = editor.toTyperSelection(localServiceSelection);
 
-  return editorSelection;
+  return localTyperSelection;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace RevisionSelectionRange {
-  export function isEqual(a: RevisionSelectionRange, b: RevisionSelectionRange) {
-    if (a.revision !== b.revision) {
-      return false;
-    }
-    return SelectionRange.isEqual(a.selection, b.selection);
+export function isSelectionRecordEqual(a: SelectionRecord, b: SelectionRecord) {
+  if (a.revision !== b.revision) {
+    return false;
   }
+
+  return a.selection.isEqual(b.selection);
 }

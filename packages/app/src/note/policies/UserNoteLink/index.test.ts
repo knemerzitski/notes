@@ -1,16 +1,17 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { gql } from '@apollo/client';
 import { MockLink } from '@apollo/client/testing';
 
 import { expect, it } from 'vitest';
 
-import { CollabService } from '../../../../../collab/src/client/collab-service';
+import { CollabService, Selection } from '../../../../../collab2/src';
 
-import { NoteTextFieldName } from '../../../__generated__/graphql';
 import { createGraphQLService } from '../../../graphql/create/service';
 import { createDefaultGraphQLServiceParams } from '../../../graphql-service';
 
 import { NoteTextFieldEditor } from '../../utils/external-state';
+import { getUserNoteLinkId } from '../../utils/id';
 
 it('writes NoteExternalState to cache on first read and allows modifications', () => {
   const params = createDefaultGraphQLServiceParams();
@@ -18,47 +19,68 @@ it('writes NoteExternalState to cache on first read and allows modifications', (
   const service = createGraphQLService(params);
   const cache = service.client.cache;
 
+  const userId = '1';
+  const noteId = '2';
+  const collabTextId = '3';
+  const userNoteLinkId = getUserNoteLinkId(noteId, userId);
+
   cache.restore({
-    'Note:1': {
+    [`User:${userId}`]: {
+      __typename: 'User',
+      id: userId,
+    },
+    [`UserNoteLink:${userNoteLinkId}`]: {
+      __typename: 'UserNoteLink',
+      id: userNoteLinkId,
+    },
+    [`Note:${noteId}`]: {
       __typename: 'Note',
-      id: '1',
+      id: noteId,
       collabText: {
-        __ref: 'CollabText:1',
+        __ref: `CollabText:${collabTextId}`,
       },
     },
-    'CollabText:1': {
+    [`CollabText:${collabTextId}`]: {
       __typename: 'CollabText',
-      id: '1',
-      collabText: {
-        __ref: 'CollabText:1',
-      },
-      headText: {
+      id: collabTextId,
+      headRecord: {
         revision: 4,
-        changeset: ['abc'],
+        text: 'abc',
       },
     },
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const note: any = cache.readFragment({
-    fragment: gql(`
-      fragment Test2 on Note {
-        collabService
-        textField(name: CONTENT) {
-          value
-          editor
+  const query: any = cache.readQuery({
+    query: gql(`
+      query($userBy: UserByInput!, $noteBy: NoteByInput!) {
+        signedInUser(by: $userBy){
+          noteLink(by: $noteBy) {
+            collabService
+            textField(name: CONTENT){
+              value
+              editor
+            }
+          }
         }
       }
     `),
-    id: 'Note:1',
+    variables: {
+      userBy: {
+        id: userId,
+      },
+      noteBy: {
+        id: noteId,
+      },
+    },
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+  const noteLink = query.signedInUser.noteLink;
+
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  const editor = note.textField.editor as NoteTextFieldEditor<NoteTextFieldName>;
-  editor.insert('hello', {
-    start: 0,
-    end: 3,
-  });
+  const editor = noteLink.textField.editor as NoteTextFieldEditor;
+  editor.insert('hello', Selection.create(0, 3));
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   cache.restore(JSON.parse(JSON.stringify(cache.extract())));
@@ -66,12 +88,16 @@ it('writes NoteExternalState to cache on first read and allows modifications', (
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const restoredNote: any = cache.readFragment({
     fragment: gql(`
-      fragment Test1 on Note {
+      fragment Test1 on UserNoteLink {
         collabService
       }
     `),
-    id: 'Note:1',
+    id: cache.identify({
+      __typename: 'UserNoteLink',
+      id: userNoteLinkId,
+    }),
   });
+
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   const collabService = restoredNote.collabService as CollabService;
 

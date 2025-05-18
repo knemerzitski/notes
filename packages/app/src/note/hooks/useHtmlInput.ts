@@ -1,16 +1,15 @@
 import { FormEventHandler, KeyboardEventHandler, useCallback, useRef } from 'react';
 
-import { SelectionRange } from '../../../../collab/src/client/selection-range';
-
 import { isObjectLike } from '../../../../utils/src/type-guards/is-object-like';
 
 import { useLogger } from '../../utils/context/logger';
+import { Selection } from '../../../../collab2/src';
 
 export interface SelectionEvent {
   /**
    * Selection before text insertion/deletion
    */
-  beforeSelection: Readonly<SelectionRange>;
+  beforeSelection: Readonly<Selection>;
 }
 
 export interface InsertEvent extends SelectionEvent {
@@ -31,16 +30,13 @@ export function useHtmlInput({
 }: {
   onInsert?: (event: InsertEvent) => void;
   onDelete?: (event: DeleteEvent) => void;
-  onSelect?: (selection: SelectionRange) => void;
+  onSelect?: (selection: Selection) => void;
   onUndo?: () => void;
   onRedo?: () => void;
 }) {
   const logger = useLogger('useHtmlInput');
 
-  const selectionRef = useRef<SelectionRange>({
-    start: 0,
-    end: 0,
-  });
+  const selectionRef = useRef<Selection>(Selection.ZERO);
 
   const onInsertRef = useRef(onInsert);
   onInsertRef.current = onInsert;
@@ -62,10 +58,7 @@ export function useHtmlInput({
     selectionEnd: number | null;
   }) {
     const start = el.selectionStart ?? 0;
-    selectionRef.current = {
-      start: start,
-      end: el.selectionEnd ?? start,
-    };
+    selectionRef.current = Selection.create(start, el.selectionEnd ?? start);
   }
 
   const handleSelect: FormEventHandler<HTMLElement> = useCallback(
@@ -130,7 +123,7 @@ export function useHtmlInput({
         };
 
         let insertValue: string;
-        let beforeSelection: SelectionRange;
+        let beforeSelection: Selection;
         if (
           e.nativeEvent.data != null &&
           e.nativeEvent.data !== insertValueFromSelection
@@ -142,10 +135,7 @@ export function useHtmlInput({
 
           insertValue = e.nativeEvent.data;
           const beforeStart = start - insertValue.length;
-          beforeSelection = {
-            start: beforeStart,
-            end: beforeStart,
-          };
+          beforeSelection = Selection.create(beforeStart, beforeStart);
         } else {
           logger?.debug('handleInput:insert', debugData);
           insertValue = insertValueFromSelection;

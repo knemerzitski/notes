@@ -3,16 +3,15 @@ import { FieldFunctionOptions } from '@apollo/client/cache';
 import { NoteTextFieldName } from '../../__generated__/graphql';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
 
-import { readNoteRef } from '../utils/read-note-ref';
-
-import { readNoteExternalState } from './Note/_external';
+import { readExternalState } from './UserNoteLink/_external';
+import { readUserNoteLinkRef } from '../utils/read-user-note-link-ref';
 
 function readFieldName({
   readField,
 }: Pick<FieldFunctionOptions, 'readField'>): NoteTextFieldName {
   const fieldName = readField('fieldName');
-  if (fieldName == null) {
-    throw new Error('Expected NoteTextField.fieldName to be defined');
+  if (typeof fieldName !== 'string') {
+    throw new Error('Expected NoteTextField parent to pass field "fieldName"');
   }
   return fieldName as NoteTextFieldName;
 }
@@ -21,28 +20,27 @@ export const NoteTextField: CreateTypePolicyFn = function (ctx: TypePoliciesCont
   return {
     fields: {
       value(_existing, options) {
-        const externalState = readNoteExternalState(
-          readNoteRef(options),
+        const externalState = readExternalState(
+          readUserNoteLinkRef(options),
           options,
-          ctx.custom.note.externalState
+          ctx.custom.userNoteLink.externalState
         );
         const field = externalState.fields[readFieldName(options)];
 
         return field.valueVar();
       },
       editor(_existing, options) {
-        const externalState = readNoteExternalState(
-          readNoteRef(options),
+        const externalState = readExternalState(
+          readUserNoteLinkRef(options),
           options,
-          ctx.custom.note.externalState
+          ctx.custom.userNoteLink.externalState
         );
         const field = externalState.fields[readFieldName(options)];
 
         return field.editor;
       },
-      name(_existing, { readField }) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return readField('fieldName');
+      name(_existing, options) {
+        return readFieldName(options);
       },
     },
   };

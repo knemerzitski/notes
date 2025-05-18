@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useDebouncedCallback, Options } from 'use-debounce';
 
-import { CollabService } from '../../../../collab/src/client/collab-service';
+import { CollabService } from '../../../../collab2/src';
 
 import { useCollabService } from '../hooks/useCollabService';
 import { useHaveOtherUsersOpenedNote } from '../hooks/useHaveOtherUsersOpenedNote';
@@ -94,8 +94,8 @@ function ServiceDefined({
 
     attemptSubmit();
 
-    const eventsOff = service.eventBus.on(
-      ['haveLocalChanges', 'submittedChangesAcknowledged'],
+    const eventsOff = service.on(
+      ['localChanges:have', 'submittedChanges:acknowledged'],
       attemptSubmit
     );
 

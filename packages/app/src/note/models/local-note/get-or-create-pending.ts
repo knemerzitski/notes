@@ -1,7 +1,5 @@
 import { ApolloCache } from '@apollo/client';
 
-import { Changeset } from '../../../../../collab/src/changeset';
-
 import { gql } from '../../../__generated__';
 import {
   GetOrCreatePendingNoteAddQueryQuery,
@@ -44,9 +42,19 @@ const GetOrCreatePendingNoteAdd_Query = gql(`
             id
             collabText {
               id
-              headText {
+              headRecord {
                 revision
-                changeset
+                text
+              }
+              recordConnection {
+                edges {
+                  node {
+                    id
+                  }
+                }
+                pageInfo {
+                  hasPreviousPage
+                }
               }
             }
           }        
@@ -103,10 +111,18 @@ function add(
       collabText: {
         __typename: 'CollabText',
         id: collabTextId,
-        headText: {
-          __typename: 'RevisionChangeset',
+        headRecord: {
+          __typename: 'ComposedTextRecord',
           revision: 0,
-          changeset: Changeset.EMPTY,
+          text: '',
+        },
+        recordConnection: {
+          __typename: 'CollabTextRecordConnection',
+          edges: [],
+          pageInfo: {
+            __typename: 'PageInfo',
+            hasPreviousPage: false,
+          },
         },
       },
     },

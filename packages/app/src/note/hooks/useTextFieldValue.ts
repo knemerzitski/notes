@@ -3,6 +3,7 @@ import { useQuery } from '@apollo/client';
 import { gql } from '../../__generated__';
 import { NoteTextFieldName } from '../../__generated__/graphql';
 import { useNoteId } from '../context/note-id';
+import { useUserId } from '../../user/context/user-id';
 
 // textField is derived from headText
 const _UseTextFieldValue_NoteFragment = gql(`
@@ -10,34 +11,41 @@ const _UseTextFieldValue_NoteFragment = gql(`
     id
     collabText {
       id
-      headText {
+      headRecord {
         revision
-        changeset
+        text
       }
     }
   }
 `);
 
 const UseTextFieldValue_Query = gql(`
-  query UseTextFieldValue_Query($by: NoteByInput!, $name: NoteTextFieldName!) {
-    note(by: $by) {
+  query UseTextFieldValue_Query($userBy: UserByInput!, $noteBy: NoteByInput!, $fieldName: NoteTextFieldName!) {
+    signedInUser(by: $userBy) {
       id
-      textField(name: $name) {
-        value
+      noteLink(by: $noteBy) {
+        id
+        textField(name: $fieldName) {
+          value
+        }
       }
-    }
+    }    
   }
 `);
 
 export function useTextFieldValue(fieldName: NoteTextFieldName) {
+  const userId = useUserId();
   const noteId = useNoteId();
 
   const { data } = useQuery(UseTextFieldValue_Query, {
     variables: {
-      by: {
+      userBy: {
+        id: userId,
+      },
+      noteBy: {
         id: noteId,
       },
-      name: fieldName,
+      fieldName,
     },
     fetchPolicy: 'cache-only',
   });
@@ -46,5 +54,5 @@ export function useTextFieldValue(fieldName: NoteTextFieldName) {
     return null;
   }
 
-  return data.note.textField.value;
+  return data.signedInUser.noteLink.textField.value;
 }

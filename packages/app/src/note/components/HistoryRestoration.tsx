@@ -2,8 +2,6 @@ import { useApolloClient } from '@apollo/client';
 
 import { useEffect, useRef } from 'react';
 
-import { UserRecords } from '../../../../collab/src/client/user-records';
-
 import { gql } from '../../__generated__';
 import { useUserId } from '../../user/context/user-id';
 import { useLogger } from '../../utils/context/logger';
@@ -23,7 +21,7 @@ const HistoryRestoration_Query = gql(`
           id
           textAtRevision(revision: $tailRevision) @skip(if: $skipTailRevision) {
             revision
-            changeset
+            text
           }
           recordConnection(before: $recordsBeforeRevision, last: $recordsLast) @skip(if: $skipRecords) {
             edges {
@@ -56,6 +54,8 @@ export function HistoryRestoration({
    */
   triggerEntriesRemaining?: number;
 }) {
+  throw new Error('Not implemented');
+
   const logger = useLogger('HistoryRestoration');
   const client = useApolloClient();
   const noteId = useNoteId();
@@ -65,31 +65,12 @@ export function HistoryRestoration({
   const isFetchingRef = useRef(false);
 
   useEffect(() => {
-    if (collabService.userRecords != null) {
-      logger?.warning(
-        'Could not start history restoration. userRecords is already defined'
-      );
-      return;
-    }
-
-    const cacheRecordsFacade = new CacheRecordsFacade({
-      cache: client.cache,
-      noteId,
-      initialTailText: collabService.headText,
-    });
-
-    const userRecords = new UserRecords({
-      userId,
-      serverRecords: cacheRecordsFacade,
-    });
-    collabService.userRecords = userRecords;
-
     async function attemptFetchMore() {
       if (isFetchingRef.current) {
         return;
       }
 
-      const historyEntriesRemaining = collabService.history.undoableRecordsCount;
+      const historyEntriesRemaining = collabService.historySize;
       const requiredEntriesInCacheCount =
         triggerEntriesRemaining - historyEntriesRemaining + 1;
 

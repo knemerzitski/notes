@@ -12,7 +12,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { useDebouncedCallback } from 'use-debounce';
 
-import { CollabService } from '../../../../collab/src/client/collab-service';
+import { CollabService } from '../../../../collab2/src';
 
 import { useLogger } from '../../utils/context/logger';
 import { useShowError } from '../../utils/context/show-message';
@@ -72,13 +72,13 @@ function CollabServiceDefined({
   function handleClickUndo() {
     logger?.debug('click');
     if (!service.undo()) {
-      const hasMoreUserRecords = service.userRecords?.hasMoreRecords();
+      const hasMoreServerRecords = service.canUndo();
       logger?.debug('click.undo.false', {
         isOnline,
-        hasMoreUserRecords,
+        hasMoreServerRecords,
       });
 
-      if (isOnline && hasMoreUserRecords) {
+      if (isOnline && hasMoreServerRecords) {
         logger?.debug('click.pending');
         setIsUndoPending(true);
         isUndoPendingRef.current = true;
@@ -91,7 +91,7 @@ function CollabServiceDefined({
   // Update setCanUndo
   useEffect(() => {
     setCanUndo(service.canUndo());
-    return service.eventBus.on(['appliedTypingOperation', 'userRecordsUpdated'], () => {
+    return service.on(['localTyping:applied', 'records:updated'], () => {
       setCanUndo(service.canUndo());
     });
   }, [service]);
@@ -117,7 +117,7 @@ function CollabServiceDefined({
 
     let isRunningTimeout = false;
 
-    return service.eventBus.on(['userRecordsUpdated'], () => {
+    return service.on(['records:updated'], () => {
       if (isRunningTimeout) {
         return;
       }
@@ -125,19 +125,19 @@ function CollabServiceDefined({
 
       setTimeout(() => {
         try {
-          if (!service.userRecords || !isUndoPendingRef.current) {
+          if (!isUndoPendingRef.current) {
             return;
           }
 
-          const hasMoreUserRecords = service.userRecords.hasMoreRecords();
+          const hasMoreServerRecords = service.canUndo();
           logger?.debug('userRecordsUpdated', {
-            hasMoreUserRecords,
+            hasMoreServerRecords,
             isUndoPending: isUndoPendingRef.current,
           });
 
           if (!service.undo()) {
             logger?.debug('userRecordsUpdated.undo.false');
-            if (!hasMoreUserRecords) {
+            if (!hasMoreServerRecords) {
               logger?.debug('userRecordsUpdated.undo.noMoreRecords');
               showError('Undo failed. No older records found.');
               setIsUndoPending(false);

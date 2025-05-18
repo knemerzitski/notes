@@ -23,7 +23,7 @@ import {
 import { processCacheVersion } from './graphql/utils/process-cache-version';
 import { TaggedEvictOptionsList } from './graphql/utils/tagged-evict';
 import {
-  noteContext,
+  userNoteLinkContext,
   noteEvictOptions,
   noteMutationDefinitions,
   notePolicies,
@@ -51,7 +51,7 @@ const WS_URL = import.meta.env.PROD
   : `ws://${location.host}/graphql-ws`;
 
 const CUSTOM_TYPE_POLICIES_CONTEXT_INITIALIZERS = {
-  note: noteContext,
+  userNoteLink: userNoteLinkContext,
 };
 
 export type CustomTypePoliciesContextInitializer =

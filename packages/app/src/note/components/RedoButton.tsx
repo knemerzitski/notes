@@ -2,7 +2,7 @@ import RedoIcon from '@mui/icons-material/Redo';
 import { IconButton, IconButtonProps, Tooltip } from '@mui/material';
 import { useEffect, useState } from 'react';
 
-import { CollabService } from '../../../../collab/src/client/collab-service';
+import { CollabService } from '../../../../collab2/src';
 
 import { useCollabService } from '../hooks/useCollabService';
 
@@ -35,7 +35,7 @@ function CollabServiceDefined({
 
   useEffect(() => {
     setCanRedo(service.canRedo());
-    return service.eventBus.on(['appliedTypingOperation', 'userRecordsUpdated'], () => {
+    return service.on(['localTyping:applied', 'records:updated'], () => {
       setCanRedo(service.canRedo());
     });
   }, [service]);

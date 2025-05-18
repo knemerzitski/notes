@@ -43,14 +43,14 @@ import { UserNoteLink } from './policies/UserNoteLink';
 import { UserNoteLinkConnection } from './policies/UserNoteLinkConnection';
 import { createNoteExternalStateContext } from './utils/external-state';
 
-export const noteContext = function (ctx: CustomTypePoliciesInitContext) {
+export const userNoteLinkContext = function (ctx: CustomTypePoliciesInitContext) {
   const externalState = createNoteExternalStateContext<NoteTextFieldName>(
     {
       keys: Object.values(NoteTextFieldName),
     },
     {
       defaultKey: NoteTextFieldName.CONTENT,
-      logger: ctx.logger?.extend('noteExternal'),
+      logger: ctx.logger?.extend('external'),
     }
   );
 

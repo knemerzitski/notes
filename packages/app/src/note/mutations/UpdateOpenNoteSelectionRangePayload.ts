@@ -16,10 +16,7 @@ export const UpdateOpenNoteSelectionRangePayload = mutationDefinition(
     open {
       collabTextEditing {
         revision
-        latestSelection {
-          start
-          end
-        }
+        latestSelection
       }
     }
   }  

@@ -1,5 +1,5 @@
 {
   "extends": "./tsconfig.json",
   // Files excluded from type-checking
-  "exclude": ["../api-app-shared/src", "../collab/src", "../utils/src"]
+  "exclude": ["../api-app-shared/src", "../collab2/src", "../utils/src"]
 }

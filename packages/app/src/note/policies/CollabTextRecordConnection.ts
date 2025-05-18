@@ -8,22 +8,20 @@ import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
 
 interface Edge {
   node: {
-    change: {
-      revision: CollabTextRecord['change']['revision'];
-    };
+    revision: CollabTextRecord['revision'];
   };
 }
 
 function compareRecordsUni(a: Edge, revision: number) {
-  return a.node.change.revision - revision;
+  return a.node.revision - revision;
 }
 
 function compareRecords(a: Edge, b: Edge) {
-  return compareRecordsUni(a, b.node.change.revision);
+  return compareRecordsUni(a, b.node.revision);
 }
 
 function rankRecord(a: Edge) {
-  return a.node.change.revision;
+  return a.node.revision;
 }
 
 export const CollabTextRecordConnection: CreateTypePolicyFn = function (
@@ -67,7 +65,7 @@ export const CollabTextRecordConnection: CreateTypePolicyFn = function (
                 return;
               }
               end = start + first;
-              if (existing[end - 1]?.node.change.revision !== after + first) {
+              if (existing[end - 1]?.node.revision !== after + first) {
                 return;
               }
             } else {
@@ -110,7 +108,7 @@ export const CollabTextRecordConnection: CreateTypePolicyFn = function (
               }
 
               start = end - last;
-              if (existing[start]?.node.change.revision !== before - last) {
+              if (existing[start]?.node.revision !== before - last) {
                 return;
               }
             } else {

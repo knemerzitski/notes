@@ -3,8 +3,7 @@ import { RefObject, useCallback, useEffect, useRef } from 'react';
 
 import { Options, useDebouncedCallback } from 'use-debounce';
 
-import { SelectionRange } from '../../../../collab/src/client/selection-range';
-import { RevisionChangeset } from '../../../../collab/src/records/record';
+import { Changeset, Selection } from '../../../../collab2/src';
 
 import { EMPTY_ARRAY } from '../../../../utils/src/array/empty';
 
@@ -22,7 +21,7 @@ import { getUserNoteLinkId } from '../utils/id';
 import {
   editorSelectionToHeadTextSelection,
   getUserHeadTextSelection,
-  RevisionSelectionRange,
+  isSelectionRecordEqual,
 } from '../utils/selection';
 
 const SubmitSelectionChangeDebounced_UserNoteLinkFragment = gql(`
@@ -60,23 +59,23 @@ export function SubmitSelectionChangeDebounced({
   const isSubmittingRef = useRef(false);
   const hasRequestedSubmitRef = useRef(false);
 
-  const externalChangesSinceLastRenderRef =
-    useRef<readonly RevisionChangeset[]>(EMPTY_ARRAY);
+  const externalChangesSinceLastRenderRef = useRef<readonly Changeset[]>(EMPTY_ARRAY);
   externalChangesSinceLastRenderRef.current = EMPTY_ARRAY;
 
   useEffect(() => {
-    return editor.eventBus.on('handledExternalChanges', (changes) => {
+    return editor.on('externalTyping:applied', ({ changeset }) => {
       externalChangesSinceLastRenderRef.current = [
         ...externalChangesSinceLastRenderRef.current,
-        ...changes,
+        changeset,
       ];
     });
   }, [editor]);
 
   const adjustSelectionToExternalChanges = useCallback(
-    (selection: SelectionRange) =>
+    (selection: Selection) =>
       externalChangesSinceLastRenderRef.current.reduce(
-        (sel, { changeset }) => SelectionRange.closestRetainedPosition(sel, changeset),
+        // TODO is true/left correct?
+        (sel, changeset) => sel.follow(changeset, true),
         selection
       ),
     []
@@ -90,7 +89,7 @@ export function SubmitSelectionChangeDebounced({
         return;
       }
 
-      function getInputSelection(): SelectionRange | undefined {
+      function getInputSelection(): Selection | undefined {
         const input = inputRef.current;
         if (!input) {
           logger?.debug('noInputElement');
@@ -107,10 +106,10 @@ export function SubmitSelectionChangeDebounced({
           return;
         }
 
-        return SelectionRange.from({
-          start: input.selectionStart,
-          end: input.selectionEnd,
-        });
+        return Selection.create(
+          input.selectionStart,
+          input.selectionEnd ?? input.selectionStart
+        );
       }
 
       const inputSelection = getInputSelection();
@@ -122,7 +121,7 @@ export function SubmitSelectionChangeDebounced({
 
       const adjustedInputSelection = adjustSelectionToExternalChanges(inputSelection);
 
-      if (!SelectionRange.isEqual(inputSelection, adjustedInputSelection)) {
+      if (!inputSelection.isEqual(adjustedInputSelection)) {
         logger?.debug('adjustedInputSelection', {
           inputSelection,
           adjustedInputSelection,
@@ -137,17 +136,21 @@ export function SubmitSelectionChangeDebounced({
         }
       );
 
-      const latestHeadTextSelection = getUserHeadTextSelection(noteId, userId, {
-        cache: client.cache,
-        service,
-      });
+      if (!inputAsHeadTextSelection) {
+        logger?.debug('typerSelectionToServerTextFailed');
+        return;
+      }
+
+      const latestHeadTextSelection = getUserHeadTextSelection(
+        noteId,
+        userId,
+        service.serverRevision,
+        {
+          cache: client.cache,
+        }
+      );
       if (latestHeadTextSelection != null) {
-        if (
-          RevisionSelectionRange.isEqual(
-            inputAsHeadTextSelection,
-            latestHeadTextSelection
-          )
-        ) {
+        if (isSelectionRecordEqual(inputAsHeadTextSelection, latestHeadTextSelection)) {
           logger?.debug('duplicateSelection');
           return;
         }
@@ -195,9 +198,9 @@ export function SubmitSelectionChangeDebounced({
         inputAsHeadTextSelection,
         latestHeadTextSelection,
         client: {
-          local: service.client.local.toString(),
-          submitted: service.client.submitted.toString(),
-          server: service.client.server.toString(),
+          local: service.localChanges.toString(),
+          submitted: service.submittedChanges.toString(),
+          server: service.serverText.toString(),
         },
       });
 
@@ -206,7 +209,7 @@ export function SubmitSelectionChangeDebounced({
           id: noteId,
         },
         revision: inputAsHeadTextSelection.revision,
-        selectionRange: inputAsHeadTextSelection.selection,
+        selection: inputAsHeadTextSelection.selection,
       }).finally(() => {
         isSubmittingRef.current = false;
         if (hasRequestedSubmitRef.current) {
@@ -284,15 +287,15 @@ export function SubmitSelectionChangeDebounced({
 
   // Submit when selection has changed since last record submission
   useEffect(() => {
-    return service.eventBus.on('submittedChangesAcknowledged', () => {
+    return service.on('submittedChanges:acknowledged', () => {
       debouncedSubmitSelection();
     });
   }, [service, debouncedSubmitSelection, editor, logger]);
 
   // Attempt to submit when selection is directly changed by the user, no insert/deletion of text
   useEffect(() => {
-    return editor.sharedEventBus.on('selectionChanged', (event) => {
-      if (event.source === 'immutable') {
+    return editor.on('selection:changed', (event) => {
+      if (event.source === 'movement') {
         debouncedSubmitSelection();
       }
     });

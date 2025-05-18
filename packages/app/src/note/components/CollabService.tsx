@@ -138,7 +138,8 @@ function Remote() {
       <SubmittedRecordMutation />
       <SyncHeadText />
       <SyncMissingRecords />
-      <HistoryRestoration />
+      {/* TODO uncomment */}
+      {/* <HistoryRestoration /> */}
     </>
   );
 }

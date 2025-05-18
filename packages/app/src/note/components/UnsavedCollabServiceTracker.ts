@@ -1,14 +1,14 @@
 import { useApolloClient } from '@apollo/client';
 import { useEffect } from 'react';
 
-import { CollabService } from '../../../../collab/src/client/collab-service';
+import { CollabService } from '../../../../collab2/src';
 
 import { useUserNoteLinkId } from '../context/user-note-link-id';
 import { useCollabService } from '../hooks/useCollabService';
 import { updateUnsavedCollabService } from '../models/update-unsaved-collab-service';
 
 function isServiceUpToDate(service: CollabService) {
-  return !service.haveSubmittedChanges() && !service.haveLocalChanges();
+  return !service.haveChanges();
 }
 
 export function UnsavedCollabServiceTracker() {
@@ -33,9 +33,8 @@ export function UnsavedCollabServiceTracker() {
     }
 
     update();
-
-    const eventBusOff = service.eventBus.on(
-      ['viewChanged', 'submittedChangesAcknowledged', 'replacedHeadText'],
+    const eventBusOff = service.on(
+      ['view:changed', 'submittedChanges:acknowledged', 'headRecord:reset'],
       update
     );
 

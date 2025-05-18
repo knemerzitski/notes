@@ -6,7 +6,8 @@ import { MapRecordCollabTextRecordFragmentFragmentDoc } from '../../__generated_
 import { useUserId } from '../../user/context/user-id';
 import { useNoteId } from '../context/note-id';
 import { getCollabService } from '../models/note/get-collab-service';
-import { cacheRecordToCollabServiceRecord } from '../utils/map-record';
+import { cacheRecordToCollabServerRecord } from '../utils/map-record';
+import { Changeset } from '../../../../collab2/src';
 
 const SyncHeadTextWatch_Query = gql(`
   query SyncHeadTextWatch_Query($by: NoteByInput!) {
@@ -14,9 +15,9 @@ const SyncHeadTextWatch_Query = gql(`
       id
       collabText {
         id
-        headText {
+        headRecord {
           revision
-          changeset
+          text
         }
       }
     }
@@ -77,44 +78,49 @@ export function SyncHeadText() {
 
       const note = value.data.note;
       const collabText = note.collabText;
-      const collabService = getCollabService(note, client.cache);
+      const collabService = getCollabService({ id: userId }, note, client.cache);
 
-      const cacheHeadRevision = collabText.headText.revision;
+      const cacheHeadRevision = collabText.headRecord.revision;
 
-      const collabServiceIsOutdated = collabService.headRevision < cacheHeadRevision;
-      if (collabServiceIsOutdated) {
-        if (collabService.haveChanges()) {
-          // Have local or submitted changes, query for required records and process them as external changes
-          void client
-            .query({
-              query: SyncHeadText_Query,
-              variables: {
-                userBy: {
-                  id: userId,
-                },
-                noteBy: {
-                  id: noteId,
-                },
-                after: collabService.headRevision,
-                first: cacheHeadRevision - collabService.headRevision,
+      const isCollabServiceOutdated = collabService.serverRevision < cacheHeadRevision;
+      if (isCollabServiceOutdated) {
+        // Query for required records and process them as external changes
+        void client
+          .query({
+            query: SyncHeadText_Query,
+            variables: {
+              userBy: {
+                id: userId,
               },
-            })
-            .then(({ data }) => {
-              data.signedInUser.note.collabText.recordConnection.edges.forEach((edge) => {
-                const record = getFragmentData(
-                  MapRecordCollabTextRecordFragmentFragmentDoc,
-                  edge.node
-                );
+              noteBy: {
+                id: noteId,
+              },
+              after: collabService.serverRevision,
+              first: cacheHeadRevision - collabService.serverRevision,
+            },
+          })
+          .then(({ data }) => {
+            data.signedInUser.note.collabText.recordConnection.edges.forEach((edge) => {
+              const record = getFragmentData(
+                MapRecordCollabTextRecordFragmentFragmentDoc,
+                edge.node
+              );
 
-                collabService.handleExternalChange(
-                  cacheRecordToCollabServiceRecord(record)
-                );
-              });
+              collabService.addExternalTyping(cacheRecordToCollabServerRecord(record));
             });
-        } else {
-          // No changes, can safely replace headText
-          collabService.replaceHeadText(collabText.headText);
-        }
+          })
+          .then(() => {
+            const isCollabServiceStillOutdated =
+              collabService.serverRevision < cacheHeadRevision;
+            if (isCollabServiceStillOutdated) {
+              // Didn't get required records from server, reset local history
+              // TODO persist old CollabService state to avoid losing local and submitted changes
+              collabService.reset({
+                revision: collabText.headRecord.revision,
+                text: Changeset.fromText(collabText.headRecord.text),
+              });
+            }
+          });
       }
     });
 

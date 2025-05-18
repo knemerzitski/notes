@@ -13,6 +13,7 @@ import { useCollabHtmlInput } from '../hooks/useCollabHtmlInput';
 
 import { CollabInputUsersEditingCarets } from './CollabInputUsersEditingCarets';
 import { SubmitSelectionChangeDebounced } from './SubmitSelectionChangeDebounced';
+import { useUserId } from '../../user/context/user-id';
 
 const _CollabInput_NoteFragment = gql(`
   fragment CollabInput_NoteFragment on Note {
@@ -21,12 +22,15 @@ const _CollabInput_NoteFragment = gql(`
 `);
 
 const CollabInput_Query = gql(`
-  query CollabInput_Query($noteBy: NoteByInput!, $fieldName: NoteTextFieldName!) {
-    note(by: $noteBy) {
+  query CollabInput_Query($userBy: UserByInput!, $noteBy: NoteByInput!, $fieldName: NoteTextFieldName!) {
+    signedInUser(by: $userBy) {
       id
-      collabService
-      textField(name: $fieldName) {
-        editor
+      noteLink(by: $noteBy) {
+        id
+        collabService
+        textField(name: $fieldName) {
+          editor
+        }
       }
     }
   }
@@ -45,10 +49,14 @@ export function CollabInput<TInputProps>({
 >) {
   const logger = useLogger('CollabInput');
 
+  const userId = useUserId();
   const noteId = useNoteId();
 
   const { data } = useQuery(CollabInput_Query, {
     variables: {
+      userBy: {
+        id: userId,
+      },
       noteBy: {
         id: noteId,
       },
@@ -64,7 +72,7 @@ export function CollabInput<TInputProps>({
   return (
     <NoteTextFieldNameProvider textFieldName={fieldName}>
       <LoggerProvider logger={logger?.extend(fieldName)}>
-        <NoteDefined<TInputProps> {...restProps} note={data.note} />
+        <NoteDefined<TInputProps> {...restProps} noteLink={data.signedInUser.noteLink} />
       </LoggerProvider>
     </NoteTextFieldNameProvider>
   );
@@ -73,7 +81,7 @@ export function CollabInput<TInputProps>({
 type CollabHtmlInputProps = ReturnType<typeof useCollabHtmlInput>;
 
 function NoteDefined<TInputProps>({
-  note,
+  noteLink,
   slots,
   slotProps,
 }: {
@@ -85,9 +93,12 @@ function NoteDefined<TInputProps>({
     root?: Omit<BoxProps, 'position'>;
     input?: Omit<TInputProps, keyof CollabHtmlInputProps>;
   };
-  note: CollabInputQueryQuery['note'];
+  noteLink: CollabInputQueryQuery['signedInUser']['noteLink'];
 }) {
-  const collabHtmlInput = useCollabHtmlInput(note.textField.editor, note.collabService);
+  const collabHtmlInput = useCollabHtmlInput(
+    noteLink.textField.editor,
+    noteLink.collabService
+  );
 
   const InputSlot = slots.input;
   const RootSlot = slots.root ?? Box;

@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Options, useDebouncedCallback } from 'use-debounce';
 
-import { CollabService } from '../../../../collab/src/client/collab-service';
-import { SelectionRange } from '../../../../collab/src/client/selection-range';
-import { RevisionChangeset } from '../../../../collab/src/records/record';
+import { Changeset, CollabService, Selection } from '../../../../collab2/src';
 import { EMPTY_ARRAY } from '../../../../utils/src/array/empty';
 
 import { useLogger } from '../../utils/context/logger';
@@ -26,7 +24,7 @@ interface UseHTMLInputCollabEditorOptions {
 
 export function useCollabHtmlInput(
   editor: NoteTextFieldEditor,
-  service: Pick<CollabService, 'undo' | 'redo' | 'headRevision'>,
+  service: Pick<CollabService, 'undo' | 'redo' | 'serverRevision'>,
   options?: UseHTMLInputCollabEditorOptions
 ) {
   const logger = useLogger('useCollabHtmlInput');
@@ -36,22 +34,22 @@ export function useCollabHtmlInput(
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const prevSelectionRef = useRef<SelectionRange | null>(null);
-  const forceSelectionRef = useRef<SelectionRange | null>(null);
-  const latestTypingSelectionRef = useRef<SelectionRange | null>(null);
+  const prevSelectionRef = useRef<Selection | null>(null);
+  const forceSelectionRef = useRef<Selection | null>(null);
+  const latestTypingSelectionRef = useRef<Selection | null>(null);
 
-  const externalChangesSinceLastRenderRef =
-    useRef<readonly RevisionChangeset[]>(EMPTY_ARRAY);
+  const externalChangesSinceLastRenderRef = useRef<readonly Changeset[]>(EMPTY_ARRAY);
   externalChangesSinceLastRenderRef.current = EMPTY_ARRAY;
 
   const value = editor.value;
 
   const adjustSelectionToExternalChanges = useCallback(
-    (selection: SelectionRange | undefined) =>
+    (selection: Selection | undefined) =>
       selection
         ? externalChangesSinceLastRenderRef.current.reduce(
-            (sel, { changeset }) =>
-              SelectionRange.closestRetainedPosition(sel, changeset),
+            (sel, changeset) =>
+              // TODO is true/left correct?
+              sel.follow(changeset, true),
             selection
           )
         : undefined,
@@ -65,22 +63,16 @@ export function useCollabHtmlInput(
 
     const start = inputRef.current.selectionStart ?? 0;
 
-    return {
-      start,
-      end: inputRef.current.selectionEnd ?? start,
-    };
+    return Selection.create(start, inputRef.current.selectionEnd ?? start);
   }, []);
 
   const forceSetSelection = useCallback(
-    (selection: SelectionRange | undefined) => {
+    (selection: Selection | undefined) => {
       if (!selection) {
         return;
       }
 
-      if (
-        forceSelectionRef.current &&
-        SelectionRange.isEqual(forceSelectionRef.current, selection)
-      ) {
+      if (forceSelectionRef.current?.isEqual(selection)) {
         return;
       }
       logger?.debug('forceSetSelection', {
@@ -102,10 +94,10 @@ export function useCollabHtmlInput(
 
   // Adjust selection to external changes
   useEffect(() => {
-    return editor.eventBus.on('handledExternalChanges', (changes) => {
+    return editor.on('externalTyping:applied', ({ changeset }) => {
       externalChangesSinceLastRenderRef.current = [
         ...externalChangesSinceLastRenderRef.current,
-        ...changes,
+        changeset,
       ];
       logger?.debug(
         'eventBus.handledExternalChanges',
@@ -139,8 +131,8 @@ export function useCollabHtmlInput(
 
   // Update value after view changed
   useEffect(() => {
-    return editor.eventBus.on('valueChanged', (value) => {
-      logger?.debug('eventBus.valueChanged', JSON.stringify(value));
+    return editor.on('value:changed', ({ newValue }) => {
+      logger?.debug('eventBus.valueChanged', newValue);
 
       setRenderCounter((prev) => prev + 1);
     });
@@ -149,7 +141,7 @@ export function useCollabHtmlInput(
   // Request focus when undo or redo
   useEffect(
     () =>
-      editor.eventBus.on(['appliedRedo', 'appliedUndo'], ({ type }) => {
+      editor.on(['redo:applied', 'undo:applied'], ({ type }) => {
         logger?.debug(`eventBus.${type}`);
         inputRef.current?.focus();
       }),
@@ -158,10 +150,10 @@ export function useCollabHtmlInput(
 
   // User typed/deleted something or undo/redo
   useEffect(() => {
-    return editor.eventBus.on('selectionChanged', (selection) => {
-      logger?.debug('eventBus.selectionChanged', selection.start);
-      latestTypingSelectionRef.current = selection;
-      forceSetSelection(selection);
+    return editor.on('selection:changed', ({ newSelection }) => {
+      logger?.debug('eventBus.selectionChanged', newSelection.start);
+      latestTypingSelectionRef.current = newSelection;
+      forceSetSelection(newSelection);
     });
   }, [editor, logger, forceSetSelection]);
 
@@ -238,13 +230,13 @@ export function useCollabHtmlInput(
         beforeSelection,
         adjustedBeforeSelection,
         value: inputRef.current?.value,
-        externalChanges: externalChangesSinceLastRenderRef.current.map(
-          ({ changeset, revision }) => `${revision}@${changeset.toString()}`
+        externalChanges: externalChangesSinceLastRenderRef.current.map((changeset) =>
+          changeset.toString()
         ),
       });
 
       editor.insert(insertValue, adjustedBeforeSelection, {
-        type: isMergeChangesRef.current === 'insert' ? 'merge' : undefined,
+        historyType: isMergeChangesRef.current === 'insert' ? 'merge' : undefined,
       });
       startDebouncedMerge('insert');
     },
@@ -256,13 +248,13 @@ export function useCollabHtmlInput(
         beforeSelection,
         adjustedBeforeSelection,
         value: inputRef.current?.value,
-        externalChanges: externalChangesSinceLastRenderRef.current.map(
-          ({ changeset, revision }) => `${revision}@${changeset.toString()}`
+        externalChanges: externalChangesSinceLastRenderRef.current.map((changeset) =>
+          changeset.toString()
         ),
       });
 
       editor.delete(1, adjustedBeforeSelection, {
-        type: isMergeChangesRef.current === 'delete' ? 'merge' : undefined,
+        historyType: isMergeChangesRef.current === 'delete' ? 'merge' : undefined,
       });
       startDebouncedMerge('delete');
     },
@@ -272,13 +264,13 @@ export function useCollabHtmlInput(
           const latestTypingSelection = latestTypingSelectionRef.current;
           latestTypingSelectionRef.current = null;
 
-          if (SelectionRange.isEqual(latestTypingSelection, selection)) {
+          if (latestTypingSelection.isEqual(selection)) {
             logger?.debug('onSelect:ignoreFromTyping');
             return;
           }
         }
 
-        let newSelection: SelectionRange;
+        let newSelection: Selection;
         if (externalChangesSinceLastRenderRef.current.length > 0) {
           // If have external changes, must adjust selection accordingly
           newSelection = adjustSelectionToExternalChanges(selection) ?? selection;
@@ -291,18 +283,13 @@ export function useCollabHtmlInput(
           forceSelectionRef.current = null;
 
           // Stop merging typings when user changes selection
-          if (
-            prevSelectionRef.current &&
-            !SelectionRange.isEqual(prevSelectionRef.current, selection)
-          ) {
+          if (prevSelectionRef.current && !prevSelectionRef.current.isEqual(selection)) {
             stopDebouncedMerge();
           }
         }
 
-        editor.sharedEventBus.emit('selectionChanged', {
-          source: 'immutable',
-          editor,
-          selection: newSelection,
+        editor.emit('selection:changed', {
+          newSelection,
         });
       } finally {
         prevSelectionRef.current = selection;

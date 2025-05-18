@@ -1,13 +1,17 @@
 import { FieldFunctionOptions } from '@apollo/client';
 
-import { Changeset } from '../../../../../collab/src/changeset';
+import { Changeset } from '../../../../../collab2/src';
 import { binarySearchIndexOf } from '../../../../../utils/src/array/binary-search';
 
 import { gql } from '../../../__generated__';
-import { CollabText, CollabTextRecord } from '../../../__generated__/graphql';
+import {
+  CollabText,
+  CollabTextRecord,
+  ComposedTextRecord,
+} from '../../../__generated__/graphql';
 
 import { CreateFieldPolicyFn, TypePoliciesContext } from '../../../graphql/types';
-import { firstRevisionChangeset } from '../../utils/map-record';
+import { firstComposedTextRecord } from '../../utils/map-record';
 
 const PolicyTextAtRevision_CollabTextFragment = gql(`
   fragment PolicyTextAtRevision_CollabTextFragment on CollabText {
@@ -16,24 +20,22 @@ const PolicyTextAtRevision_CollabTextFragment = gql(`
       edges {
         node {
           id
-          change {
           revision
           changeset
-        }
         }
       }
     }
   }
 `);
 
-type OnlyRevision = Pick<CollabTextRecord['change'], 'revision'>;
+type OnlyRevision = Pick<CollabTextRecord, 'revision'>;
 
 /**
  * External field contains state that is managed outside cache but
  * still belongs to Note type.
  */
 export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesContext) {
-  const defaultExisting = [firstRevisionChangeset()];
+  const defaultExisting = [firstComposedTextRecord()];
   return {
     read(existing = defaultExisting, options) {
       // read(existing = [], options) {
@@ -63,17 +65,17 @@ export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesC
 
       // Compose text from closest older tailText
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-      const tailText = existing[index - 1];
-      if (!tailText) {
+      const tailRecord: ComposedTextRecord | undefined = existing[index - 1];
+      if (!tailRecord) {
         return;
       }
 
       const records = readRecords(
         {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-          after: tailText.revision,
+          after: tailRecord.revision,
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          first: revision - tailText.revision,
+          first: revision - tailRecord.revision,
         },
         options
       );
@@ -82,12 +84,12 @@ export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesC
       }
 
       return {
-        changeset: records.reduce(
-          (a, b) => a.compose(b.change.changeset),
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          Changeset.parseValue(tailText.changeset)
-        ),
         revision,
+        text: records.reduce(
+          (a, b) => Changeset.compose(a, b.changeset),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          Changeset.fromText(tailRecord.text)
+        ).getText(),
       };
     },
     merge(existing = defaultExisting, incoming, options) {

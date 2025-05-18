@@ -56,11 +56,7 @@ export function useUpdateOpenNoteSelectionRange() {
                         collabTextEditing: {
                           __typename: 'CollabTextEditing',
                           revision: input.revision,
-                          latestSelection: {
-                            __typename: 'CollabTextSelectionRange',
-                            start: input.selectionRange.start,
-                            end: input.selectionRange.end,
-                          },
+                          latestSelection: input.selection,
                         },
                       },
                     },

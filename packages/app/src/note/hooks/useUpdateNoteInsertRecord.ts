@@ -1,8 +1,6 @@
 import { useApolloClient } from '@apollo/client';
 import { useCallback } from 'react';
 
-import { SubmittedRecord } from '../../../../collab/src/client/submitted-record';
-
 import { Note } from '../../__generated__/graphql';
 import { useMutation } from '../../graphql/hooks/useMutation';
 import { PersistLink } from '../../graphql/link/persist';
@@ -12,6 +10,7 @@ import { useUserId } from '../../user/context/user-id';
 import { UpdateNoteInsertRecord } from '../mutations/UpdateNoteInsertRecord';
 import { getCollabTextId } from '../utils/id';
 import { submittedRecordToCollabTextRecordInput } from '../utils/map-record';
+import { CollabServiceSubmittedServiceRecord } from '../../../../collab2/src';
 
 export function useUpdateNoteInsertRecord() {
   const client = useApolloClient();
@@ -20,8 +19,8 @@ export function useUpdateNoteInsertRecord() {
   const [updateNoteInsertRecord] = useMutation(UpdateNoteInsertRecord);
 
   return useCallback(
-    async (noteId: Note['id'], submittedRecord: SubmittedRecord) => {
-      const operationId = `CollabText:${getCollabTextId(noteId)}.newRecord:${submittedRecord.userGeneratedId}`;
+    async (noteId: Note['id'], submittedRecord: CollabServiceSubmittedServiceRecord) => {
+      const operationId = `CollabText:${getCollabTextId(noteId)}.newRecord:${submittedRecord.id}`;
 
       if (hasOngoingOperation(operationId, client.cache)) {
         // Cancel insert record if same record has already been submitted

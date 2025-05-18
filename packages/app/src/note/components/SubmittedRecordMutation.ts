@@ -5,7 +5,7 @@ import { useCollabService } from '../hooks/useCollabService';
 import { useUpdateNoteInsertRecord } from '../hooks/useUpdateNoteInsertRecord';
 
 /**
- * Watches CollabService.submittedRecord and submits it to the server
+ * Watches CollabService for submittedChanges and submits it to the server
  */
 export function SubmittedRecordMutation() {
   const insertRecord = useUpdateNoteInsertRecord();
@@ -25,7 +25,7 @@ export function SubmittedRecordMutation() {
         return;
       }
 
-      const submittedRecord = service.submittedRecord;
+      const submittedRecord = service.submitChanges();
       if (!submittedRecord) {
         return;
       }
@@ -38,7 +38,7 @@ export function SubmittedRecordMutation() {
 
     update();
 
-    const eventBusOff = service.eventBus.on('submittedRecord', () => {
+    const eventBusOff = service.on('submittedChanges:have', () => {
       update();
     });
 

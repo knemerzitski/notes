@@ -1,12 +1,12 @@
-import { Changeset } from '../../../../collab/src/changeset';
-import { CollabServiceRecord } from '../../../../collab/src/client/collab-service';
-import { SubmittedRecord } from '../../../../collab/src/client/submitted-record';
-
+import {
+  CollabServiceSubmittedServiceRecord,
+  ServerRecord,
+} from '../../../../collab2/src';
 import { gql } from '../../__generated__';
 import {
   CollabTextRecordInput,
+  ComposedTextRecord,
   MapRecordCollabTextRecordFragmentFragment,
-  RevisionChangeset,
 } from '../../__generated__/graphql';
 
 /**
@@ -15,21 +15,14 @@ import {
 const _MapRecord_CollabTextRecordFragment = gql(`
   fragment MapRecord_CollabTextRecordFragment on CollabTextRecord {
     id
-    creatorUser {
+    author {
       id
     }
-    change {
-      revision
-      changeset
-    }
-    beforeSelection {
-      start
-      end
-    }
-    afterSelection {
-      start
-      end
-    }
+    revision
+    changeset
+    inverse
+    selectionInverse
+    selection
   }
 `);
 
@@ -38,45 +31,37 @@ const _MapRecord_CollabTextRecordFragment = gql(`
  * record for server consumption.
  */
 export function submittedRecordToCollabTextRecordInput(
-  record: SubmittedRecord
+  record: CollabServiceSubmittedServiceRecord
 ): CollabTextRecordInput {
   return {
-    generatedId: record.userGeneratedId,
-    change: {
-      revision: record.revision,
-      changeset: record.changeset,
-    },
-    afterSelection: record.afterSelection,
-    beforeSelection: record.beforeSelection,
+    id: record.id,
+    targetRevision: record.targetRevision,
+    changeset: record.changeset,
+    selectionInverse: record.selectionInverse,
+    selection: record.selection,
   };
 }
 
-/**
- * Map record received from server (that is stored in ApolloCache)
- * to appropriate record for CollabService consumption.
- */
-export function cacheRecordToCollabServiceRecord(
+export function cacheRecordToCollabServerRecord(
   record: MapRecordCollabTextRecordFragmentFragment
-): CollabServiceRecord {
+): Pick<
+  ServerRecord,
+  'authorId' | 'revision' | 'changeset' | 'inverse' | 'selectionInverse' | 'selection'
+> {
   return {
-    creatorUserId: record.creatorUser.id,
-    revision: record.change.revision,
-    changeset: record.change.changeset,
-    afterSelection: {
-      start: record.afterSelection.start,
-      end: record.afterSelection.end ?? record.afterSelection.start,
-    },
-    beforeSelection: {
-      start: record.beforeSelection.start,
-      end: record.beforeSelection.end ?? record.beforeSelection.start,
-    },
+    authorId: record.author.id,
+    revision: record.revision,
+    changeset: record.changeset,
+    inverse: record.inverse,
+    selectionInverse: record.selectionInverse,
+    selection: record.selection,
   };
 }
 
-export function firstRevisionChangeset(): RevisionChangeset {
+export function firstComposedTextRecord(): ComposedTextRecord {
   return {
-    __typename: 'RevisionChangeset',
-    changeset: Changeset.EMPTY,
+    __typename: 'ComposedTextRecord',
     revision: 0,
+    text: '',
   };
 }

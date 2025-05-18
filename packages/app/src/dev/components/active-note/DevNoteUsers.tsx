@@ -12,7 +12,7 @@ import {
   TableBody,
 } from '@mui/material';
 
-import { Changeset } from '../../../../../collab/src/changeset';
+import { Selection } from '../../../../../collab2/src';
 
 import { PartialDeep } from '../../../../../utils/src/types';
 
@@ -36,10 +36,7 @@ const DevNoteUsers_Query = gql(`
           active @client
           collabTextEditing {
             revision
-            latestSelection {
-              start
-              end
-            }
+            latestSelection
           }
         }
       }
@@ -58,7 +55,7 @@ export function DevNoteUsers() {
     },
     returnPartialData: true,
   });
-  const partialData: PartialDeep<DevNoteUsersQueryQuery, Changeset> | undefined = data;
+  const partialData: PartialDeep<DevNoteUsersQueryQuery, Selection> | undefined = data;
   if (!partialData) {
     return null;
   }

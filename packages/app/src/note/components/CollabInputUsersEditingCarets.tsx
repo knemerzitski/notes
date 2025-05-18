@@ -3,7 +3,7 @@ import { RefObject } from 'react';
 
 import { gql } from '../../__generated__';
 
-import { UserIdProvider, useUserId } from '../../user/context/user-id';
+import { useUserId } from '../../user/context/user-id';
 import { useNoteId } from '../context/note-id';
 
 import { UserCollabEditingCaret } from './UserCollabEditingCaret';
@@ -58,9 +58,11 @@ export function CollabInputUsersEditingCarets({
       // No caret for current user
       .filter((noteUser) => noteUser.user.id !== currentUserId)
       .map((noteUser) => (
-        <UserIdProvider key={noteUser.user.id} userId={noteUser.user.id}>
-          <UserCollabEditingCaret inputRef={inputRef} />
-        </UserIdProvider>
+        <UserCollabEditingCaret
+          key={noteUser.user.id}
+          inputRef={inputRef}
+          userId={noteUser.user.id}
+        />
       ))
   );
 }

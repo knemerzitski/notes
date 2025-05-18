@@ -11,7 +11,6 @@ import {
   TableBody,
 } from '@mui/material';
 
-import { Changeset } from '../../../../../collab/src/changeset';
 import { PartialDeep } from '../../../../../utils/src/types';
 
 import { gql } from '../../../__generated__';
@@ -24,13 +23,13 @@ const DebugNoteHeadText_Query = gql(`
       id
       collabText {
         id
-        headText {
+        headRecord {
           revision
-          changeset
+          text
         }
-        tailText {
+        tailRecord {
           revision
-          changeset
+          text
         }
       }
     }
@@ -50,15 +49,14 @@ export function DevNoteHeadAndTailText() {
     returnPartialData: true,
   });
 
-  const partialData: PartialDeep<DebugNoteHeadTextQueryQuery, Changeset> | undefined =
-    data;
+  const partialData: PartialDeep<DebugNoteHeadTextQueryQuery> | undefined = data;
   if (!partialData) {
     return null;
   }
 
   const collabText = partialData.note?.collabText;
-  const headText = collabText?.headText;
-  const tailText = collabText?.tailText;
+  const headRecord = collabText?.headRecord;
+  const tailRecord = collabText?.tailRecord;
 
   return (
     <TableContainer
@@ -71,17 +69,17 @@ export function DevNoteHeadAndTailText() {
         <TableHead>
           <TableRow>
             <TableCell>Revision</TableCell>
-            <TableCell>Changeset</TableCell>
+            <TableCell>Text</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           <TableRow>
-            <TableCell>{tailText?.revision ?? <RemoveIcon />}</TableCell>
-            <TableCell>{tailText?.changeset?.toString() ?? <RemoveIcon />}</TableCell>
+            <TableCell>{tailRecord?.revision ?? <RemoveIcon />}</TableCell>
+            <TableCell>{tailRecord?.text ?? <RemoveIcon />}</TableCell>
           </TableRow>
           <TableRow>
-            <TableCell>{headText?.revision ?? <RemoveIcon />}</TableCell>
-            <TableCell>{headText?.changeset?.toString() ?? <RemoveIcon />}</TableCell>
+            <TableCell>{headRecord?.revision ?? <RemoveIcon />}</TableCell>
+            <TableCell>{headRecord?.text ?? <RemoveIcon />}</TableCell>
           </TableRow>
         </TableBody>
       </Table>

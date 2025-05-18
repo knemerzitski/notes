@@ -1,12 +1,13 @@
-import { createNoteExternalStateContext } from './utils/external-state';
+import {
+  NoteExternalState as _NoteExternalState,
+  NoteTextFieldEditor as _NoteTextFieldEditor,
+} from './utils/external-state';
 
 export enum NoteTextFieldName {
   TITLE = 't',
   CONTENT = 'c',
 }
 
-export type NoteExternalState = ReturnType<
-  ReturnType<typeof createNoteExternalStateContext<NoteTextFieldName>>['newValue']
->;
+export type NoteExternalState = _NoteExternalState<NoteTextFieldName>;
 
-export type NoteTextFieldEditor = ReturnType<NoteExternalState['multiText']['getText']>;
+export type NoteTextFieldEditor = _NoteTextFieldEditor;

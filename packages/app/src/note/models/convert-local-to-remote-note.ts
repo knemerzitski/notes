@@ -7,11 +7,11 @@ import { User, UserNoteLinkByInput } from '../../__generated__/graphql';
 import { addUserOperations } from '../../user/models/operations/add';
 import { getCurrentUserId } from '../../user/models/signed-in-user/get-current';
 import { isLocalId } from '../../utils/is-local-id';
-import { setNoteExternalStateFromOtherNote } from '../policies/Note/_external';
+import { copyExternalState } from '../policies/UserNoteLink/_external';
 import {
   getUserNoteLinkId,
   getUserNoteLinkIdFromByInput,
-  parseUserNoteLinkByInput,
+  parseUserNoteLinkId,
 } from '../utils/id';
 
 import { hideNoteInList, isNoteHiddenInList } from './local-note/hidden-in-list';
@@ -44,8 +44,11 @@ export function convertLocalToRemoteNote(
     >;
   }
 ) {
-  const { noteId: localNoteId } = parseUserNoteLinkByInput(localBy, cache);
-  const { noteId: remoteNoteId } = parseUserNoteLinkByInput(remoteBy, cache);
+  const localUserNoteLinkId = getUserNoteLinkIdFromByInput(localBy, cache);
+  const remoteUserNoteLinkId = getUserNoteLinkIdFromByInput(remoteBy, cache);
+
+  const { noteId: localNoteId } = parseUserNoteLinkId(localUserNoteLinkId);
+  const { noteId: remoteNoteId } = parseUserNoteLinkId(remoteUserNoteLinkId);
 
   if (!isLocalId(localNoteId)) {
     throw new Error(`Expected "${localNoteId}" to be a local id`);
@@ -57,8 +60,6 @@ export function convertLocalToRemoteNote(
   if (userId == null) {
     throw new Error('userId is required');
   }
-
-  const remoteUserNoteLinkId = getUserNoteLinkIdFromByInput(remoteBy, cache);
 
   // Check if note is deleted/doesn't exist
   if (
@@ -88,24 +89,24 @@ export function convertLocalToRemoteNote(
   }
 
   // Link CollabService
-  const sourceNoteId = cache.identify({
-    __typename: 'Note',
-    id: localNoteId,
+  const sourceUserNoteLinkId = cache.identify({
+    __typename: 'UserNoteLink',
+    id: localUserNoteLinkId,
   });
-  if (!sourceNoteId) {
-    throw new Error(`Failed to identify note "${localNoteId}"`);
+  if (!sourceUserNoteLinkId) {
+    throw new Error(`Failed to identify UserNoteLink "${localUserNoteLinkId}"`);
   }
-  const sourceNoteRef = makeReference(sourceNoteId);
+  const sourceUserNoteLinkRef = makeReference(sourceUserNoteLinkId);
 
-  const targetNoteId = cache.identify({
+  const targetUserNoteLinkId = cache.identify({
     __typename: 'Note',
-    id: remoteNoteId,
+    id: remoteUserNoteLinkId,
   });
-  if (!targetNoteId) {
-    throw new Error(`Failed to identify note "${remoteNoteId}"`);
+  if (!targetUserNoteLinkId) {
+    throw new Error(`Failed to identify note "${remoteUserNoteLinkId}"`);
   }
-  const targetNoteRef = makeReference(targetNoteId);
-  const service = setNoteExternalStateFromOtherNote(sourceNoteRef, targetNoteRef, cache);
+  const targetUserNoteLinkRef = makeReference(targetUserNoteLinkId);
+  const service = copyExternalState(sourceUserNoteLinkRef, targetUserNoteLinkRef, cache);
 
   // Copy hiddenInList
   if (

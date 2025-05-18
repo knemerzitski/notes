@@ -6,13 +6,17 @@ import { gql } from '../../__generated__';
 import { useNoteId } from '../context/note-id';
 import { useNoteTextFieldName } from '../context/note-text-field-name';
 import { NoteTextFieldEditor } from '../types';
+import { useUserId } from '../../user/context/user-id';
 
 const UseNoteTextFieldEditor_Query = gql(`
-  query UseNoteTextFieldEditor_Query($by: NoteByInput!, $name: NoteTextFieldName!) {
-    note(by: $by) {
+  query UseNoteTextFieldEditor_Query($userBy: UserByInput!, $noteBy: NoteByInput!, $fieldName: NoteTextFieldName!) {
+    signedInUser(by: $userBy) {
       id
-      textField(name: $name) {
-        editor
+      noteLink(by: $noteBy) {
+        id
+        textField(name: $fieldName) {
+          editor
+        }
       }
     }
   }
@@ -21,14 +25,18 @@ const UseNoteTextFieldEditor_Query = gql(`
 export function useNoteTextFieldEditor(nullable: true): Maybe<NoteTextFieldEditor>;
 export function useNoteTextFieldEditor(nullable?: false): NoteTextFieldEditor;
 export function useNoteTextFieldEditor(nullable?: boolean): Maybe<NoteTextFieldEditor> {
+  const userId = useUserId();
   const noteId = useNoteId();
   const fieldName = useNoteTextFieldName();
   const { data } = useQuery(UseNoteTextFieldEditor_Query, {
     variables: {
-      by: {
+      userBy: {
+        id: userId,
+      },
+      noteBy: {
         id: noteId,
       },
-      name: fieldName,
+      fieldName,
     },
     fetchPolicy: 'cache-only',
   });
@@ -37,5 +45,5 @@ export function useNoteTextFieldEditor(nullable?: boolean): Maybe<NoteTextFieldE
     throw new Error(`Failed to query editor for note "${noteId}" field "${fieldName}"`);
   }
 
-  return data?.note.textField.editor;
+  return data?.signedInUser.noteLink.textField.editor;
 }

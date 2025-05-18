@@ -1,14 +1,15 @@
-import { makeVar } from '@apollo/client';
-import { coerce, instance, Struct, type, unknown } from 'superstruct';
-
-import {
-  CollabService,
-  CollabServiceOptions,
-} from '../../../../collab/src/client/collab-service';
-
-import { defineCreateJsonTextFromService } from '../../../../collab/src/editor/json-text';
+import { ApolloCache, makeVar } from '@apollo/client';
 
 import { Logger } from '../../../../utils/src/logging';
+import {
+  JsonTyperService,
+  spaceNewlineHook,
+  TextParser,
+  CollabService,
+  CollabServiceSerializer,
+  CollabTyper,
+} from '../../../../collab2/src';
+import { CacheRecordsFacade } from './cache-records-facade';
 
 export function createNoteExternalStateContext<TKey extends string>(
   { keys }: { keys: TKey[] },
@@ -17,32 +18,61 @@ export function createNoteExternalStateContext<TKey extends string>(
     logger?: Logger;
   }
 ) {
-  const createJsonTextFromService = defineCreateJsonTextFromService(keys, {
-    defaultKey: options?.defaultKey,
-    logger: options?.logger,
-  });
+  const logger = options?.logger;
+  const fieldNames = keys;
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const fallbackKey = options?.defaultKey ?? fieldNames[0]!;
 
-  const Struct = createNoteExternalStateStruct(newValue);
+  const collabServiceSerializer = new CollabServiceSerializer();
 
-  const rootOptions = options;
+  const collabServiceContext: NonNullable<
+    ConstructorParameters<typeof CollabService>[0]
+  >['context'] = {
+    historySizeLimit: 200,
+    logger: logger?.extend('service'),
+    serializer: collabServiceSerializer,
+  };
+
+  const jsonTyperContext: ConstructorParameters<
+    typeof JsonTyperService<TKey>
+  >[0]['context'] = {
+    logger: logger?.extend('json'),
+    parser: new TextParser({
+      logger: logger?.extend('parser'),
+      hook: spaceNewlineHook,
+      keys: fieldNames,
+      fallbackKey,
+    }),
+  };
 
   function newValue(
-    options?: Pick<ConstructorParameters<typeof NoteExternalState<TKey>>[0], 'service'>
+    state: CollabServiceOptions['state'],
+    options: {
+      cache: ApolloCache<unknown>;
+      userId: string;
+      collabTextDataId: string;
+    }
   ): NoteExternalState<TKey> {
+    const userId = options.userId;
+
     return new NoteExternalState<TKey>({
-      ...options,
-      service: {
-        logger: rootOptions?.logger,
-        ...options?.service,
+      collabService: {
+        state,
+        isExternalTypingHistory: (record) => record.authorId === userId,
+        context: collabServiceContext,
+        serverFacades: new Set([
+          new CacheRecordsFacade(options.cache, options.collabTextDataId),
+        ]),
       },
-      keys,
-      createJsonTextFromService,
-      Struct,
+      jsonTyper: {
+        fieldNames,
+        context: jsonTyperContext,
+      },
     });
   }
 
-  function parseValue(value: unknown) {
-    return Struct.create(value);
+  function parseValue(value: unknown, options: Parameters<typeof newValue>[1]) {
+    return newValue(collabServiceSerializer.deserialize(value), options);
   }
 
   function isInstance(value: unknown): value is NoteExternalState<TKey> {
@@ -66,117 +96,82 @@ export function createNoteExternalStateContext<TKey extends string>(
   } as const;
 }
 
-type CreateJsonTextFromService<TKey extends string> =
-  NoteExternalStateOptions<TKey>['createJsonTextFromService'];
-
-type NoteMultiText<TKey extends string> = ReturnType<CreateJsonTextFromService<TKey>>;
-export type NoteTextFieldEditor<TKey extends string> = ReturnType<
-  NoteMultiText<TKey>['getText']
+type CollabServiceOptions = NonNullable<ConstructorParameters<typeof CollabService>[0]>;
+type JsonTyperOptions<TKey extends string> = Omit<
+  ConstructorParameters<typeof JsonTyperService<TKey>>[0],
+  'collabService'
 >;
 
-export interface NoteExternalStateOptions<TKey extends string> {
-  keys: TKey[];
-  createJsonTextFromService: ReturnType<typeof defineCreateJsonTextFromService<TKey>>;
-  service?: CollabServiceOptions;
-  Struct: Struct<
-    NoteExternalState<TKey>,
-    null,
-    {
-      service: unknown;
-    }
-  >;
-}
+export type NoteTextFieldEditor = CollabTyper;
 
 export class NoteExternalState<TKey extends string> {
-  private readonly Struct;
+  readonly service;
 
-  readonly service: CollabService;
-  private readonly multiText;
+  readonly fields: Record<TKey, NoteFieldExternalState>;
 
-  readonly fields: Record<TKey, NoteFieldExternalState<TKey>>;
+  private readonly jsonTyper;
 
-  constructor({
-    keys,
-    createJsonTextFromService,
-    service,
-    Struct,
-  }: NoteExternalStateOptions<TKey>) {
-    this.Struct = Struct;
-    this.service = new CollabService({
-      ...service,
+  constructor(options: {
+    collabService: CollabServiceOptions;
+    jsonTyper: JsonTyperOptions<TKey>;
+  }) {
+    this.service = new CollabService(options.collabService);
+
+    this.jsonTyper = new JsonTyperService({
+      ...options.jsonTyper,
+      collabService: this.service,
     });
 
-    this.multiText = createJsonTextFromService(this.service);
+    const fieldNames = options.jsonTyper.fieldNames;
 
     this.fields = Object.fromEntries(
-      keys.map((fieldKey) => [
-        fieldKey,
+      fieldNames.map((fieldName) => [
+        fieldName,
         new NoteFieldExternalState({
-          editor: this.multiText.getText(fieldKey),
+          typer: this.jsonTyper.getTyper(fieldName),
         }),
       ])
-    ) as Record<TKey, NoteFieldExternalState<TKey>>;
+    ) as Record<TKey, NoteFieldExternalState>;
   }
 
   toJSON() {
-    return this.Struct.createRaw(this);
+    return this.service.serialize();
   }
 
-  cleanUp() {
-    this.service.cleanUp();
-    this.multiText.cleanUp();
-    Object.values<NoteFieldExternalState<TKey>>(this.fields).forEach((field) => {
-      field.cleanUp();
-    });
+  dispose() {
+    this.jsonTyper.dispose();
+    for (const field of Object.values<NoteFieldExternalState>(this.fields)) {
+      field.dispose();
+    }
   }
 }
 
-function createNoteExternalStateStruct<TKey extends string>(
-  newValue: (
-    options?: Pick<ConstructorParameters<typeof NoteExternalState<TKey>>[0], 'service'>
-  ) => NoteExternalState<TKey>
-) {
-  return coerce(
-    instance(NoteExternalState<TKey>),
-    type({
-      service: unknown(),
-    }),
-    (value) =>
-      newValue({
-        service: CollabService.parseValue(value.service),
-      }),
-    (state) => ({
-      service: state.service.serialize(),
-    })
-  );
-}
-
-interface NoteFieldExternalStateParams<TKey extends string> {
-  editor: NoteTextFieldEditor<TKey>;
-}
-
-class NoteFieldExternalState<TKey extends string> {
+class NoteFieldExternalState {
   readonly editor;
-
-  private readonly eventsOff;
 
   readonly valueVar;
 
-  constructor({ editor }: NoteFieldExternalStateParams<TKey>) {
-    this.editor = editor;
+  private readonly disposeHandlers: () => void;
+
+  constructor({ typer }: { typer: CollabTyper }) {
+    this.editor = typer;
 
     this.valueVar = makeVar<string>(this.editor.value);
 
-    this.eventsOff = [
-      this.editor.eventBus.on('valueChanged', (newValue) => {
+    const offList = [
+      this.editor.on('value:changed', ({ newValue }) => {
         this.valueVar(newValue);
       }),
     ];
+
+    this.disposeHandlers = () => {
+      offList.forEach((off) => {
+        off();
+      });
+    };
   }
 
-  cleanUp() {
-    this.eventsOff.forEach((off) => {
-      off();
-    });
+  dispose() {
+    this.disposeHandlers();
   }
 }
