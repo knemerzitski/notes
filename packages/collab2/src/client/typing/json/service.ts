@@ -34,7 +34,7 @@ export class Service<T extends string> {
       ])
     ) as Record<T, FieldTyper<T>>;
 
-    this.enforceStructure();
+    this.enforceStructure(true);
 
     const offList = [
       this.collabService.on('view:changed', () => {
@@ -154,7 +154,7 @@ export class Service<T extends string> {
     );
   }
 
-  private enforceStructure() {
+  private enforceStructure(initializing = false) {
     const revision = this.collabService.viewRevision;
 
     const unknownStructure =
@@ -164,10 +164,13 @@ export class Service<T extends string> {
     if (unknownStructure === validStructure) {
       return;
     } else {
-      this.logger?.error('enforceStructure', {
-        unknownStructure,
-        validStructure,
-      });
+      const skipLogError = initializing && unknownStructure === '';
+      if (!skipLogError) {
+        this.logger?.error('enforceStructure', {
+          unknownStructure,
+          validStructure,
+        });
+      }
     }
 
     this.addLocalTyping({

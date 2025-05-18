@@ -102,7 +102,7 @@ export class TextParser implements Parser {
 
       return parsedValue as Record<string, unknown>;
     } catch (err) {
-      this.logger?.error('parse', {
+      this.logger?.debug('parse:error', {
         value,
         err,
       });
