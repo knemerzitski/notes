@@ -259,7 +259,7 @@ describe('noteLink', () => {
               collabText {
                 textAtRevision(revision: $tailRevision) {
                   revision
-                  changeset
+                  text
                 }
               }
             }
@@ -298,8 +298,8 @@ describe('noteLink', () => {
             "note": {
               "collabText": {
                 "textAtRevision": {
-                  "changeset": "0:"canal fabulous"",
                   "revision": 1,
+                  "text": "canal fabulous",
                 },
               },
             },
