@@ -97,6 +97,8 @@ export function history_merge(record: AddLocalTypingRecord, draft: WritableDraft
 
   const anchorRecord = getLastHistoryRecord(draft.undoStack, 'view', 1);
 
+  const selectionInverse = record.selectionInverse ?? prevRecord.selection;
+
   const composableIndex = prevRecord.viewIndex - draft.viewIndexOffset;
   let baseText = draft.viewChanges
     .slice(composableIndex + 1)
@@ -165,7 +167,7 @@ export function history_merge(record: AddLocalTypingRecord, draft: WritableDraft
 
   updateLocalRecord({
     changeset: record.changeset,
-    selectionInverse: adjustedPrevRecord.selectionInverse,
+    selectionInverse,
     selection: record.selection,
   })(draft);
 
