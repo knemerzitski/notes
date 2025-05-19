@@ -196,9 +196,9 @@ export class CacheRecordsFacade implements CollabServiceServerFacade {
     return cacheRecordToCollabServerRecord(record);
   }
 
-  *olderIterable(startRevision: number): Iterable<CollabServiceServerFacadeRecord> {
+  *beforeIterable(beforeRevision: number): Iterable<CollabServiceServerFacadeRecord> {
     const records = this.readRecords({
-      before: startRevision + 1,
+      before: beforeRevision,
     });
 
     for (let i = records.length; i >= 0; i--) {
@@ -213,7 +213,7 @@ export class CacheRecordsFacade implements CollabServiceServerFacade {
     return;
   }
 
-  hasOlderThan(revision: number): boolean {
+  hasBefore(beforeRevision: number): boolean {
     const collabText = this.cache.readFragment({
       id: this.collabTextDataId,
       fragment: CacheRecordsFacadeWatchRecords_CollabTextFragment,
@@ -231,7 +231,7 @@ export class CacheRecordsFacade implements CollabServiceServerFacade {
       return false;
     }
 
-    if (firstRecord.revision <= revision) {
+    if (firstRecord.revision < beforeRevision) {
       return true;
     }
 
