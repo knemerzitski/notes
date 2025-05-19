@@ -13,6 +13,8 @@ import { getLastHistoryRecord } from '../utils/history-record';
 
 import { updateLocalRecord } from './update-local-record';
 
+const MERGE_INSERT_BIAS = false;
+
 type AddLocalTypingRecord = PartialBy<LocalServiceRecord, 'selectionInverse'> & {
   /**
    * How is typing handled by history.
@@ -114,7 +116,9 @@ export function history_merge(record: AddLocalTypingRecord, draft: WritableDraft
   for (const externalChange of prevRecord.externalChanges) {
     if (anchorRecord) {
       anchorRecord.externalChanges.push(
-        castDraft(Changeset.follow(externalChange, followRecord.changeset, true))
+        castDraft(
+          Changeset.follow(externalChange, followRecord.changeset, !MERGE_INSERT_BIAS)
+        )
       );
     }
 
@@ -124,7 +128,7 @@ export function history_merge(record: AddLocalTypingRecord, draft: WritableDraft
       followRecord,
       externalChange,
       baseText,
-      false
+      MERGE_INSERT_BIAS
     );
   }
 
