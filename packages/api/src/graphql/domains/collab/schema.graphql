@@ -233,6 +233,11 @@ input CreateCollabTextInput {
   Self-descriptive
   """
   initialText: String! @length(max: 100000)
+  """
+  Create initial text directly to tailRecord.
+  Separate record is not created and `firstCollabTextRecord` will be null.
+  """
+  insertToTail: Boolean
 }
 
 """

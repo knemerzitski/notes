@@ -197,6 +197,7 @@ export function insertCollabRecord({
           initialText: insertRecord.changeset.joinInsertions(),
           authorId: userId,
           selection: insertRecord.selection,
+          toTail: false,
         });
 
         await updateSetCollabText({

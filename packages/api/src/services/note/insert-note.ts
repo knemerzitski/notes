@@ -26,7 +26,7 @@ interface InsertNoteParams {
   userId: ObjectId;
   backgroundColor?: Maybe<string>;
   categoryName: string;
-  collabText?: { initialText: string };
+  collabText?: { initialText: string; toTail: boolean };
 }
 
 export async function insertNote({
@@ -61,6 +61,7 @@ export async function insertNote({
       collabTextId: note._id,
       authorId: userId,
       initialText: collabText.initialText,
+      toTail: collabText.toTail,
     });
     note.collabText = initialCollabText.collabText;
     collabRecords = initialCollabText.collabRecords;

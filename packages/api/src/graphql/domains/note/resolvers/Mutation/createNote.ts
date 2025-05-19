@@ -34,6 +34,7 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
   const currentUserId = input.authUser.id;
 
   const collabInitialText = input.collabText?.initialText;
+  const collabToTail = input.collabText?.insertToTail ?? false;
 
   const { note, collabRecords } = await insertNote({
     mongoDB,
@@ -43,6 +44,7 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
     collabText: collabInitialText
       ? {
           initialText: collabInitialText,
+          toTail: collabToTail,
         }
       : undefined,
   });
@@ -55,19 +57,25 @@ const _createNote: NonNullable<MutationResolvers['createNote']> = async (
   };
   const collabTextIdQuery = CollabText_id_fromNoteQueryFn(noteMapper.query);
 
-  const queryableCollabRecord: PartialQueryResultDeep<QueryableCollabRecord> = {
-    ...collabRecords[0],
+  const firstCollabRecord = collabRecords[0];
+
+  const queryableFirstCollabRecord: PartialQueryResultDeep<QueryableCollabRecord> = {
+    ...firstCollabRecord,
     author: {
-      _id: collabRecords[0]?.authorId,
+      _id: firstCollabRecord?.authorId,
     },
   };
   const payload: ResolversTypes['SignedInUserMutation'] = {
     __typename: 'CreateNotePayload',
     ...(note.collabText && {
-      firstCollabTextRecord: {
-        parentId: collabTextIdQuery,
-        query: createValueQueryFn<QueryableCollabRecord>(() => queryableCollabRecord),
-      },
+      firstCollabTextRecord: firstCollabRecord
+        ? {
+            parentId: collabTextIdQuery,
+            query: createValueQueryFn<QueryableCollabRecord>(
+              () => queryableFirstCollabRecord
+            ),
+          }
+        : null,
       collabText: {
         id: collabTextIdQuery,
         query: mapNoteToCollabTextQueryFn(noteMapper.query),

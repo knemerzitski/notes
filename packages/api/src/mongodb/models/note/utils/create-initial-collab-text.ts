@@ -19,25 +19,30 @@ export function createInitialCollabText({
   initialText,
   authorId,
   selection,
+  toTail,
 }: {
   collabTextId: ObjectId;
   authorId: CollabRecordSchema['authorId'];
   initialText: string;
   selection?: SelectionSchema;
+  toTail: boolean;
 }): {
   collabText: CollabTextSchema;
   collabRecords: CollabRecordSchema[];
 } {
-  const serverState = createServerStateFromRecords([
-    {
-      authorId: '',
-      changeset: Changeset.fromText(initialText),
-      idempotencyId: '',
-      revision: 1,
-      selectionInverse: Selection.ZERO,
-      selection: selection ?? Selection.create(initialText.length),
-    },
-  ]);
+  const serverState = createServerStateFromRecords(
+    [
+      {
+        authorId: '',
+        changeset: Changeset.fromText(initialText),
+        idempotencyId: '',
+        revision: 1,
+        selectionInverse: Selection.ZERO,
+        selection: selection ?? Selection.create(initialText.length),
+      },
+    ],
+    toTail ? 0 : -1
+  );
 
   const collabRecords: CollabRecordSchema[] = serverState.records.map((record) =>
     createCollabRecord({
