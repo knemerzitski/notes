@@ -5,12 +5,13 @@ import {
   Reference,
 } from '@apollo/client';
 
+import { number, string, type } from 'superstruct';
+
 import { isObjectLike } from '../../../../../utils/src/type-guards/is-object-like';
 
+import { Changeset, createClientStateFromHeadRecord } from '../../../../../collab2/src';
 import { CreateFieldPolicyFn, TypePoliciesContext } from '../../../graphql/types';
 import { NoteExternalState } from '../../types';
-import { Changeset, createClientStateFromHeadRecord } from '../../../../../collab2/src';
-import { number, string, type } from 'superstruct';
 import { parseUserNoteLinkId } from '../../utils/id';
 import { readUserNoteLinkRef } from '../../utils/read-user-note-link-ref';
 

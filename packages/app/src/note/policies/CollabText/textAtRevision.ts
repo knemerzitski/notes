@@ -1,7 +1,8 @@
 import { FieldFunctionOptions } from '@apollo/client';
 
-import { Changeset } from '../../../../../collab2/src';
 import { binarySearchIndexOf } from '../../../../../utils/src/array/binary-search';
+
+import { Changeset } from '../../../../../collab2/src';
 
 import { gql } from '../../../__generated__';
 import {
@@ -72,9 +73,9 @@ export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesC
 
       const records = readRecords(
         {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+           
           after: tailRecord.revision,
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+           
           first: revision - tailRecord.revision,
         },
         options
@@ -87,7 +88,7 @@ export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesC
         revision,
         text: records.reduce(
           (a, b) => Changeset.compose(a, b.changeset),
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+           
           Changeset.fromText(tailRecord.text)
         ).getText(),
       };

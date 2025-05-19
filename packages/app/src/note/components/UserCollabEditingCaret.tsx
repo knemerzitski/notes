@@ -5,6 +5,7 @@ import { RefObject, useState, useRef, useEffect } from 'react';
 import { Selection } from '../../../../collab2/src';
 
 import { gql } from '../../__generated__';
+import { User } from '../../__generated__/graphql';
 import { useLogger } from '../../utils/context/logger';
 import { stringToColor } from '../../utils/string-to-color';
 import { useNoteId } from '../context/note-id';
@@ -18,7 +19,6 @@ import {
 } from '../utils/selection';
 
 import { InputCaret } from './InputCaret';
-import { User } from '../../__generated__/graphql';
 
 const UserCollabEditingCaret_UserNoteLinkFragment = gql(`
   fragment UserCollabEditingCaret_UserNoteLinkFragment on UserNoteLink {

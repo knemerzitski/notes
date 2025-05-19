@@ -1,6 +1,7 @@
 import { ApolloCache, makeVar } from '@apollo/client';
 
 import { Logger } from '../../../../utils/src/logging';
+
 import {
   JsonTyperService,
   spaceNewlineHook,
@@ -9,6 +10,7 @@ import {
   CollabServiceSerializer,
   CollabTyper,
 } from '../../../../collab2/src';
+
 import { CacheRecordsFacade } from './cache-records-facade';
 
 export function createNoteExternalStateContext<TKey extends string>(

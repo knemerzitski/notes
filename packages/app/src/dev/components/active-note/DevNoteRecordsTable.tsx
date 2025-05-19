@@ -11,11 +11,12 @@ import {
   TableBody,
 } from '@mui/material';
 
-import { Changeset } from '../../../../../collab2/src';
 
 import { isDefined } from '../../../../../utils/src/type-guards/is-defined';
 
 import { PartialDeep } from '../../../../../utils/src/types';
+
+import { Changeset } from '../../../../../collab2/src';
 
 import { gql } from '../../../__generated__';
 import { DevNoteRecordsTableQueryQuery } from '../../../__generated__/graphql';

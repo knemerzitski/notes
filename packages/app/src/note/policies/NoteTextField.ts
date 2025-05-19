@@ -3,8 +3,9 @@ import { FieldFunctionOptions } from '@apollo/client/cache';
 import { NoteTextFieldName } from '../../__generated__/graphql';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
 
-import { readExternalState } from './UserNoteLink/_external';
 import { readUserNoteLinkRef } from '../utils/read-user-note-link-ref';
+
+import { readExternalState } from './UserNoteLink/_external';
 
 function readFieldName({
   readField,

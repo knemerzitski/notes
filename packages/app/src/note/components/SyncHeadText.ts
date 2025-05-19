@@ -1,13 +1,13 @@
 import { useApolloClient } from '@apollo/client';
 import { useEffect } from 'react';
 
+import { Changeset } from '../../../../collab2/src';
 import { getFragmentData, gql } from '../../__generated__';
 import { MapRecordCollabTextRecordFragmentFragmentDoc } from '../../__generated__/graphql';
 import { useUserId } from '../../user/context/user-id';
 import { useNoteId } from '../context/note-id';
 import { getCollabService } from '../models/note/get-collab-service';
 import { cacheRecordToCollabServerRecord } from '../utils/map-record';
-import { Changeset } from '../../../../collab2/src';
 
 const SyncHeadTextWatch_Query = gql(`
   query SyncHeadTextWatch_Query($by: NoteByInput!) {

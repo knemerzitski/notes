@@ -1,4 +1,5 @@
 import { OperationVariables } from '@apollo/client';
+
 import { isObjectLike } from '../../../../utils/src/type-guards/is-object-like';
 
 export function findVariablesAuthUserId(

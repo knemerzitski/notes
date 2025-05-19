@@ -2,8 +2,8 @@ import { FormEventHandler, KeyboardEventHandler, useCallback, useRef } from 'rea
 
 import { isObjectLike } from '../../../../utils/src/type-guards/is-object-like';
 
-import { useLogger } from '../../utils/context/logger';
 import { Selection } from '../../../../collab2/src';
+import { useLogger } from '../../utils/context/logger';
 
 export interface SelectionEvent {
   /**

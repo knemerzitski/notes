@@ -1,14 +1,6 @@
 import { ApolloCache } from '@apollo/client';
 import mitt from 'mitt';
 
-import { getFragmentData, gql } from '../../__generated__';
-
-import {
-  MapRecordCollabTextRecordFragmentFragment,
-  MapRecordCollabTextRecordFragmentFragmentDoc,
-} from '../../__generated__/graphql';
-
-import { cacheRecordToCollabServerRecord } from './map-record';
 import {
   Changeset,
   CollabServiceServerFacade,
@@ -17,6 +9,14 @@ import {
   TextRecord,
   CollabServiceServerFacadeRecord,
 } from '../../../../collab2/src';
+import { getFragmentData, gql } from '../../__generated__';
+
+import {
+  MapRecordCollabTextRecordFragmentFragment,
+  MapRecordCollabTextRecordFragmentFragmentDoc,
+} from '../../__generated__/graphql';
+
+import { cacheRecordToCollabServerRecord } from './map-record';
 
 const CacheRecordsFacadeHeadRecord_CollabTextFragment = gql(`
   fragment CacheRecordsFacadeHeadRecord_CollabTextFragment on CollabText {

@@ -1,12 +1,14 @@
 import { Maybe } from '../../../../../utils/src/types';
 
+import { CollabService } from '../../../../../collab2/src';
 import { NoteCategory, NoteTextFieldName } from '../../../__generated__/graphql';
 import { DateTimeNullable } from '../../../graphql/scalars/DateTime';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../../graphql/types';
 
-import { CollabService } from '../../../../../collab2/src';
-import { _external, readExternalState } from './_external';
 import { readUserNoteLinkRef } from '../../utils/read-user-note-link-ref';
+
+import { _external, readExternalState } from './_external';
+
 
 export const UserNoteLink: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
   return {

@@ -4,10 +4,10 @@ import { ApolloCache, gql, NormalizedCacheObject } from '@apollo/client';
 import { MockLink } from '@apollo/client/testing';
 import { it, expect, beforeAll, describe, beforeEach } from 'vitest';
 
+import { Changeset } from '../../../../../collab2/src';
 import { createGraphQLService } from '../../../graphql/create/service';
 import { createDefaultGraphQLServiceParams } from '../../../graphql-service';
 import { getCollabTextId } from '../../utils/id';
-import { Changeset } from '../../../../../collab2/src';
 
 const TextAtRevision_CollabTextFragment = gql(`
   fragment TextAtRevision_CollabTextFragment on CollabText {
@@ -106,7 +106,7 @@ describe('read', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(collabText?.textAtRevision.revision).toStrictEqual(5);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(collabText?.textAtRevision.text).toStrictEqual('abc');
   });
 
@@ -122,7 +122,7 @@ describe('read', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(collabText?.textAtRevision.revision).toStrictEqual(4);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(collabText?.textAtRevision.text).toStrictEqual('ab');
   });
 
@@ -138,7 +138,7 @@ describe('read', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(collabText?.textAtRevision.revision).toStrictEqual(6);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(collabText?.textAtRevision.text).toStrictEqual('abcd');
   });
 
@@ -151,7 +151,7 @@ describe('read', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(collabText?.textAtRevision.revision).toStrictEqual(3);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(collabText?.textAtRevision.text).toStrictEqual('a');
   });
 

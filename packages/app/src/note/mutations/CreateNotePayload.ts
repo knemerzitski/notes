@@ -1,3 +1,4 @@
+import { Changeset } from '../../../../collab2/src';
 import { getFragmentData, gql } from '../../__generated__';
 import {
   MapRecordCollabTextRecordFragmentFragmentDoc,
@@ -11,7 +12,6 @@ import { getCollabService } from '../models/note/get-collab-service';
 import { addNoteToConnection } from '../models/note-connection/add';
 import { addRecordToConnection } from '../models/record-connection/add';
 import { parseUserNoteLinkId } from '../utils/id';
-import { Changeset } from '../../../../collab2/src';
 import { cacheRecordToCollabServerRecord } from '../utils/map-record';
 
 /**

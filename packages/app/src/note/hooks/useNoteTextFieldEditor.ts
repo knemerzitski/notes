@@ -3,10 +3,10 @@ import { useQuery } from '@apollo/client';
 import { Maybe } from '../../../../utils/src/types';
 
 import { gql } from '../../__generated__';
+import { useUserId } from '../../user/context/user-id';
 import { useNoteId } from '../context/note-id';
 import { useNoteTextFieldName } from '../context/note-text-field-name';
 import { NoteTextFieldEditor } from '../types';
-import { useUserId } from '../../user/context/user-id';
 
 const UseNoteTextFieldEditor_Query = gql(`
   query UseNoteTextFieldEditor_Query($userBy: UserByInput!, $noteBy: NoteByInput!, $fieldName: NoteTextFieldName!) {

@@ -3,9 +3,10 @@ import { RefObject, useCallback, useEffect, useRef } from 'react';
 
 import { Options, useDebouncedCallback } from 'use-debounce';
 
+import { EMPTY_ARRAY } from '../../../../utils/src/array/empty';
+
 import { Changeset, Selection } from '../../../../collab2/src';
 
-import { EMPTY_ARRAY } from '../../../../utils/src/array/empty';
 
 import { gql } from '../../__generated__';
 import { OpenNoteSubscriptionSubscriptionDocument } from '../../__generated__/graphql';

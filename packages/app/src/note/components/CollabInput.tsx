@@ -5,6 +5,7 @@ import { ComponentType } from 'react';
 import { gql } from '../../__generated__';
 import { CollabInputQueryQuery, NoteTextFieldName } from '../../__generated__/graphql';
 
+import { useUserId } from '../../user/context/user-id';
 import { LoggerProvider, useLogger } from '../../utils/context/logger';
 import { useNoteId } from '../context/note-id';
 import { NoteTextFieldNameProvider } from '../context/note-text-field-name';
@@ -13,7 +14,6 @@ import { useCollabHtmlInput } from '../hooks/useCollabHtmlInput';
 
 import { CollabInputUsersEditingCarets } from './CollabInputUsersEditingCarets';
 import { SubmitSelectionChangeDebounced } from './SubmitSelectionChangeDebounced';
-import { useUserId } from '../../user/context/user-id';
 
 const _CollabInput_NoteFragment = gql(`
   fragment CollabInput_NoteFragment on Note {

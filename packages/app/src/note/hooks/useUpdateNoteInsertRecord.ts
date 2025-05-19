@@ -1,6 +1,7 @@
 import { useApolloClient } from '@apollo/client';
 import { useCallback } from 'react';
 
+import { CollabServiceSubmittedServiceRecord } from '../../../../collab2/src';
 import { Note } from '../../__generated__/graphql';
 import { useMutation } from '../../graphql/hooks/useMutation';
 import { PersistLink } from '../../graphql/link/persist';
@@ -10,7 +11,6 @@ import { useUserId } from '../../user/context/user-id';
 import { UpdateNoteInsertRecord } from '../mutations/UpdateNoteInsertRecord';
 import { getCollabTextId } from '../utils/id';
 import { submittedRecordToCollabTextRecordInput } from '../utils/map-record';
-import { CollabServiceSubmittedServiceRecord } from '../../../../collab2/src';
 
 export function useUpdateNoteInsertRecord() {
   const client = useApolloClient();

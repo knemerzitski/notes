@@ -1,16 +1,18 @@
 import { ApolloCache } from '@apollo/client';
 
-import { Changeset, CollabService, Selection } from '../../../../collab2/src';
 
 import { Logger } from '../../../../utils/src/logging';
 import { Maybe } from '../../../../utils/src/types';
+
+import { Changeset, CollabService, Selection } from '../../../../collab2/src';
 
 import { gql } from '../../__generated__';
 import { Note, User } from '../../__generated__/graphql';
 import { getCollabTextRecords } from '../models/record-connection/get';
 
-import { getUserNoteLinkId } from './id';
 import { NoteTextFieldEditor } from '../types';
+
+import { getUserNoteLinkId } from './id';
 
 const CollabTextEditingSelection_UserNoteLinkFragment = gql(`
   fragment CollabTextEditingSelection_UserNoteLinkFragment on UserNoteLink {
