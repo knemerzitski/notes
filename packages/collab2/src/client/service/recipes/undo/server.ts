@@ -29,7 +29,7 @@ export function server(
     }
 
     const typingToTarget_records = collectValuesUntil(
-      serverFacades.olderIterable(record.revision + 1),
+      serverFacades.beforeIterable(record.revision + 1),
       (serverRecord) => ({
         value: serverRecord,
         done: isExternalTypingHistory(serverRecord),
@@ -87,7 +87,7 @@ export function server(
       const isRestoreNext =
         record.untilRevision === true || record.untilRevision <= nextRevision;
 
-      if (isRestoreNext && serverFacades.hasOlderThan(currentRevision)) {
+      if (isRestoreNext && serverFacades.hasBefore(currentRevision)) {
         draft.undoStackTypeServerIndexes.push(draft.undoStack.length);
         draft.undoStack.push({
           type: 'server',

@@ -598,8 +598,8 @@ class LocalServerFacade implements CollabServiceServerFacade {
     return this.server.records[this.server.revisionToIndex(revision)];
   }
 
-  olderIterable(startRevision: number): Iterable<ServerRecord> {
-    const initialIndex = this.server.revisionToIndex(startRevision) - 1;
+  beforeIterable(beforeRevision: number): Iterable<ServerRecord> {
+    const initialIndex = this.server.revisionToIndex(beforeRevision) - 1;
     if (initialIndex < 0) {
       return {
         [Symbol.iterator]: () => ({
@@ -628,7 +628,7 @@ class LocalServerFacade implements CollabServiceServerFacade {
     };
   }
 
-  hasOlderThan(revision: number): boolean {
+  hasBefore(revision: number): boolean {
     const index = this.server.revisionToIndex(revision - 1);
 
     return this.server.records[index] !== undefined;

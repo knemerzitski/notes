@@ -273,16 +273,14 @@ export interface ServerFacade {
   at(revision: number): ServerFacadeRecord | undefined;
 
   /**
-   * Iterable that returns records starting at {@link startRevision} until oldest cached record.
-   *
-   * @param startRevision First returned revision
+   * Iterable that returns records before {@link beforeRevision} until oldest cached record.
    */
-  olderIterable(startRevision: number): Iterable<ServerFacadeRecord>;
+  beforeIterable(beforeRevision: number): Iterable<ServerFacadeRecord>;
 
   /**
-   * @returns true if server has more records before {@link revision}.
+   * @returns true if server has more records before {@link beforeRevision}.
    */
-  hasOlderThan(revision: number): boolean;
+  hasBefore(beforeRevision: number): boolean;
 }
 
 export interface ServerFacadeEvents {

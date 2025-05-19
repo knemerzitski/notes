@@ -69,17 +69,17 @@ export class ServerFacades {
     return;
   }
 
-  *olderIterable(startRevision: number) {
+  *beforeIterable(beforeRevision: number) {
     for (const facade of this.facades) {
-      for (const serverRecord of facade.olderIterable(startRevision)) {
+      for (const serverRecord of facade.beforeIterable(beforeRevision)) {
         yield serverRecord;
-        startRevision = serverRecord.revision - 1;
+        beforeRevision = serverRecord.revision - 1;
       }
     }
   }
 
-  hasOlderThan(revision: number) {
-    return [...this.facades].some((facade) => facade.hasOlderThan(revision));
+  hasBefore(beforeRevision: number) {
+    return [...this.facades].some((facade) => facade.hasBefore(beforeRevision));
   }
 
   private recordsUpdated(event: { readonly facade: ServerFacade }) {

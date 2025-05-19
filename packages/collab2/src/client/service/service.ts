@@ -330,14 +330,14 @@ export class Service {
 
     // Check if server has any records that's considered part of history
     let revision = firstRecord.revision + 1;
-    for (const serverRecord of this.serverFacades.olderIterable(revision)) {
+    for (const serverRecord of this.serverFacades.beforeIterable(revision)) {
       if (this.props.isExternalTypingHistory(serverRecord)) {
         return true;
       }
       revision = serverRecord.revision;
     }
 
-    return this.serverFacades.hasOlderThan(revision);
+    return this.serverFacades.hasBefore(revision);
   }
 
   /**

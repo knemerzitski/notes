@@ -17,7 +17,7 @@ export function cleanupUndoStack(
     // If next undo server type is not available in server then remove it
     const nextRecord = draft.undoStack[draft.undoStack.length - 1];
     if (nextRecord?.type === 'server' && props.serverFacades.size > 0) {
-      if (!props.serverFacades.hasOlderThan(nextRecord.revision + 1)) {
+      if (!props.serverFacades.hasBefore(nextRecord.revision + 1)) {
         draft.undoStack.pop();
         draft.undoStackTypeServerIndexes.pop();
       }
