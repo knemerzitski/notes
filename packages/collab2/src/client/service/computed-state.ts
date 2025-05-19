@@ -83,6 +83,19 @@ export class MutableComputedState {
     return this.state.undoStack.length;
   }
 
+  get historyTailServerRevision(): number | undefined {
+    const firstUndoRecord = this.state.undoStack[0];
+    if (!firstUndoRecord) {
+      return;
+    }
+
+    if (firstUndoRecord.type !== 'server') {
+      return;
+    }
+
+    return firstUndoRecord.revision;
+  }
+
   private viewRevisionToIndex(viewRevision: number) {
     const offset = viewRevision - this.state.viewRevision;
     if (offset > 0) {

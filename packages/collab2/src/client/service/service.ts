@@ -139,6 +139,10 @@ export class Service {
     return this.computedState.historySize;
   }
 
+  get historyTailServerRevision(): number | undefined {
+    return this.computedState.historyTailServerRevision;
+  }
+
   private get serverFacades() {
     return this.props.serverFacades;
   }
