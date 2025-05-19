@@ -5,7 +5,7 @@ import { $record } from './record';
 import { $records } from './records';
 import { HeadRecord, ServerRecord, ServerState, TailRecord } from './types';
 
-export function createState(
+export function createStateFromRecords(
   initialRecords: Omit<ServerRecord, 'inverse'>[] = []
 ): ServerState {
   const firstRecord = initialRecords[0] ?? {

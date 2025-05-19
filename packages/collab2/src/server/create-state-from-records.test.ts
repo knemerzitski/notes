@@ -3,10 +3,10 @@ import { expect, it } from 'vitest';
 import { Changeset } from '../common/changeset';
 import { Selection } from '../common/selection';
 
-import { createState } from './create-state';
+import { createStateFromRecords } from './create-state-from-records';
 
 it('empty', () => {
-  const state = createState();
+  const state = createStateFromRecords();
 
   expect(state).toMatchInlineSnapshot(`
     {
@@ -24,7 +24,7 @@ it('empty', () => {
 });
 
 it('with one record', () => {
-  const state = createState([
+  const state = createStateFromRecords([
     {
       authorId: 'A',
       idempotencyId: 'a',
@@ -61,7 +61,7 @@ it('with one record', () => {
 });
 
 it('with two records', () => {
-  const state = createState([
+  const state = createStateFromRecords([
     {
       authorId: 'A',
       idempotencyId: 'a',

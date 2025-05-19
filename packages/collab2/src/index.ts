@@ -20,7 +20,7 @@ export {
 
 export type { ServerRecord, SubmittedRecord, TextRecord, HeadRecord } from './server';
 export {
-  createState as createServerStateFromRecords,
+  createStateFromRecords as createServerStateFromRecords,
   composeNewTail,
   processSubmittedRecord,
   ServerError,

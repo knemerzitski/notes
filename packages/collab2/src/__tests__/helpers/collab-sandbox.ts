@@ -29,7 +29,7 @@ import {
   HeadRecord,
   SubmittedRecord,
   composeNewTail,
-  createState,
+  createStateFromRecords,
 } from '../../server';
 
 import { textWithSelection, textWithSelections } from './selection';
@@ -126,7 +126,7 @@ class Server {
   }) {
     this.recordsLimit = options?.recordsLimit ?? -1;
 
-    const state = createState(options?.records);
+    const state = createStateFromRecords(options?.records);
 
     this._tailRecord = state.tailRecord;
     this._records = state.records;

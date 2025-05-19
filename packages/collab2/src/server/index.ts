@@ -7,7 +7,7 @@ export type {
   TextRecord,
 } from './types';
 
-export { createState } from './create-state';
+export { createStateFromRecords } from './create-state-from-records';
 export { composeNewTail } from './compose-new-tail';
 export { processSubmittedRecord } from './process-submitted-record';
 
