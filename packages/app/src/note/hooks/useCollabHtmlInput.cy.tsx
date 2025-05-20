@@ -1,5 +1,3 @@
-import { InMemoryCache } from '@apollo/client';
-
 import { CollabService, Changeset, Selection } from '../../../../collab2/src';
 
 import {
@@ -25,8 +23,6 @@ beforeEach(() => {
   });
 
   noteState = externalStateContext.newValue(undefined, {
-    cache: new InMemoryCache(),
-    collabTextDataId: 'CollabText:1',
     userId: '2',
   });
   editor = noteState.fields[FieldName.CONTENT].editor;

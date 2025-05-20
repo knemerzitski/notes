@@ -45,7 +45,7 @@ export function CollabInput<TInputProps>({
   ...restProps
 }: { fieldName: NoteTextFieldName } & Omit<
   Parameters<typeof NoteDefined<TInputProps>>[0],
-  'note'
+  'noteLink'
 >) {
   const logger = useLogger('CollabInput');
 
