@@ -17,7 +17,6 @@ import { State } from '../types';
 import { asComputed } from './as-computed';
 import { assertValidState } from './assert-valid-state';
 
-
 declare module '../computed-state' {
   interface MutableComputedState {
     getDebugObject(this: ComputedState): DebugObject;

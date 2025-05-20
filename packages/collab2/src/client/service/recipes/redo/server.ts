@@ -4,8 +4,8 @@ import { Changeset } from '../../../../common/changeset';
 import { followChangesetSelection } from '../../../../common/utils/follow-changeset-selection';
 import { Properties, ServerHistoryServiceRecord, State } from '../../types';
 import { asComputed } from '../../utils/as-computed';
-import { updateLocalRecord } from '../update-local-record';
 import { getLastHistoryRecord } from '../../utils/history-record';
+import { updateLocalRecord } from '../update-local-record';
 
 /**
  * - `false` - External changes first

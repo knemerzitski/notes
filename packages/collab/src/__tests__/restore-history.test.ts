@@ -110,10 +110,10 @@ describe('persist history in revision records', () => {
     client.A.insertText('a');
     client.A.insertText('b');
     client.A.insertText('c');
-    
+
     client.B.insertText('X');
     client.B.submitChangesInstant();
-    
+
     client.A.submitChangesInstant();
 
     client.B.insertText('Y');
@@ -122,9 +122,9 @@ describe('persist history in revision records', () => {
     client.B.setCaretPosition(5);
     client.B.insertText('2');
     client.B.submitChangesInstant();
-    
+
     client.A.insertText('d');
-    
+
     client.B.setCaretPosition(5);
     client.B.insertText('1');
     client.B.submitChangesInstant();
@@ -134,7 +134,7 @@ describe('persist history in revision records', () => {
       client.A.name,
       CollabService.parseValue(client.A.service.serialize(false))
     );
-    
+
     const restoredServiceA = clientA2.service;
     restoredServiceA.historyRestore(2);
 

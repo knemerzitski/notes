@@ -16,10 +16,10 @@ import { fieldInsertText } from './field-insert-text';
 import { fieldSetCaret } from './field-set-caret';
 import { insertText } from './insert-text';
 import { redo } from './redo';
+import { reset } from './reset';
 import { setCaret } from './set-caret';
 import { submitStep } from './submit-step';
 import { undo } from './undo';
-import { reset } from './reset';
 
 type ActionName =
   | 'setCaret'

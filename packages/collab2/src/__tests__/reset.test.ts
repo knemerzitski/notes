@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+
 import { createCollabSandbox } from './helpers/collab-sandbox';
 
 it('undo twice after reset', () => {

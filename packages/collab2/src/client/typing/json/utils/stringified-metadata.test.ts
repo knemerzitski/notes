@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
- 
+
 import { assert, expect, it } from 'vitest';
 
 import { stringifiedMetadata } from './stringified-metadata';

@@ -1,6 +1,5 @@
 export { ChangesetError } from './error';
 
- 
 export { Changeset } from './changeset';
 
 export { Strip } from './strip/strip';

@@ -12,7 +12,6 @@ import { transformPartialProperties } from '../utils/partial-properties';
 
 import { cleanupUndoStack } from './cleanup-undo-stack';
 
-
 function s(revision: number): WritableDraft<ServerHistoryServiceRecord> {
   return {
     type: 'server',
