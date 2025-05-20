@@ -11,7 +11,6 @@ import {
   TableBody,
 } from '@mui/material';
 
-
 import { isDefined } from '../../../../../utils/src/type-guards/is-defined';
 
 import { PartialDeep } from '../../../../../utils/src/types';

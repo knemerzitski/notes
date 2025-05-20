@@ -8,9 +8,9 @@ import { Changeset, createClientStateFromHeadRecord } from '../../../../../colla
 import { gql } from '../../../__generated__';
 import { CreateFieldPolicyFn, TypePoliciesContext } from '../../../graphql/types';
 import { NoteExternalState } from '../../types';
+import { CacheRecordsFacade } from '../../utils/cache-records-facade';
 import { getCollabTextId, parseUserNoteLinkId } from '../../utils/id';
 import { readUserNoteLinkId } from '../../utils/read-user-note-link-id';
-import { CacheRecordsFacade } from '../../utils/cache-records-facade';
 
 const UserNoteLinkExternal_UserNoteLinkFragment = gql(`
   fragment UserNoteLinkExternal_UserNoteLinkFragment on UserNoteLink {

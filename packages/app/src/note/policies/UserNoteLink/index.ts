@@ -5,10 +5,10 @@ import { NoteCategory, NoteTextFieldName } from '../../../__generated__/graphql'
 import { DateTimeNullable } from '../../../graphql/scalars/DateTime';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../../graphql/types';
 
+import { parseUserNoteLinkId } from '../../utils/id';
 import { readUserNoteLinkId } from '../../utils/read-user-note-link-id';
 
 import { _external, readExternalState } from './_external';
-import { parseUserNoteLinkId } from '../../utils/id';
 
 export const UserNoteLink: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
   return {

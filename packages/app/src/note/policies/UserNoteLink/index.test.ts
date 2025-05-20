@@ -1,4 +1,3 @@
- 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { gql } from '@apollo/client';
 import { MockLink } from '@apollo/client/testing';

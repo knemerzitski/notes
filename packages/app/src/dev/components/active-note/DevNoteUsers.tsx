@@ -16,7 +16,6 @@ import { PartialDeep } from '../../../../../utils/src/types';
 
 import { Selection } from '../../../../../collab2/src';
 
-
 import { gql } from '../../../__generated__';
 import { DevNoteUsersQueryQuery } from '../../../__generated__/graphql';
 import { useNoteId } from '../../../note/context/note-id';
