@@ -51,19 +51,37 @@ export function processExternalTyping(
     draft.serverText = castDraft(newServerText);
 
     if (draft.submittedRecord) {
-      draft.submittedRecord.changeset = castDraft(newSubmittedChanges);
-      draft.submittedRecord.targetRevision = externalRecord.revision;
+      // Using follow only to calculate correct bias for selection
+      Changeset.follow(
+        externalAdjustedForSubmitted,
+        Changeset.inverse(draft.submittedRecord.changeset, draft.serverText),
+        INSERT_BIAS
+      );
+
+      draft.submittedRecord = {
+        id: draft.submittedRecord.id,
+        targetRevision: externalRecord.revision,
+        changeset: castDraft(newSubmittedChanges),
+        selection: draft.submittedRecord.selection.follow(
+          externalAdjustedForSubmitted,
+          INSERT_BIAS
+        ),
+        selectionInverse: draft.submittedRecord.selectionInverse.follow(
+          externalChanges,
+          INSERT_BIAS
+        ),
+      };
     }
 
     if (draft.localRecord) {
-      // TODO fix this?
+      // TODO is selection correct?
       const localInverse = Changeset.inverse(localChanges, draft.viewText);
       draft.localRecord = {
         changeset: castDraft(newLocalChanges),
-        selection: draft.localRecord.selection.follow(viewComposableChange, true),
+        selection: draft.localRecord.selection.follow(viewComposableChange, !INSERT_BIAS),
         selectionInverse: draft.localRecord.selectionInverse.follow(
-          Changeset.follow(viewComposableChange, localInverse, true),
-          true
+          Changeset.follow(viewComposableChange, localInverse, !INSERT_BIAS),
+          !INSERT_BIAS
         ),
       };
     }
