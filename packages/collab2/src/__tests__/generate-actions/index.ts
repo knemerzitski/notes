@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
- 
+
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { faker } from '@faker-js/faker';
@@ -19,6 +19,7 @@ import { redo } from './redo';
 import { setCaret } from './set-caret';
 import { submitStep } from './submit-step';
 import { undo } from './undo';
+import { reset } from './reset';
 
 type ActionName =
   | 'setCaret'
@@ -26,6 +27,7 @@ type ActionName =
   | 'deleteText'
   | 'undo'
   | 'redo'
+  | 'reset'
   | 'submitStep'
   | 'fieldSetCaret'
   | 'fieldInsertText'
@@ -101,6 +103,7 @@ export function generateActions(config: Config): GeneratedActions {
     deleteText(ctx),
     undo(ctx),
     redo(ctx),
+    reset(ctx),
     submitStep(ctx),
     fieldSetCaret(ctx),
     fieldInsertText(ctx),

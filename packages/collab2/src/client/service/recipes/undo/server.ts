@@ -73,6 +73,11 @@ export function server(
         followChangesetSelection(followRecord, change, baseText, INSERT_BIAS)
       );
       if (followRecord.changeset.isIdentity()) {
+        // Undoing record will have no effect, set it to correct identity
+        followRecord.changeset = castDraft(
+          Changeset.identity(draft.viewText.outputLength)
+        );
+        followRecord.inverse = followRecord.changeset;
         break;
       }
     }

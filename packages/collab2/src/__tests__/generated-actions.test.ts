@@ -30,6 +30,7 @@ it('generated actions', () => {
       deleteText: 75,
       undo: 50,
       redo: 30,
+      reset: 1,
       submitStep: 30,
     },
     insert: [
@@ -82,6 +83,7 @@ it('generated actions with json fields', () => {
       fieldDeleteText: 75,
       undo: 50,
       redo: 30,
+      reset: 1,
       submitStep: 30,
     },
     fieldWeights: {

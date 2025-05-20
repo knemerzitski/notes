@@ -6,43 +6,34 @@ import { createCollabSandbox } from './helpers/collab-sandbox';
 
 // TODO remove
 it.skip('sandbox', () => {
-  const fieldNames = ['title', 'content'];
-
   const {
-    server,
     client: { A },
   } = createCollabSandbox({
     clients: ['A'],
-    client: {
-      jsonTyper: {
-        fieldNames,
-      },
-    },
   });
 
+  function log(msg?: string) {
+    logAll(msg, A.getViewTextWithSelection());
+  }
+
+  A.insert('a');
   A.submitChangesInstant();
-  const B = server.createClient('B', {
-    jsonTyper: {
-      fieldNames,
-    },
-  });
-
-  const A_content = A.getField('content');
-  A_content.insert('f\n\no"o');
+  A.undo();
   A.submitChangesInstant();
 
-  const B_title = B.getField('title');
-  B_title.insert('bar""');
-  B.submitChangesInstant();
+  A.reset();
+  console.log('reset');
+  log();
 
-  logAll({
-    A: {
-      fields: A.getFieldTextsWithSelection(),
-      viewText: A.getViewTextWithSelection(),
-    },
-    B: {
-      fields: B.getFieldTextsWithSelection(),
-      viewText: B.getViewTextWithSelection(),
-    },
-  });
+  A.undo();
+  log('undo');
+  A.undo();
+  log('undo');
+
+  A.redo();
+  logAll(A.getDebugObject());
+  log('redo');
+
+  A.redo();
+  log('redo');
 });

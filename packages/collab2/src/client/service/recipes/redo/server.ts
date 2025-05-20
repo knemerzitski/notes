@@ -5,6 +5,7 @@ import { followChangesetSelection } from '../../../../common/utils/follow-change
 import { Properties, ServerHistoryServiceRecord, State } from '../../types';
 import { asComputed } from '../../utils/as-computed';
 import { updateLocalRecord } from '../update-local-record';
+import { getLastHistoryRecord } from '../../utils/history-record';
 
 /**
  * - `false` - External changes first
@@ -34,6 +35,8 @@ export function server(props: Pick<Properties, 'serverFacades'>) {
       return;
     }
 
+    const nextRedoRecord = getLastHistoryRecord(draft.redoStack, 'view');
+
     const targetToHead_records = [
       ...serverFacades.range(redoRecord.revision, draft.serverRevision + 1),
     ];
@@ -54,6 +57,12 @@ export function server(props: Pick<Properties, 'serverFacades'>) {
     };
 
     for (const change of followChanges) {
+      if (nextRedoRecord) {
+        nextRedoRecord.externalChanges.push(
+          castDraft(Changeset.follow(change, followRecord.changeset, !INSERT_BIAS))
+        );
+      }
+
       baseText = Changeset.compose(baseText, change);
       followRecord = castDraft(
         followChangesetSelection(followRecord, change, baseText, INSERT_BIAS)

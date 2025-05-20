@@ -13,6 +13,17 @@ export function acknowledgeSubmittedRecord(
       return;
     }
 
+    const submittedRecord = draft.submittedRecord;
+    if (!submittedRecord) {
+      throw new Error('Unexpected missing submittedRecord');
+    }
+
+    if (!submittedRecord.changeset.isEqual(acknowledgedRecord.changeset)) {
+      throw new Error(
+        `Unexpected acknowledgedChanges ${acknowledgedRecord.changeset.toString()} != submittedChanges ${submittedRecord.changeset.toString()}`
+      );
+    }
+
     draft.serverRevision = acknowledgedRecord.revision;
     draft.serverText = castDraft(
       Changeset.compose(draft.serverText, acknowledgedRecord.changeset)

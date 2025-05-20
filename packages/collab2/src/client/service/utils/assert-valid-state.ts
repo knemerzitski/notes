@@ -1,7 +1,31 @@
 import { Changeset } from '../../../common/changeset';
 import { State } from '../types';
+import { asComputed } from './as-computed';
 
 export function assertValidState(state: State) {
+  const computedState = asComputed(state);
+
+  // Server * Submitted
+  try {
+    Changeset.assertIsComposable(state.serverText, computedState.submittedChanges);
+  } catch (err) {
+    throw new Error('Not composable: serverText * submittedChanges', {
+      cause: err,
+    });
+  }
+
+  // Submitted * Local
+  try {
+    Changeset.assertIsComposable(
+      computedState.submittedChanges,
+      computedState.localChanges
+    );
+  } catch (err) {
+    throw new Error('Not composable: submittedChanges * localChanges', {
+      cause: err,
+    });
+  }
+
   // Inverse is composable on changeset
   state.undoStack.forEach((record, i) => {
     if (record.type === 'view') {
