@@ -103,6 +103,7 @@ export function useCreateNote(): {
           },
           collabText: {
             initialText: submittedRecord?.changeset.joinInsertions() ?? '',
+            insertToTail: true,
           },
         },
       },

@@ -105,11 +105,15 @@ export const CreateNotePayload = mutationDefinition(
         text: Changeset.fromText(headRecord.text),
       });
     } else {
-      if (firstRecord) {
-        service.submittedChangesAcknowledged(
-          cacheRecordToCollabServerRecord(firstRecord)
-        );
-      }
+      service.submittedChangesAcknowledged(
+        firstRecord
+          ? cacheRecordToCollabServerRecord(firstRecord)
+          : {
+              // Server didn't return a record on note creation, assume revision increased and submittedChanges is acknowledged
+              revision: service.serverRevision + 1,
+              changeset: service.submittedChanges,
+            }
+      );
     }
   }
 );
