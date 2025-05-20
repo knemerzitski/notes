@@ -29,8 +29,8 @@
   },
   "dependencies": {
     "@types/node": "^20.12.7",
-    "aws-cdk": "^2.149.0",
-    "aws-cdk-lib": "^2.149.0",
+    "aws-cdk": "^2.1016.0",
+    "aws-cdk-lib": "^2.196.1",
     "awscdk-resources-mongodbatlas": "^3.5.2",
     "constructs": "^10.0.0",
     "dotenv": "^16.4.5",

@@ -52,9 +52,9 @@ const NOTES_QUERY = `#graphql
               id
               collabText {
                 id
-                headText {
+                headRecord {
                   revision
-                  changeset
+                  text
                 }
               }
             }
@@ -167,8 +167,8 @@ it(
                   id: expect.any(String),
                   note: {
                     collabText: {
-                      headText: {
-                        changeset: ['hello new note'],
+                      headRecord: {
+                        text: 'hello new note',
                         revision: 1,
                       },
                       id: expect.any(String),
