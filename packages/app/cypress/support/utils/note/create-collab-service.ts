@@ -2,41 +2,52 @@ import { gql } from '@apollo/client';
 
 import { CollabService } from '../../../../../collab2/src';
 
-import { Note, NoteTextFieldName } from '../../../../src/__generated__/graphql';
+import { Note, NoteTextFieldName, User } from '../../../../src/__generated__/graphql';
 import { GraphQLService } from '../../../../src/graphql/types';
 
 import { NoteTextFieldEditor } from '../../../../src/note/types';
 
 const Test_CreateCollabService_Query = gql(`
-  query Test_CreateCollabService_Query($by: NoteByInput!) {
-    note(by: $by) {
+  query Test_CreateCollabService_Query($userBy: UserByInput!, $noteBy: NoteByInput!) {
+    signedInUser(by: $userBy) {
       id
-      collabService
-      textFields {
-        name
-        editor
+      noteLink(by: $noteBy) {
+        id
+        collabService
+        textFields {
+          name
+          editor
+        }
       }
     }
   }
 `);
 
 export function createCollabService({
+  userId,
   noteId,
   graphQLService,
 }: {
   graphQLService: GraphQLService;
+  userId: User['id'];
   noteId: Note['id'];
 }) {
   const data = graphQLService.client.cache.readQuery<{
-    note: {
+    signedInUser: {
       id: string;
-      collabService: CollabService;
-      textFields: { name: NoteTextFieldName; editor: NoteTextFieldEditor }[];
+      noteLink: {
+        id: string;
+        collabService: CollabService;
+        textFields: { name: NoteTextFieldName; editor: NoteTextFieldEditor }[];
+      };
     };
   }>({
     query: Test_CreateCollabService_Query,
     variables: {
-      by: {
+      userBy: {
+        id: userId,
+      },
+      noteBy: {
         id: noteId,
       },
     },
@@ -47,9 +58,9 @@ export function createCollabService({
   }
 
   return {
-    collabService: data.note.collabService,
+    collabService: data.signedInUser.noteLink.collabService,
     fields: Object.fromEntries(
-      data.note.textFields.map(({ name, editor }) => [name, editor])
+      data.signedInUser.noteLink.textFields.map(({ name, editor }) => [name, editor])
     ) as Record<NoteTextFieldName, NoteTextFieldEditor>,
   };
 }

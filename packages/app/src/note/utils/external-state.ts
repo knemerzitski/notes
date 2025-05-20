@@ -50,9 +50,9 @@ export function createNoteExternalStateContext<TKey extends string>(
   function newValue(
     state: CollabServiceOptions['state'],
     options: {
-      cache: ApolloCache<unknown>;
+      cache?: ApolloCache<unknown>;
       userId: string;
-      collabTextDataId: string;
+      collabTextDataId?: string;
     }
   ): NoteExternalState<TKey> {
     const userId = options.userId;
@@ -62,9 +62,10 @@ export function createNoteExternalStateContext<TKey extends string>(
         state,
         isExternalTypingHistory: (record) => record.authorId === userId,
         context: collabServiceContext,
-        serverFacades: new Set([
-          new CacheRecordsFacade(options.cache, options.collabTextDataId),
-        ]),
+        serverFacades:
+          options.collabTextDataId && options.cache
+            ? new Set([new CacheRecordsFacade(options.cache, options.collabTextDataId)])
+            : undefined,
       },
       jsonTyper: {
         fieldNames,

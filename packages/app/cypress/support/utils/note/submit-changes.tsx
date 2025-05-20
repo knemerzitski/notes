@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react';
 
 import { ReactNode } from 'react';
 
-import { CollabService } from '../../../../../collab/src/client/collab-service';
+import { CollabService } from '../../../../../collab2/src';
 
 import { GraphQLServiceProvider } from '../../../../src/graphql/components/GraphQLServiceProvider';
 import { GraphQLService } from '../../../../src/graphql/types';
@@ -35,8 +35,7 @@ export async function submitChanges({
 
   // wait for submit to be done then do after..
 
-  collabService.submitChanges();
-  const submittedRecord = collabService.submittedRecord;
+  const submittedRecord = collabService.submitChanges();
   if (!submittedRecord) {
     return;
   }

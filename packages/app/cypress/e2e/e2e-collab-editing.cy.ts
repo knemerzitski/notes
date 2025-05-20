@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 
-import { SelectionRange } from '../../../collab/src/client/selection-range';
+import { Selection } from '../../../collab2/src';
 
 import { GraphQLService } from '../../src/graphql/types';
 import { NoteTextFieldName } from '../../src/note/types';
@@ -141,6 +141,7 @@ it('sign in, create note, share link and collab edit with another user', () => {
           noteDialog(noteId).should('be.visible');
 
           cy.then(() => {
+            let userId: string;
             let graphQLService: GraphQLService;
             cy.then(async () => {
               // Sign in with user 1 in the background and insert record
@@ -149,10 +150,10 @@ it('sign in, create note, share link and collab edit with another user', () => {
                 storageKey: 'user1',
               });
 
-              await signIn({
+              ({ userId } = await signIn({
                 graphQLService,
                 signInUserId: '1',
-              });
+              }));
 
               // Open note so that user 1 caret will be visible to user 2
               openNoteSubscription({
@@ -179,10 +180,11 @@ it('sign in, create note, share link and collab edit with another user', () => {
               const { fields, collabService } = createCollabService({
                 graphQLService,
                 noteId,
+                userId,
               });
 
               // "foo content" =>  "foo BOO content"
-              fields[NoteTextFieldName.CONTENT].insert(' BOO', SelectionRange.from(3));
+              fields[NoteTextFieldName.CONTENT].insert(' BOO', Selection.create(3));
 
               await submitChanges({
                 collabService,

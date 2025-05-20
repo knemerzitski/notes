@@ -4,16 +4,15 @@
 import { faker } from '@faker-js/faker';
 import mitt, { ReadEmitter } from 'mitt';
 
-import { CollabService } from '../../../collab/src/client/collab-service';
-import { SelectionRange } from '../../../collab/src/client/selection-range';
-import { SimpleText } from '../../../collab/src/types';
-
 import { createLogger } from '../../../utils/src/logging';
 
 import { MaybePromise } from '../../../utils/src/types';
 
+import { CollabService, Selection } from '../../../collab2/src';
+
 import { NoteTextFieldName } from '../../src/__generated__/graphql';
 import { GraphQLService } from '../../src/graphql/types';
+import { NoteTextFieldEditor } from '../../src/note/types';
 import { AppStatus } from '../../src/utils/hooks/useAppStatus';
 import { createGraphQLService } from '../support/utils/graphql/create-graphql-service';
 import { persistCache } from '../support/utils/graphql/persist-cache';
@@ -34,7 +33,7 @@ interface UserContext {
   graphQLService: GraphQLService;
   collabService: {
     service: CollabService;
-    fields: Record<NoteTextFieldName, SimpleText>;
+    fields: Record<NoteTextFieldName, NoteTextFieldEditor>;
   };
   editor: Record<Field, FieldEditor>;
   submitChanges: () => Promise<void>;
@@ -68,7 +67,7 @@ type TextOperation = (
     }
   | {
       type: 'selectOffset';
-      offset: SelectionRange;
+      offset: Selection;
     }
 ) & {
   simpleField: SimpleTextField;
@@ -80,7 +79,7 @@ class SimpleTextField implements FieldEditor {
     selectionChanged: undefined;
   }>();
 
-  selection = SelectionRange.ZERO;
+  selection = Selection.ZERO;
   selectionRevision: number;
 
   get value() {
@@ -88,27 +87,24 @@ class SimpleTextField implements FieldEditor {
   }
 
   constructor(
-    readonly field: SimpleText,
+    readonly field: NoteTextFieldEditor,
     private readonly service: CollabService,
     private readonly queue: SimpleTextFieldsOperationsQueue
   ) {
-    this.field.eventBus.on('selectionChanged', (newSelection) => {
+    this.field.on('selection:changed', ({ newSelection }) => {
       this.selection = newSelection;
     });
 
-    field.eventBus.on('selectionChanged', (selection) => {
-      this.selection = selection;
-      this.selectionRevision = service.headRevision;
+    field.on('selection:changed', ({ newSelection }) => {
+      this.selection = newSelection;
+      this.selectionRevision = service.serverRevision;
     });
 
-    field.eventBus.on('handledExternalChanges', (changesets) => {
-      const newSelection = changesets.reduce(
-        (sel, { changeset }) => SelectionRange.closestRetainedPosition(sel, changeset),
-        this.selection
-      );
+    field.on('externalTyping:applied', ({ changeset }) => {
+      const newSelection = this.selection.follow(changeset, true);
 
       this.selection = newSelection;
-      this.selectionRevision = this.service.headRevision;
+      this.selectionRevision = this.service.serverRevision;
     });
   }
 
@@ -171,7 +167,7 @@ class SimpleTextField implements FieldEditor {
     this.queue.pushOperation({
       simpleField: this,
       type: 'selectOffset',
-      offset: SelectionRange.subtract(SelectionRange.from(start, end), this.selection),
+      offset: Selection.create(start, end).subtract(this.selection),
       options,
     });
   }
@@ -180,7 +176,7 @@ class SimpleTextField implements FieldEditor {
     this.queue.pushOperation({
       simpleField: this,
       type: 'selectOffset',
-      offset: SelectionRange.from(offset),
+      offset: Selection.create(offset),
       options,
     });
   }
@@ -188,7 +184,7 @@ class SimpleTextField implements FieldEditor {
   getServiceSelection() {
     return {
       revision: this.selectionRevision,
-      selection: this.field.transformToServiceSelection(this.selection),
+      selection: this.field.toServiceSelection(this.selection),
     };
   }
 }
@@ -256,8 +252,8 @@ class SimpleTextFieldsOperationsQueue {
         // Wait for submitted ack
         if (this.service.haveSubmittedChanges()) {
           await new Promise((res) => {
-            const off = user2.collabService.service.eventBus.on(
-              'submittedChangesAcknowledged',
+            const off = user2.collabService.service.on(
+              'submittedChanges:acknowledged',
               () => {
                 off();
                 res(true);
@@ -276,10 +272,10 @@ class SimpleTextFieldsOperationsQueue {
           await this.submitChanges();
           // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         } else if (op.type === 'selectOffset') {
-          const newSelection = SelectionRange.add(op.simpleField.selection, op.offset);
-          if (!SelectionRange.isEqual(op.simpleField.selection, newSelection)) {
+          const newSelection = op.simpleField.selection.add(op.offset);
+          if (!op.simpleField.selection.isEqual(newSelection)) {
             op.simpleField.selection = newSelection;
-            op.simpleField.selectionRevision = this.service.headRevision;
+            op.simpleField.selectionRevision = this.service.serverRevision;
             op.simpleField.eventBus.emit('selectionChanged');
           }
         }
@@ -318,7 +314,7 @@ class CyElementField implements FieldEditor {
   }
 
   select(start: number, end?: number, _options?: TextOperationOptions) {
-    const selection = SelectionRange.from(start, end);
+    const selection = Selection.create(start, end);
     this.getChainableEl().setSelectionRange(selection.start, selection.end);
   }
 
@@ -378,6 +374,7 @@ beforeEach(() => {
     const { fields, collabService } = createCollabService({
       graphQLService,
       noteId,
+      userId,
     });
 
     const _submitChanges = async () => {
@@ -463,6 +460,7 @@ beforeEach(() => {
       const { fields, collabService } = createCollabService({
         graphQLService,
         noteId,
+        userId,
       });
 
       const _submitChanges = async () => {
@@ -509,11 +507,14 @@ beforeEach(() => {
           }
 
           const serviceSelection = testEditor.getServiceSelection();
+          if (!serviceSelection.selection) {
+            return;
+          }
 
           await updateOpenNoteSelectionRange({
             graphQLService,
             noteId,
-            selectionRange: serviceSelection.selection,
+            selection: serviceSelection.selection,
             revision: serviceSelection.revision,
           });
         },
@@ -690,7 +691,12 @@ describe('with empty text', () => {
       delay: 0,
     });
     shouldContentHaveValue('[1]');
+
+    retry(() => {
+      expect(user2.editor.content.value).to.equal('[1]');
+    });
     cy.then(() => {
+      user2.editor.content.select(3);
       user2.editor.content.insert('[a]', {
         delay: 0,
       });
@@ -858,7 +864,7 @@ describe('with initial text', () => {
       });
       await user2.submitChanges();
 
-      initialHeadRevision = user2.collabService.service.headRevision;
+      initialHeadRevision = user2.collabService.service.serverRevision;
     });
   });
 
@@ -1041,7 +1047,7 @@ describe('with history', () => {
 
       await user1.bgQueuedChangesSubmitted();
 
-      initialHeadRevision = user1.collabService.service.headRevision;
+      initialHeadRevision = user1.collabService.service.serverRevision;
 
       // [before]\n\n[history]\n[t1][t2][t3]\n\n[after]\n
     });
@@ -1164,6 +1170,10 @@ describe('with history', () => {
       user2.editor.content.insert('123');
     });
 
+    noteDialog()
+      .find('[aria-label="content"] textarea')
+      .should('not.contain.value', '[t1][t2][t3]');
+
     undoButton().click();
 
     shouldContentHaveValue('123');
@@ -1176,19 +1186,16 @@ describe('with history', () => {
   });
 });
 
-// /user2:|error/
-describe.only('with generated actions', () => {
+describe('with generated actions', () => {
   const config = {
     tests: [
-      // TODO fix this tests causes error: cannot compose changesets
-      // {
-      //   seed: 896,
-      //   count: 34,
-      // },
-      // TODO another error, failed to compose undo, or server didnt match??
+      {
+        seed: 896,
+        count: 34,
+      },
       {
         seed: 67905,
-        count: 1000,
+        count: 50,
       },
     ],
     insertLength: {

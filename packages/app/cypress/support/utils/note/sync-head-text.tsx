@@ -15,13 +15,16 @@ const Test_SyncHeadTextQuery = gql(`
   query Test_SyncHeadTextQuery($userId: ObjectID!, $noteId: ObjectID!) {
     signedInUser(by: {id: $userId}){
       id
-      note(by: {id: $noteId}) {
+      noteLink(by: {id: $noteId}){
         id
-        collabText {
+        note {
           id
-          headText {
-            revision
-            changeset
+          collabText {
+            id
+            headRecord {
+              revision
+              text
+            }
           }
         }
       }
@@ -36,7 +39,7 @@ export async function syncHeadText({
   graphQLService: GraphQLService;
   noteId: Note['id'];
 }) {
-  // SyncHeadText Contains logic to handle new headText
+  // SyncHeadText Contains logic to handle new headRecrd
   const { unmount } = render(
     <GraphQLServiceProvider service={graphQLService}>
       <CurrentUserIdProvider>

@@ -1,9 +1,7 @@
-import { CollabService } from '../../../collab/src/client/collab-service';
-import { SelectionRange } from '../../../collab/src/client/selection-range';
-import { SimpleText } from '../../../collab/src/types';
-
+import { CollabService, Selection } from '../../../collab2/src';
 import { Note, NoteTextFieldName } from '../../src/__generated__/graphql';
 import { GraphQLService } from '../../src/graphql/types';
+import { NoteTextFieldEditor } from '../../src/note/types';
 import { createGraphQLService } from '../support/utils/graphql/create-graphql-service';
 import { persistCache } from '../support/utils/graphql/persist-cache';
 import { createCollabService } from '../support/utils/note/create-collab-service';
@@ -14,7 +12,7 @@ import { signIn } from '../support/utils/user/sign-in';
 let graphQLService: GraphQLService;
 
 let collabService: CollabService;
-let fields: Record<NoteTextFieldName, SimpleText>;
+let fields: Record<NoteTextFieldName, NoteTextFieldEditor>;
 
 let noteId: Note['id'];
 
@@ -42,6 +40,7 @@ beforeEach(() => {
     ({ fields, collabService } = createCollabService({
       graphQLService,
       noteId,
+      userId,
     }));
   });
 });
@@ -56,7 +55,7 @@ function noteCard(noteId: string, options?: Parameters<typeof cy.get>[1]) {
 
 it('has inserted record in the background', () => {
   cy.then(async () => {
-    fields[NoteTextFieldName.TITLE].insert('start', SelectionRange.from(0));
+    fields[NoteTextFieldName.TITLE].insert('start', Selection.create(0));
 
     await submitChanges({
       collabService,
@@ -64,7 +63,7 @@ it('has inserted record in the background', () => {
       noteId,
     });
 
-    fields[NoteTextFieldName.TITLE].insert('|end', SelectionRange.from(5));
+    fields[NoteTextFieldName.TITLE].insert('|end', Selection.create(5));
 
     await submitChanges({
       collabService,

@@ -1,8 +1,9 @@
+ 
 import { renderHook } from '@testing-library/react';
 
 import { ReactNode } from 'react';
 
-import { SelectionRange } from '../../../../../collab/src/client/selection-range';
+import { Selection } from '../../../../../collab2/src';
 
 import { getFragmentData } from '../../../../src/__generated__';
 import {
@@ -40,12 +41,17 @@ export async function createNote({
   });
 
   const externalState =
-    graphQLService.typePoliciesContext.custom.note.externalState.newValue();
+    graphQLService.typePoliciesContext.custom.userNoteLink.externalState.newValue(
+      undefined,
+      {
+        userId,
+      }
+    );
   if (initialText) {
     Object.entries(initialText).forEach(([key, value]) => {
       externalState.fields[key as NoteTextFieldName].editor.insert(
         value,
-        SelectionRange.from(0)
+        Selection.create(0)
       );
     });
   }
@@ -58,6 +64,7 @@ export async function createNote({
         },
         collabText: {
           initialText: externalState.service.viewText,
+          insertToTail: true,
         },
       },
     },

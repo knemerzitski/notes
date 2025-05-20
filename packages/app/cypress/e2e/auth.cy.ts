@@ -1,4 +1,4 @@
-import { SelectionRange } from '../../../collab/src/client/selection-range';
+import { Selection } from '../../../collab2/src';
 
 import { GraphQLService } from '../../src/graphql/types';
 import { NoteTextFieldName } from '../../src/note/types';
@@ -260,10 +260,11 @@ it('refreshes user expired session', () => {
 
       const { fields, collabService } = createCollabService({
         graphQLService: graphQLService2,
+        userId,
         noteId,
       });
 
-      fields[NoteTextFieldName.CONTENT].insert(' updated', SelectionRange.from(7));
+      fields[NoteTextFieldName.CONTENT].insert(' updated', Selection.create(7));
 
       await submitChanges({
         collabService,

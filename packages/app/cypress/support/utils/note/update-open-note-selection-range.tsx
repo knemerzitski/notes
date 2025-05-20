@@ -2,8 +2,7 @@ import { renderHook } from '@testing-library/react';
 
 import { ReactNode } from 'react';
 
-import { SelectionRange } from '../../../../../collab/src/client/selection-range';
-
+import { Selection } from '../../../../../collab2/src';
 import { GraphQLServiceProvider } from '../../../../src/graphql/components/GraphQLServiceProvider';
 
 import { GraphQLService } from '../../../../src/graphql/types';
@@ -15,11 +14,11 @@ export async function updateOpenNoteSelectionRange({
   noteId,
   graphQLService,
   revision,
-  selectionRange,
+  selection,
 }: {
   noteId: string;
   graphQLService: GraphQLService;
-  selectionRange: SelectionRange;
+  selection: Selection;
   revision: number;
 }) {
   const {
@@ -41,6 +40,6 @@ export async function updateOpenNoteSelectionRange({
       id: noteId,
     },
     revision,
-    selectionRange,
+    selection,
   });
 }

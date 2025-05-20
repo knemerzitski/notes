@@ -5,11 +5,11 @@ import { number, string, type } from 'superstruct';
 import { isObjectLike } from '../../../../../utils/src/type-guards/is-object-like';
 
 import { Changeset, createClientStateFromHeadRecord } from '../../../../../collab2/src';
+import { gql } from '../../../__generated__';
 import { CreateFieldPolicyFn, TypePoliciesContext } from '../../../graphql/types';
 import { NoteExternalState } from '../../types';
 import { parseUserNoteLinkId } from '../../utils/id';
 import { readUserNoteLinkId } from '../../utils/read-user-note-link-id';
-import { gql } from '../../../__generated__';
 
 const UserNoteLinkExternal_UserNoteLinkFragment = gql(`
   fragment UserNoteLinkExternal_UserNoteLinkFragment on UserNoteLink {

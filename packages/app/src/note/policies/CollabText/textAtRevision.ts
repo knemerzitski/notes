@@ -173,11 +173,11 @@ export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesC
         return existing[index]!;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const tailRecord: ComposedTextRecord | undefined =
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         existing[index - 1] ?? readTail(options);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const headRecord: ComposedTextRecord | undefined =
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         existing[index] ?? readHead(options);
