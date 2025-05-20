@@ -7,23 +7,18 @@ import { useUserId } from '../../user/context/user-id';
 import { useLogger } from '../../utils/context/logger';
 import { useNoteId } from '../context/note-id';
 import { useCollabService } from '../hooks/useCollabService';
-import { CacheRecordsFacade } from '../utils/cache-records-facade';
+import { getCollabTextRecords } from '../models/record-connection/get';
+import { getCollabTextAt } from '../models/record-connection/text-at';
 
 const HistoryRestoration_Query = gql(`
-  query HistoryRestoration_Query($userBy: UserByInput!, $noteBy: NoteByInput!, 
-                            $recordsBeforeRevision: NonNegativeInt!, $recordsLast: PositiveInt!, $skipRecords: Boolean!
-                            $tailRevision: NonNegativeInt! $skipTailRevision: Boolean!){
+  query HistoryRestoration_Query($userBy: UserByInput!, $noteBy: NoteByInput!, $before: NonNegativeInt!, $last: PositiveInt!){
     signedInUser(by: $userBy) {
       id
       note(by: $noteBy) {
         id
         collabText {
           id
-          textAtRevision(revision: $tailRevision) @skip(if: $skipTailRevision) {
-            revision
-            text
-          }
-          recordConnection(before: $recordsBeforeRevision, last: $recordsLast) @skip(if: $skipRecords) {
+          recordConnection(before: $before, last: $last) {
             edges {
               node {
                 ...MapRecord_CollabTextRecordFragment
@@ -54,8 +49,6 @@ export function HistoryRestoration({
    */
   triggerEntriesRemaining?: number;
 }) {
-  throw new Error('Not implemented');
-
   const logger = useLogger('HistoryRestoration');
   const client = useApolloClient();
   const noteId = useNoteId();
@@ -70,32 +63,55 @@ export function HistoryRestoration({
         return;
       }
 
-      const historyEntriesRemaining = collabService.historySize;
-      const requiredEntriesInCacheCount =
-        triggerEntriesRemaining - historyEntriesRemaining + 1;
-
-      const haveEnoughEntries = userRecords.hasOwnOlderRecords(
-        collabService.history.serverTailRevision,
-        requiredEntriesInCacheCount
-      );
-
-      if (haveEnoughEntries) {
+      const historyTailServerRevision = collabService.historyTailServerRevision;
+      if (!historyTailServerRevision) {
+        logger?.debug('noHistoryTailServerRevision');
         return;
+      }
+
+      let historyEntriesRemaining = 0;
+      const records = getCollabTextRecords(
+        noteId,
+        {
+          before: historyTailServerRevision + 1,
+        },
+        client.cache
+      );
+      if (records) {
+        for (let i = records.length - 1; i >= 0; i--) {
+          const record = records[i];
+          if (!record) {
+            continue;
+          }
+
+          if (record.author.id === userId) {
+            historyEntriesRemaining++;
+            if (historyEntriesRemaining > triggerEntriesRemaining) {
+              logger?.debug('haveEnoughEntries');
+              return;
+            }
+          }
+        }
       }
 
       isFetchingRef.current = true;
       try {
-        const recordsBeforeRevision = collabService.history.serverTailRevision + 1;
+        const recordsBeforeRevision = historyTailServerRevision + 1;
         const minRecordsAfterRevision = Math.max(
           0,
           recordsBeforeRevision - fetchEntriesCount - 1
         );
 
-        const availableRecords = cacheRecordsFacade.readRecords({
-          after: minRecordsAfterRevision,
-        });
+        const availableRecords = getCollabTextRecords(
+          noteId,
+          {
+            after: minRecordsAfterRevision,
+          },
+          client.cache
+        );
+
         const newestCachedRevision =
-          availableRecords[availableRecords.length - 1]?.change.revision;
+          availableRecords?.[availableRecords.length - 1]?.revision;
         const recordsLast = Math.min(
           fetchEntriesCount,
           Math.max(
@@ -105,14 +121,24 @@ export function HistoryRestoration({
         );
 
         const tailRevision = Math.max(0, recordsBeforeRevision - recordsLast - 1);
-        const skipTailRevision =
-          tailRevision <= 0 || cacheRecordsFacade.hasTextAt(tailRevision);
         // First revision is 1, so recordsLast must be > 1 to fetch
         const skipRecords = recordsLast <= 1;
-
-        if (skipRecords && skipTailRevision) {
+        if (skipRecords) {
+          logger?.debug('skip');
           return;
         }
+
+        logger?.debug('fetchParams', {
+          historyTailServerRevision,
+          historyEntriesRemaining,
+          fetchEntriesCount,
+          triggerEntriesRemaining,
+          minRecordsAfterRevision,
+          newestCachedRevision,
+          recordsBeforeRevision,
+          recordsLast,
+          collabTextAt: getCollabTextAt(noteId, tailRevision, client.cache),
+        });
 
         await client.query({
           query: HistoryRestoration_Query,
@@ -123,17 +149,14 @@ export function HistoryRestoration({
             noteBy: {
               id: noteId,
             },
-            recordsBeforeRevision,
-            recordsLast: skipRecords ? 1 : recordsLast,
-            tailRevision,
-            skipTailRevision,
-            skipRecords,
+            before: recordsBeforeRevision,
+            last: recordsLast,
           },
           fetchPolicy: 'network-only',
         });
 
-        // Cache update will emit 'userRecordsUpdated' event from CacheRecordsFacade
-        // Event flow: Cache update => CacheRecordsFacade => UserRecords => CollabService
+        // Cache update will emit 'records:update' event from CacheRecordsFacade
+        // Event flow: Cache update => CacheRecordsFacade => CollabService
 
         void attemptFetchMore();
       } finally {
@@ -141,23 +164,11 @@ export function HistoryRestoration({
       }
     }
 
-    const eventsOff = collabService.eventBus.on(
-      ['appliedUndo', 'replacedHeadText'],
-      () => {
-        void attemptFetchMore();
-      }
-    );
-
     void attemptFetchMore();
 
-    return () => {
-      cacheRecordsFacade.cleanUp();
-      userRecords.cleanUp();
-      eventsOff();
-      if (collabService.userRecords === userRecords) {
-        collabService.userRecords = null;
-      }
-    };
+    return collabService.on(['undo:applied', 'headRecord:reset'], () => {
+      void attemptFetchMore();
+    });
   }, [
     client,
     noteId,

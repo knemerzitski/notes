@@ -46,6 +46,10 @@ const GetOrCreatePendingNoteAdd_Query = gql(`
                 revision
                 text
               }
+              tailRecord {
+                revision
+                text
+              }
               recordConnection {
                 edges {
                   node {
@@ -112,6 +116,11 @@ function add(
         __typename: 'CollabText',
         id: collabTextId,
         headRecord: {
+          __typename: 'ComposedTextRecord',
+          revision: 0,
+          text: '',
+        },
+        tailRecord: {
           __typename: 'ComposedTextRecord',
           revision: 0,
           text: '',
