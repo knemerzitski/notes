@@ -8,7 +8,7 @@ import { CreateTypePolicyFn, TypePoliciesContext } from '../../../graphql/types'
 import { readUserNoteLinkId } from '../../utils/read-user-note-link-id';
 
 import { _external, readExternalState } from './_external';
-
+import { parseUserNoteLinkId } from '../../utils/id';
 
 export const UserNoteLink: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
   return {
@@ -87,6 +87,34 @@ export const UserNoteLink: CreateTypePolicyFn = function (ctx: TypePoliciesConte
       },
       outdated(existing: Maybe<boolean> = false) {
         return existing;
+      },
+      note(existing, { readField, toReference }) {
+        const id = readField('id');
+        if (typeof id !== 'string') {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+          return existing;
+        }
+
+        const { noteId } = parseUserNoteLinkId(id);
+
+        return toReference({
+          __typename: 'Note',
+          id: noteId,
+        });
+      },
+      user(existing, { readField, toReference }) {
+        const id = readField('id');
+        if (typeof id !== 'string') {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+          return existing;
+        }
+
+        const { userId } = parseUserNoteLinkId(id);
+
+        return toReference({
+          __typename: 'User',
+          id: userId,
+        });
       },
     },
   };

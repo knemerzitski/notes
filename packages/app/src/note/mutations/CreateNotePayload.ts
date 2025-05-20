@@ -13,6 +13,7 @@ import { addNoteToConnection } from '../models/note-connection/add';
 import { addRecordToConnection } from '../models/record-connection/add';
 import { parseUserNoteLinkId } from '../utils/id';
 import { cacheRecordToCollabServerRecord } from '../utils/map-record';
+import { addUserToNote } from '../models/note/add-user';
 
 /**
  * Will acknowledge submitted changes in service
@@ -43,6 +44,15 @@ export const CreateNotePayload = mutationDefinition(
     if (!data) {
       return;
     }
+
+    // Add itself to list of users
+    addUserToNote(
+      data.userNoteLink.id,
+      {
+        id: data.userNoteLink.note.id,
+      },
+      cache
+    );
 
     const { context } = options;
 
