@@ -40,6 +40,7 @@ export function convertLocalToRemoteNote(
       | 'identify'
       | 'readFragment'
       | 'writeFragment'
+      | 'watchFragment'
       | 'evict'
     >;
   }
@@ -88,7 +89,7 @@ export function convertLocalToRemoteNote(
     return false;
   }
 
-  // Link CollabService
+  // Move CollabService to remote
   const service = copyExternalState(localUserNoteLinkId, remoteUserNoteLinkId, cache);
 
   // Copy hiddenInList

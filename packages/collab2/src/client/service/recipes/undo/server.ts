@@ -17,19 +17,19 @@ const INSERT_BIAS = false;
  * Redoes a server records by retrieving record from server
  */
 export function server(
-  props: Pick<Properties, 'serverFacades' | 'isExternalTypingHistory'>
+  props: Pick<Properties, 'serverFacade' | 'isExternalTypingHistory'>
 ) {
   return (record: ServerHistoryServiceRecord, draft: WritableDraft<State>) => {
     const computedDraft = asComputed(draft);
     const isExternalTypingHistory = props.isExternalTypingHistory;
 
-    const serverFacades = props.serverFacades;
-    if (serverFacades.size === 0) {
+    const serverFacade = props.serverFacade;
+    if (!serverFacade) {
       return;
     }
 
     const typingToTarget_records = collectValuesUntil(
-      serverFacades.beforeIterable(record.revision + 1),
+      serverFacade.beforeIterable(record.revision + 1),
       (serverRecord) => ({
         value: serverRecord,
         done: isExternalTypingHistory(serverRecord),
@@ -42,13 +42,13 @@ export function server(
       return;
     }
 
-    const tailRecord = serverFacades.text(undoRecord.revision);
+    const tailRecord = serverFacade.text(undoRecord.revision);
     if (!tailRecord) {
       return;
     }
 
     const targetToHead_records = [
-      ...serverFacades.range(record.revision + 1, draft.serverRevision + 1),
+      ...serverFacade.range(record.revision + 1, draft.serverRevision + 1),
     ];
 
     const followChanges = [
@@ -92,7 +92,7 @@ export function server(
       const isRestoreNext =
         record.untilRevision === true || record.untilRevision <= nextRevision;
 
-      if (isRestoreNext && serverFacades.hasBefore(currentRevision)) {
+      if (isRestoreNext && serverFacade.hasBefore(currentRevision)) {
         draft.undoStackTypeServerIndexes.push(draft.undoStack.length);
         draft.undoStack.push({
           type: 'server',

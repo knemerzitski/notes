@@ -85,7 +85,7 @@ export class CacheRecordsFacade implements CollabServiceServerFacade {
   private readonly disposeHandlers: () => void;
 
   constructor(
-    readonly cache: ApolloCache<unknown>,
+    readonly cache: Pick<ApolloCache<unknown>, 'watchFragment' | 'readFragment'>,
     readonly collabTextDataId: string
   ) {
     const headObservable = cache.watchFragment({

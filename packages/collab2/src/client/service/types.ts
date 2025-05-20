@@ -8,7 +8,6 @@ import { ServerRecord, SubmittedRecord, HeadRecord } from '../../server';
 import { TextRecord } from '../../server/types';
 
 import { MutableComputedState } from './computed-state';
-import { ServerFacades } from './utils/server-facades';
 
 /**
  * Per-instance properties
@@ -31,9 +30,9 @@ export interface Properties {
   readonly isExternalTypingHistory: (record: ServiceServerRecord) => boolean;
 
   /**
-   * Server facades enable service to undo server records not in local history stack.
+   * Server facade enable service to undo server records not in local history stack.
    */
-  readonly serverFacades: ServerFacades;
+  serverFacade: ServerFacade | null;
 }
 
 export interface State {

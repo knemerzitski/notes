@@ -4,7 +4,7 @@ import { Context, Properties, State } from '../types';
 
 // maxSize: number, deletionThreshold: number
 export function cleanupUndoStack(
-  props: Pick<Properties, 'serverFacades'> & {
+  props: Pick<Properties, 'serverFacade'> & {
     readonly context: Pick<Context, 'historySizeLimit' | 'arrayCleanupThreshold'>;
   }
 ) {
@@ -16,8 +16,8 @@ export function cleanupUndoStack(
 
     // If next undo server type is not available in server then remove it
     const nextRecord = draft.undoStack[draft.undoStack.length - 1];
-    if (nextRecord?.type === 'server' && props.serverFacades.size > 0) {
-      if (!props.serverFacades.hasBefore(nextRecord.revision + 1)) {
+    if (nextRecord?.type === 'server' && props.serverFacade) {
+      if (!props.serverFacade.hasBefore(nextRecord.revision + 1)) {
         draft.undoStack.pop();
         draft.undoStackTypeServerIndexes.pop();
       }

@@ -3,7 +3,6 @@ import { nanoid } from 'nanoid';
 import { MutableComputedState } from './computed-state';
 import { StructSerializer } from './struct-serializer';
 import { Context, Properties } from './types';
-import { ServerFacades } from './utils/server-facades';
 
 const defaultContext: Context = {
   generateSubmitId: () => nanoid(6),
@@ -17,6 +16,6 @@ export function createDefaultProperties(): Properties {
     state: new MutableComputedState(),
     context: defaultContext,
     isExternalTypingHistory: () => false,
-    serverFacades: new ServerFacades(new Set()),
+    serverFacade: null,
   };
 }

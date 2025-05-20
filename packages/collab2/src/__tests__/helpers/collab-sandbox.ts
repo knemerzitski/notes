@@ -285,7 +285,7 @@ class Client {
     this.on = this.service.on.bind(this.service);
     this.off = this.service.on.bind(this.service);
 
-    this.service.addServerFacade(new LocalServerFacade(this.server));
+    this.service.setServerFacade(new LocalServerFacade(this.server));
 
     const serviceTyper = new BasicTyper(this.service);
     this.typer = new ControlledTyper(serviceTyper, new BasicSelection(serviceTyper));

@@ -8,8 +8,9 @@ import { Changeset, createClientStateFromHeadRecord } from '../../../../../colla
 import { gql } from '../../../__generated__';
 import { CreateFieldPolicyFn, TypePoliciesContext } from '../../../graphql/types';
 import { NoteExternalState } from '../../types';
-import { parseUserNoteLinkId } from '../../utils/id';
+import { getCollabTextId, parseUserNoteLinkId } from '../../utils/id';
 import { readUserNoteLinkId } from '../../utils/read-user-note-link-id';
+import { CacheRecordsFacade } from '../../utils/cache-records-facade';
 
 const UserNoteLinkExternal_UserNoteLinkFragment = gql(`
   fragment UserNoteLinkExternal_UserNoteLinkFragment on UserNoteLink {
@@ -61,9 +62,10 @@ export const _external: CreateFieldPolicyFn = function (ctx: TypePoliciesContext
       if (isObjectLike(existing)) {
         const inst = externalState.parseValue(existing, {
           userId,
-          collabTextDataId: collabTextRef.__ref,
-          cache,
         });
+        inst.service.setServerFacade(
+          new CacheRecordsFacade(options.cache, collabTextRef.__ref)
+        );
 
         // Replace serialized with parsed class instance
         write(userNoteLinkId, inst, cache);
@@ -85,10 +87,13 @@ export const _external: CreateFieldPolicyFn = function (ctx: TypePoliciesContext
         }),
         {
           userId,
-          collabTextDataId: collabTextRef.__ref,
-          cache,
         }
       );
+
+      inst.service.setServerFacade(
+        new CacheRecordsFacade(options.cache, collabTextRef.__ref)
+      );
+
       write(userNoteLinkId, inst, cache);
 
       return inst;
@@ -162,12 +167,31 @@ function write(
 export function copyExternalState(
   sourceUserNoteLinkId: string,
   targetUserNoteLinkId: string,
-  cache: Pick<ApolloCache<unknown>, 'readFragment' | 'writeFragment' | 'identify'>
+  cache: Pick<
+    ApolloCache<unknown>,
+    'readFragment' | 'writeFragment' | 'watchFragment' | 'identify' | 'evict'
+  >
 ) {
   const externalState = read(sourceUserNoteLinkId, cache);
   if (!externalState) {
     return;
   }
+
+  const { noteId } = parseUserNoteLinkId(targetUserNoteLinkId);
+  const collabTextId = getCollabTextId(noteId);
+
+  const collabTextDataId = cache.identify({
+    __typename: 'CollabText',
+    id: collabTextId,
+  });
+
+  if (!collabTextDataId) {
+    throw new Error(`Failed to get dataId from CollabText.id "${collabTextId}"`);
+  }
+
+  externalState.service.setServerFacade(new CacheRecordsFacade(cache, collabTextDataId));
+
   write(targetUserNoteLinkId, externalState, cache);
+
   return externalState.service;
 }

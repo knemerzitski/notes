@@ -1,4 +1,4 @@
-import { ApolloCache, makeVar } from '@apollo/client';
+import { makeVar } from '@apollo/client';
 
 import { Logger } from '../../../../utils/src/logging';
 
@@ -10,8 +10,6 @@ import {
   CollabServiceSerializer,
   CollabTyper,
 } from '../../../../collab2/src';
-
-import { CacheRecordsFacade } from './cache-records-facade';
 
 export function createNoteExternalStateContext<TKey extends string>(
   { keys }: { keys: TKey[] },
@@ -50,9 +48,9 @@ export function createNoteExternalStateContext<TKey extends string>(
   function newValue(
     state: CollabServiceOptions['state'],
     options: {
-      cache?: ApolloCache<unknown>;
+      // cache?: ApolloCache<unknown>;
       userId: string;
-      collabTextDataId?: string;
+      // collabTextDataId?: string;
     }
   ): NoteExternalState<TKey> {
     const userId = options.userId;
@@ -62,10 +60,6 @@ export function createNoteExternalStateContext<TKey extends string>(
         state,
         isExternalTypingHistory: (record) => record.authorId === userId,
         context: collabServiceContext,
-        serverFacades:
-          options.collabTextDataId && options.cache
-            ? new Set([new CacheRecordsFacade(options.cache, options.collabTextDataId)])
-            : undefined,
       },
       jsonTyper: {
         fieldNames,

@@ -84,11 +84,12 @@ export class Service {
 
   private readonly eventPhaseQueue = new TaskQueue();
 
+  private readonly listeners = {
+    recordsUpdated: this.recordsUpdated.bind(this),
+  };
+
   constructor(props?: Properties | PartialProperties) {
     this.props = transformPartialProperties(props);
-
-    // This might need cleanup if serverFacades is created outside
-    this.serverFacades.on('records:updated', this.recordsRestored.bind(this));
 
     this.logger?.debug('constructor');
     // Triggers validation
@@ -143,8 +144,8 @@ export class Service {
     return this.computedState.historyTailServerRevision;
   }
 
-  private get serverFacades() {
-    return this.props.serverFacades;
+  private get serverFacade() {
+    return this.props.serverFacade;
   }
 
   getViewTextAtRevision(viewRevision: number): Changeset | undefined {
@@ -158,12 +159,22 @@ export class Service {
   /**
    * Adding facade enables service to undo records from server.
    */
-  addServerFacade(serverFacade: ServerFacade) {
-    this.serverFacades.add(serverFacade);
-  }
+  setServerFacade(serverFacade: ServerFacade | null) {
+    if (this.props.serverFacade) {
+      this.props.serverFacade.off('records:updated', this.listeners.recordsUpdated);
+    }
 
-  removeServerFacade(serverFacade: ServerFacade) {
-    this.serverFacades.remove(serverFacade);
+    const hasChanged = serverFacade !== this.serverFacade;
+
+    this.props.serverFacade = serverFacade;
+
+    if (serverFacade) {
+      serverFacade.on('records:updated', this.listeners.recordsUpdated);
+    }
+
+    if (hasChanged) {
+      this.recordsUpdated();
+    }
   }
 
   /**
@@ -194,7 +205,11 @@ export class Service {
    * Must have at least one serverFacade.
    */
   catchUpToServer() {
-    const head = this.serverFacades.head();
+    if (!this.serverFacade) {
+      return;
+    }
+
+    const head = this.serverFacade.head();
     if (!head) {
       return;
     }
@@ -205,7 +220,7 @@ export class Service {
 
     this.logger?.debug('catchUp', head);
 
-    for (const record of this.serverFacades.range(
+    for (const record of this.serverFacade.range(
       this.state.serverRevision + 1,
       head.revision + 1
     )) {
@@ -328,16 +343,20 @@ export class Service {
       return true;
     }
 
+    if (!this.serverFacade) {
+      return false;
+    }
+
     // Check if server has any records that's considered part of history
     let revision = firstRecord.revision + 1;
-    for (const serverRecord of this.serverFacades.beforeIterable(revision)) {
+    for (const serverRecord of this.serverFacade.beforeIterable(revision)) {
       if (this.props.isExternalTypingHistory(serverRecord)) {
         return true;
       }
       revision = serverRecord.revision;
     }
 
-    return this.serverFacades.hasBefore(revision);
+    return this.serverFacade.hasBefore(revision);
   }
 
   /**
@@ -444,7 +463,7 @@ export class Service {
     this.setNextState(this.context.serializer.deserialize(serializedState));
   }
 
-  private recordsRestored() {
+  private recordsUpdated() {
     this.eventPhaseQueue.addAndFlush(() => {
       this.eventBus.emit('records:updated', this.createEvent());
     });

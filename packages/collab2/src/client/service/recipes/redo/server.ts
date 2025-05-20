@@ -16,27 +16,27 @@ const INSERT_BIAS = true;
 /**
  * Undoes a server records by retrieving record from server
  */
-export function server(props: Pick<Properties, 'serverFacades'>) {
+export function server(props: Pick<Properties, 'serverFacade'>) {
   return (record: ServerHistoryServiceRecord, draft: WritableDraft<State>) => {
     const computedDraft = asComputed(draft);
 
-    const serverFacades = props.serverFacades;
-    if (serverFacades.size === 0) {
+    const serverFacade = props.serverFacade;
+    if (!serverFacade) {
       return;
     }
 
-    const redoRecord = serverFacades.at(record.revision);
+    const redoRecord = serverFacade.at(record.revision);
     if (!redoRecord) {
       return;
     }
 
-    const tailRecord = serverFacades.text(redoRecord.revision - 1);
+    const tailRecord = serverFacade.text(redoRecord.revision - 1);
     if (!tailRecord) {
       return;
     }
 
     const targetToHead_records = [
-      ...serverFacades.range(redoRecord.revision, draft.serverRevision + 1),
+      ...serverFacade.range(redoRecord.revision, draft.serverRevision + 1),
     ];
 
     const followChanges = [
