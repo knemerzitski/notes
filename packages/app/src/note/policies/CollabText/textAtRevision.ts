@@ -5,19 +5,14 @@ import { binarySearchIndexOf } from '../../../../../utils/src/array/binary-searc
 import { Changeset } from '../../../../../collab2/src';
 
 import { gql } from '../../../__generated__';
-import {
-  CollabText,
-  CollabTextRecord,
-  ComposedTextRecord,
-} from '../../../__generated__/graphql';
+import { CollabTextRecord, ComposedTextRecord } from '../../../__generated__/graphql';
 
 import { CreateFieldPolicyFn, TypePoliciesContext } from '../../../graphql/types';
-import { firstComposedTextRecord } from '../../utils/map-record';
 
-const PolicyTextAtRevision_CollabTextFragment = gql(`
-  fragment PolicyTextAtRevision_CollabTextFragment on CollabText {
+const PolicyTextAtRevisionRecordsChangeset_CollabTextFragment = gql(`
+  fragment PolicyTextAtRevisionRecordsChangeset_CollabTextFragment on CollabText {
     id
-    recordConnection(after: $after, first: $first) {
+    recordConnection(after: $after, first: $first, before: $before, last: $last) {
       edges {
         node {
           id
@@ -29,16 +24,130 @@ const PolicyTextAtRevision_CollabTextFragment = gql(`
   }
 `);
 
+const PolicyTextAtRevisionRecordsInverse_CollabTextFragment = gql(`
+  fragment PolicyTextAtRevisionRecordsInverse_CollabTextFragment on CollabText {
+    id
+    recordConnection(after: $after, first: $first, before: $before, last: $last) {
+      edges {
+        node {
+          id
+          revision
+          inverse
+        }
+      }
+    }
+  }
+`);
+
+const PolicyTextAtRevisionHead_CollabTextFragment = gql(`
+  fragment PolicyTextAtRevisionHead_CollabTextFragment on CollabText {
+    id
+    headRecord {
+      revision
+      text
+    }
+  }
+`);
+
+const PolicyTextAtRevisionTail_CollabTextFragment = gql(`
+  fragment PolicyTextAtRevisionTail_CollabTextFragment on CollabText {
+    id
+    tailRecord {
+      revision
+      text
+    }
+  }
+`);
+
+const PolicyTextAtRevision_CollabTextFragment = gql(`
+  fragment PolicyTextAtRevision_CollabTextFragment on CollabText {
+    id
+    textAtRevision(revision: $revision) {
+      revision
+      text
+    }
+  }
+`);
+
 type OnlyRevision = Pick<CollabTextRecord, 'revision'>;
 
-/**
- * External field contains state that is managed outside cache but
- * still belongs to Note type.
- */
 export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesContext) {
-  const defaultExisting = [firstComposedTextRecord()];
+  function composeOnTailRecord(
+    tailRecord: ComposedTextRecord,
+    revision: number,
+    options: FieldFunctionOptions
+  ) {
+    if (tailRecord.revision === revision) {
+      return tailRecord;
+    }
+    const records = readRecordsChangeset(
+      {
+        after: tailRecord.revision,
+        first: revision - tailRecord.revision,
+      },
+      options
+    );
+    if (!records) {
+      return;
+    }
+
+    const result: ComposedTextRecord = {
+      __typename: 'ComposedTextRecord',
+      revision,
+      text: records
+        .reduce(
+          (a, b) => Changeset.compose(a, b.changeset),
+
+          Changeset.fromText(tailRecord.text)
+        )
+        .getText(),
+    };
+
+    writeTextAtRevision(result, options);
+
+    return result;
+  }
+
+  function composeOnHeadRecord(
+    revision: number,
+    headRecord: ComposedTextRecord,
+    options: FieldFunctionOptions
+  ) {
+    if (headRecord.revision === revision) {
+      return headRecord;
+    }
+
+    const records = readRecordsInverse(
+      {
+        before: headRecord.revision + 1,
+        last: headRecord.revision - revision,
+      },
+      options
+    );
+
+    if (!records) {
+      return;
+    }
+
+    const result: ComposedTextRecord = {
+      __typename: 'ComposedTextRecord',
+      revision,
+      text: records
+        .reduceRight(
+          (a, b) => Changeset.compose(a, b.inverse),
+
+          Changeset.fromText(headRecord.text)
+        )
+        .getText(),
+    };
+
+    writeTextAtRevision(result, options);
+
+    return result;
+  }
+
   return {
-    read(existing = defaultExisting, options) {
+    read(existing = [], options) {
       // read(existing = [], options) {
       // Existing changeset is probably serialized
       const { args } = options;
@@ -52,11 +161,11 @@ export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesC
       const revision = Number(args.revision);
       if (Number.isNaN(revision)) return;
 
-      // Find closest older revision
+      // Find closest revision
       const { index, exists } = binarySearchIndexOf(
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         existing,
-        (a: OnlyRevision) => compareRevisionsUni(a, revision)
+        (a: OnlyRevision) => a.revision - revision
       );
 
       if (exists) {
@@ -64,43 +173,46 @@ export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesC
         return existing[index]!;
       }
 
-      // Compose text from closest older tailText
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-      const tailRecord: ComposedTextRecord | undefined = existing[index - 1];
-      if (!tailRecord) {
+      const tailRecord: ComposedTextRecord | undefined =
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        existing[index - 1] ?? readTail(options);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+      const headRecord: ComposedTextRecord | undefined =
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        existing[index] ?? readHead(options);
+
+      if (tailRecord && headRecord) {
+        const tailDist = revision - tailRecord.revision;
+        const headDist = headRecord.revision - revision;
+
+        if (tailDist <= headDist) {
+          return (
+            composeOnTailRecord(tailRecord, revision, options) ??
+            composeOnHeadRecord(revision, headRecord, options)
+          );
+        } else {
+          return (
+            composeOnHeadRecord(revision, headRecord, options) ??
+            composeOnTailRecord(tailRecord, revision, options)
+          );
+        }
+      } else if (tailRecord) {
+        return composeOnTailRecord(tailRecord, revision, options);
+      } else if (headRecord) {
+        return composeOnHeadRecord(revision, headRecord, options);
+      } else {
         return;
       }
-
-      const records = readRecords(
-        {
-           
-          after: tailRecord.revision,
-           
-          first: revision - tailRecord.revision,
-        },
-        options
-      );
-      if (!records) {
-        return;
-      }
-
-      return {
-        revision,
-        text: records.reduce(
-          (a, b) => Changeset.compose(a, b.changeset),
-           
-          Changeset.fromText(tailRecord.text)
-        ).getText(),
-      };
     },
-    merge(existing = defaultExisting, incoming, options) {
+    merge(existing = [], incoming, options) {
       // merge(existing = [], incoming, options) {
       const { mergeObjects } = options;
 
       // Find closest older revision
       const { index, exists } = binarySearchIndexOf(
         existing as readonly OnlyRevision[],
-        (a: OnlyRevision) => compareRevisionsUni(a, (incoming as OnlyRevision).revision)
+        (a: OnlyRevision) => a.revision - (incoming as OnlyRevision).revision
       );
 
       // Cannot read sibling fields in merge function
@@ -139,18 +251,12 @@ export const textAtRevision: CreateFieldPolicyFn = function (_ctx: TypePoliciesC
   };
 };
 
-function compareRevisionsUni(a: OnlyRevision, revision: number) {
-  return a.revision - revision;
-}
-
-function readRecords(
-  { after, first }: { after: number; first: number },
+function readRecordsChangeset(
+  variables: Partial<{ after: number; first: number }>,
   options: Pick<FieldFunctionOptions, 'readField' | 'cache' | 'variables'>,
-  collabTextId?: CollabText['id']
+  collabTextId = options.readField('id')
 ) {
-  const { readField, cache } = options;
-  collabTextId = readField('id');
-  const collabTextDataId = cache.identify({
+  const collabTextDataId = options.cache.identify({
     __typename: 'CollabText',
     id: collabTextId,
   });
@@ -158,13 +264,10 @@ function readRecords(
     return;
   }
 
-  const collabText = cache.readFragment({
-    fragment: PolicyTextAtRevision_CollabTextFragment,
+  const collabText = options.cache.readFragment({
+    fragment: PolicyTextAtRevisionRecordsChangeset_CollabTextFragment,
     id: collabTextDataId,
-    variables: {
-      after,
-      first,
-    },
+    variables,
   });
 
   if (!collabText) {
@@ -172,4 +275,105 @@ function readRecords(
   }
 
   return collabText.recordConnection.edges.map((edge) => edge.node);
+}
+
+function readRecordsInverse(
+  variables: Partial<{ before: number; last: number }>,
+  options: Pick<FieldFunctionOptions, 'readField' | 'cache' | 'variables'>,
+  collabTextId = options.readField('id')
+) {
+  const collabTextDataId = options.cache.identify({
+    __typename: 'CollabText',
+    id: collabTextId,
+  });
+  if (!collabTextDataId) {
+    return;
+  }
+
+  const collabText = options.cache.readFragment({
+    fragment: PolicyTextAtRevisionRecordsInverse_CollabTextFragment,
+    id: collabTextDataId,
+    variables,
+  });
+  if (!collabText) {
+    return;
+  }
+
+  return collabText.recordConnection.edges.map((edge) => edge.node);
+}
+
+function readHead(
+  options: Pick<FieldFunctionOptions, 'readField' | 'cache' | 'variables'>,
+  collabTextId = options.readField('id')
+) {
+  const collabTextDataId = options.cache.identify({
+    __typename: 'CollabText',
+    id: collabTextId,
+  });
+  if (!collabTextDataId) {
+    return;
+  }
+
+  const collabText = options.cache.readFragment({
+    fragment: PolicyTextAtRevisionHead_CollabTextFragment,
+    id: collabTextDataId,
+  });
+
+  if (!collabText) {
+    return;
+  }
+
+  return collabText.headRecord;
+}
+
+function readTail(
+  options: Pick<FieldFunctionOptions, 'readField' | 'cache' | 'variables'>,
+  collabTextId = options.readField('id')
+) {
+  const collabTextDataId = options.cache.identify({
+    __typename: 'CollabText',
+    id: collabTextId,
+  });
+  if (!collabTextDataId) {
+    return;
+  }
+
+  const collabText = options.cache.readFragment({
+    fragment: PolicyTextAtRevisionTail_CollabTextFragment,
+    id: collabTextDataId,
+  });
+
+  if (!collabText) {
+    return;
+  }
+
+  return collabText.tailRecord;
+}
+
+function writeTextAtRevision(
+  record: ComposedTextRecord,
+  options: Pick<FieldFunctionOptions, 'readField' | 'cache' | 'variables'>,
+  collabTextId = options.readField('id')
+) {
+  const collabTextDataId = options.cache.identify({
+    __typename: 'CollabText',
+    id: collabTextId,
+  });
+  if (!collabTextDataId) {
+    return;
+  }
+
+  if (typeof collabTextId !== 'string') {
+    return;
+  }
+
+  options.cache.writeFragment({
+    fragment: PolicyTextAtRevision_CollabTextFragment,
+    id: collabTextDataId,
+    data: {
+      __typename: 'CollabText',
+      id: collabTextId,
+      textAtRevision: record,
+    },
+  });
 }

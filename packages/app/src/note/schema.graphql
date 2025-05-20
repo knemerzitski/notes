@@ -75,6 +75,13 @@ extend type Note {
   localOnly: Boolean!
 }
 
+extend type CollabText {
+  """
+  Composed text at specific revision.
+  """
+  textAtRevision(revision: NonNegativeInt!): ComposedTextRecord!
+}
+
 """
 TODO desc
 """

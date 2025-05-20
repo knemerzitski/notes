@@ -5,7 +5,6 @@ import {
 import { gql } from '../../__generated__';
 import {
   CollabTextRecordInput,
-  ComposedTextRecord,
   MapRecordCollabTextRecordFragmentFragment,
 } from '../../__generated__/graphql';
 
@@ -55,13 +54,5 @@ export function cacheRecordToCollabServerRecord(
     inverse: record.inverse,
     selectionInverse: record.selectionInverse,
     selection: record.selection,
-  };
-}
-
-export function firstComposedTextRecord(): ComposedTextRecord {
-  return {
-    __typename: 'ComposedTextRecord',
-    revision: 0,
-    text: '',
   };
 }
