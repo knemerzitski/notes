@@ -1,8 +1,0 @@
-{
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    /* Modules */
-    "paths": {}
-  },
-  "include": ["src", "../utils/src"]
-}

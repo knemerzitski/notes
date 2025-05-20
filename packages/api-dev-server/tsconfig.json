@@ -9,7 +9,7 @@
     "../utils/src",
     "../api/src",
     "../lambda-graphql/src",
-    "../collab/src",
+    "../collab2/src",
     "../api-app-shared/src"
   ]
 }

@@ -1,5 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  // Files excluded from type-checking
-  "exclude": ["../utils/src"]
-}
