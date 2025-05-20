@@ -35,8 +35,6 @@ export function server(props: Pick<Properties, 'serverFacades'>) {
       return;
     }
 
-    const nextRedoRecord = getLastHistoryRecord(draft.redoStack, 'view');
-
     const targetToHead_records = [
       ...serverFacades.range(redoRecord.revision, draft.serverRevision + 1),
     ];
@@ -68,8 +66,9 @@ export function server(props: Pick<Properties, 'serverFacades'>) {
 
     const applyRecord = followRecord;
 
-    if (nextRedoRecord) {
-      nextRedoRecord.externalChanges.push(applyRecord.changeset);
+    const lastRedoRecord = getLastHistoryRecord(draft.redoStack, 'view');
+    if (lastRedoRecord) {
+      lastRedoRecord.externalChanges.push(applyRecord.changeset);
     }
 
     if (Changeset.isNoOp(draft.viewText, applyRecord.changeset)) {
