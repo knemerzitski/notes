@@ -1,12 +1,11 @@
 import { useApolloClient } from '@apollo/client';
-import { RefObject, useCallback, useEffect, useRef } from 'react';
+import { RefObject, useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { Options, useDebouncedCallback } from 'use-debounce';
 
 import { EMPTY_ARRAY } from '../../../../utils/src/array/empty';
 
 import { Changeset, Selection } from '../../../../collab2/src';
-
 
 import { gql } from '../../__generated__';
 import { OpenNoteSubscriptionSubscriptionDocument } from '../../__generated__/graphql';
@@ -20,10 +19,10 @@ import { useUpdateOpenNoteSelectionRange } from '../hooks/useUpdateOpenNoteSelec
 import { getUserNoteLinkId } from '../utils/id';
 
 import {
-  editorSelectionToHeadTextSelection,
-  getUserHeadTextSelection,
-  isSelectionRecordEqual,
-} from '../utils/selection';
+  EditorSelection,
+  isTypedSelectionEqual,
+  SelectionTransformer,
+} from '../utils/selection-transformer';
 
 const SubmitSelectionChangeDebounced_UserNoteLinkFragment = gql(`
   fragment SubmitSelectionChangeDebounced_UserNoteLinkFragment on UserNoteLink {
@@ -62,6 +61,18 @@ export function SubmitSelectionChangeDebounced({
 
   const externalChangesSinceLastRenderRef = useRef<readonly Changeset[]>(EMPTY_ARRAY);
   externalChangesSinceLastRenderRef.current = EMPTY_ARRAY;
+
+  const selectionTransformer = useMemo(
+    () =>
+      new SelectionTransformer({
+        cache: client.cache,
+        editor,
+        service,
+        noteId,
+        logger,
+      }),
+    [client, editor, service, noteId, logger]
+  );
 
   useEffect(() => {
     return editor.on('externalTyping:applied', ({ changeset }) => {
@@ -129,29 +140,25 @@ export function SubmitSelectionChangeDebounced({
         });
       }
 
-      const inputAsHeadTextSelection = editorSelectionToHeadTextSelection(
-        adjustedInputSelection,
-        {
-          service,
-          editor,
-        }
-      );
+      const editorSelection: EditorSelection = {
+        type: 'editor',
+        revision: service.viewRevision,
+        selection: adjustedInputSelection,
+      };
 
-      if (!inputAsHeadTextSelection) {
-        logger?.debug('typerSelectionToServerTextFailed');
+      const serverSelection = selectionTransformer.editorToServer(editorSelection);
+
+      if (!serverSelection) {
+        logger?.debug('editorToServer:undefined');
         return;
       }
 
-      const latestHeadTextSelection = getUserHeadTextSelection(
-        noteId,
+      const latestServerSelection = selectionTransformer.userAtRevision(
         userId,
-        service.serverRevision,
-        {
-          cache: client.cache,
-        }
+        service.serverRevision
       );
-      if (latestHeadTextSelection != null) {
-        if (isSelectionRecordEqual(inputAsHeadTextSelection, latestHeadTextSelection)) {
+      if (latestServerSelection != null) {
+        if (isTypedSelectionEqual(serverSelection, latestServerSelection)) {
           logger?.debug('duplicateSelection');
           return;
         }
@@ -196,8 +203,8 @@ export function SubmitSelectionChangeDebounced({
       logger?.info('submitSelection', {
         inputSelection,
         adjustedInputSelection,
-        inputAsHeadTextSelection,
-        latestHeadTextSelection,
+        inputAsHeadTextSelection: serverSelection,
+        latestHeadTextSelection: latestServerSelection,
         client: {
           local: service.localChanges.toString(),
           submitted: service.submittedChanges.toString(),
@@ -209,8 +216,8 @@ export function SubmitSelectionChangeDebounced({
         note: {
           id: noteId,
         },
-        revision: inputAsHeadTextSelection.revision,
-        selection: inputAsHeadTextSelection.selection,
+        revision: serverSelection.revision,
+        selection: serverSelection.selection,
       }).finally(() => {
         isSubmittingRef.current = false;
         if (hasRequestedSubmitRef.current) {

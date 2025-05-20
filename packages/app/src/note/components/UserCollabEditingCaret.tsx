@@ -1,6 +1,6 @@
 import { useApolloClient, useFragment } from '@apollo/client';
 
-import { RefObject, useState, useRef, useEffect } from 'react';
+import { RefObject, useState, useRef, useEffect, useMemo } from 'react';
 
 import { Selection } from '../../../../collab2/src';
 
@@ -13,10 +13,7 @@ import { useCollabService } from '../hooks/useCollabService';
 import { useNoteTextFieldEditor } from '../hooks/useNoteTextFieldEditor';
 import { getUserNoteLinkId } from '../utils/id';
 
-import {
-  getUserHeadTextSelection,
-  headTextSelectionToEditorSelection,
-} from '../utils/selection';
+import { SelectionTransformer } from '../utils/selection-transformer';
 
 import { InputCaret } from './InputCaret';
 
@@ -74,6 +71,18 @@ export function UserCollabEditingCaret({
     },
   });
 
+  const selectionTransformer = useMemo(
+    () =>
+      new SelectionTransformer({
+        cache: client.cache,
+        editor,
+        service,
+        noteId,
+        logger,
+      }),
+    [client, editor, service, noteId, logger]
+  );
+
   if (!complete) {
     logger?.debug('notComplete');
     return null;
@@ -98,34 +107,23 @@ export function UserCollabEditingCaret({
     return null;
   }
 
-  const headTextSelection = getUserHeadTextSelection(
-    noteId,
+  const serverSelection = selectionTransformer.userAtRevision(
     userId,
-    service.serverRevision,
-    {
-      cache: client.cache,
-      logger,
-    }
+    service.serverRevision
   );
-  if (!headTextSelection) {
-    logger?.debug('getUserHeadTextSelection:noHeadTextSelection');
+  if (!serverSelection) {
+    logger?.debug('userAtRevision:undefined');
     // Selection for user is not known
     return null;
   }
-  if (headTextSelection.revision !== service.serverRevision) {
-    logger?.debug('headTextSelection:invalidRevision');
+  if (serverSelection.revision !== service.serverRevision) {
+    logger?.debug('userAtRevision:invalidRevision');
     return null;
   }
 
-  const editorSelection = headTextSelectionToEditorSelection(
-    headTextSelection.selection,
-    {
-      service,
-      editor,
-    }
-  );
+  const editorSelection = selectionTransformer.serverToEditor(serverSelection);
   if (!editorSelection) {
-    logger?.debug('noEditorSelection', headTextSelection);
+    logger?.debug('serverToEditor:undefined', serverSelection);
     // Selection is not inside editor
     return null;
   }
@@ -153,10 +151,10 @@ export function UserCollabEditingCaret({
       aria-label="caret"
       data-user-name={displayName}
       data-user-id={userNoteLink.user.id}
-      data-index={editorSelection.end}
+      data-index={editorSelection.selection.end}
       caret={{
         inputRef,
-        selection: editorSelection.end,
+        selection: editorSelection.selection.end,
         resetBlink: resetBlinkRef.current,
         color: stringToColor(displayName),
         heightPercentage: 0.85,
