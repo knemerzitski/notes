@@ -8,27 +8,11 @@ import type { CollabTextResolvers } from '../../types.generated';
 import { CollabTextRecordMapper } from '../schema.mappers';
 
 export const CollabText: CollabTextResolvers = {
-  headText: (parent) => {
-    return {
-      query: createMapQueryFn(parent.query)<TextRecordSchema>()(
-        (query) => ({ headRecord: query }),
-        (result) => result.headRecord
-      ),
-    };
-  },
   headRecord: (parent) => {
     return {
       query: createMapQueryFn(parent.query)<TextRecordSchema>()(
         (query) => ({ headRecord: query }),
         (result) => result.headRecord
-      ),
-    };
-  },
-  tailText: (parent) => {
-    return {
-      query: createMapQueryFn(parent.query)<TextRecordSchema>()(
-        (query) => ({ tailRecord: query }),
-        (result) => result.tailRecord
       ),
     };
   },

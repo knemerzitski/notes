@@ -1,7 +1,6 @@
 import { maybeCallFn } from '../../../../../../utils/src/maybe-call-fn';
 
 import { createMapQueryFn } from '../../../../mongodb/query/query';
-import { TextRecordSchema } from '../../../../mongodb/schema/collab-text';
 import { UserSchema } from '../../../../mongodb/schema/user';
 import type { CollabTextRecordResolvers } from '../../types.generated';
 
@@ -19,28 +18,6 @@ export const CollabTextRecord: CollabTextRecordResolvers = {
 
     return `${parentId}:${record.revision}`;
   },
-  afterSelection: async (parent) => {
-    const selection = (await parent.query({ selection: 1 }))?.selection;
-    if (!selection) {
-      return null;
-    }
-
-    return {
-      start: selection.start,
-      end: selection.end,
-    };
-  },
-  beforeSelection: async (parent) => {
-    const selection = (await parent.query({ selectionInverse: 1 }))?.selectionInverse;
-    if (!selection) {
-      return null;
-    }
-
-    return {
-      start: selection.start,
-      end: selection.end,
-    };
-  },
   selectionInverse: async (parent) => {
     return (await parent.query({ selectionInverse: 1 }))?.selectionInverse;
   },
@@ -55,30 +32,6 @@ export const CollabTextRecord: CollabTextRecordResolvers = {
   },
   inverse: async (parent) => {
     return (await parent.query({ inverse: 1 }))?.inverse;
-  },
-  change: (parent) => {
-    return {
-      query: createMapQueryFn(parent.query)<TextRecordSchema>()(
-        (query) => query,
-        (result) => result
-      ),
-    };
-  },
-  creatorUser: (parent) => {
-    return {
-      userId: async () =>
-        (
-          await parent.query({
-            author: {
-              _id: 1,
-            },
-          })
-        )?.author._id,
-      query: createMapQueryFn(parent.query)<Pick<UserSchema, '_id' | 'profile'>>()(
-        (query) => ({ author: query }),
-        (result) => result.author
-      ),
-    };
   },
   author: (parent) => {
     return {

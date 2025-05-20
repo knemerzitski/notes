@@ -58,9 +58,7 @@ describe('noteLink', () => {
               recordConnection(last: $recordsLast) {
                 edges {
                   node {
-                    change {
-                      revision
-                    }
+                    revision
                   }
                 }
               }
@@ -151,16 +149,12 @@ describe('noteLink', () => {
                 edges: [
                   {
                     node: {
-                      change: {
-                        revision: expect.any(Number),
-                      },
+                      revision: expect.any(Number),
                     },
                   },
                   {
                     node: {
-                      change: {
-                        revision: expect.any(Number),
-                      },
+                      revision: expect.any(Number),
                     },
                   },
                 ],
@@ -318,9 +312,7 @@ describe('noteLinkConnection', () => {
                   recordConnection(last: 2) {
                     edges {
                       node {
-                        change {
-                          revision
-                        }
+                        revision
                       }
                     }
                   }

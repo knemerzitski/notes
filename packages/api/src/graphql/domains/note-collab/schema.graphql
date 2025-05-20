@@ -220,11 +220,6 @@ input UpdateOpenNoteSelectionRangeInput {
   """
   revision: NonNegativeInt!
   """
-  New selection range
-  """
-  selectionRange: CollabTextSelectionRangeInput
-    @deprecated(reason: "Use selection instead")
-  """
   Latest new selection
   """
   selection: Selection!
