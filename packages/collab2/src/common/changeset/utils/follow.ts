@@ -81,7 +81,7 @@ export function isFollowable(A: Changeset, B: Changeset) {
   return A.inputLength === B.inputLength;
 }
 
-function assertIsFollowable(A: Changeset, B: Changeset) {
+export function assertIsFollowable(A: Changeset, B: Changeset) {
   if (!isFollowable(A, B)) {
     throw new ChangesetError(
       `Changesets are not followable. Input lengths must equal: A${String(A)}, B${String(B)}`

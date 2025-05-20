@@ -57,12 +57,6 @@ export function server(props: Pick<Properties, 'serverFacades'>) {
     };
 
     for (const change of followChanges) {
-      if (nextRedoRecord) {
-        nextRedoRecord.externalChanges.push(
-          castDraft(Changeset.follow(change, followRecord.changeset, !INSERT_BIAS))
-        );
-      }
-
       baseText = Changeset.compose(baseText, change);
       followRecord = castDraft(
         followChangesetSelection(followRecord, change, baseText, INSERT_BIAS)
@@ -73,6 +67,10 @@ export function server(props: Pick<Properties, 'serverFacades'>) {
     }
 
     const applyRecord = followRecord;
+
+    if (nextRedoRecord) {
+      nextRedoRecord.externalChanges.push(applyRecord.changeset);
+    }
 
     if (Changeset.isNoOp(draft.viewText, applyRecord.changeset)) {
       return false;

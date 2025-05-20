@@ -1,7 +1,7 @@
 import { applyToText } from './utils/appy-to-text';
 import { compact } from './utils/compact';
 import { assertIsComposable, compose, isComposable } from './utils/compose';
-import { follow, isFollowable } from './utils/follow';
+import { assertIsFollowable, follow, isFollowable } from './utils/follow';
 import { followPosition } from './utils/follow-position';
 import { fromText } from './utils/from-text';
 import { identity } from './utils/identity';
@@ -32,6 +32,7 @@ export class Changeset {
   static followPosition = followPosition;
   static follow = follow;
   static isFollowable = isFollowable;
+  static assertIsFollowable = assertIsFollowable;
   static fromText = fromText;
   static identity = identity;
   static inverse = inverse;

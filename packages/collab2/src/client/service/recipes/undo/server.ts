@@ -103,7 +103,7 @@ export function server(
     }
 
     if (Changeset.isNoOp(draft.viewText, applyRecord.changeset)) {
-      // TODO context option to decide if pushing no-op record into redoStack?
+      // TODO context option to decide if pushing no-op record into redoStack, might duplicate text
       draft.redoStack.push({
         type: 'server',
         revision: undoRecord.revision,

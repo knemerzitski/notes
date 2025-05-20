@@ -47,3 +47,32 @@ it('undo and redo twice after reset', () => {
   A.redo();
   expect(A.getViewTextWithSelection()).toMatchInlineSnapshot(`"│a"`);
 });
+
+it('undo redo twice, reset, undo and redo all', () => {
+  const {
+    client: { A },
+  } = createCollabSandbox({
+    clients: ['A'],
+  });
+
+  A.insert('a');
+  A.submitChangesInstant();
+  A.undo();
+  A.submitChangesInstant();
+  A.redo();
+  A.submitChangesInstant();
+  A.undo();
+  A.submitChangesInstant();
+
+  A.reset();
+  expect(A.getViewTextWithSelection()).toMatchInlineSnapshot(`"│"`);
+
+  A.undo();
+  expect(A.getViewTextWithSelection()).toMatchInlineSnapshot(`"a│"`);
+  A.undo();
+  expect(A.getViewTextWithSelection()).toMatchInlineSnapshot(`"aa│"`);
+  A.undo();
+  expect(A.getViewTextWithSelection()).toMatchInlineSnapshot(`"aa│"`);
+  A.redo();
+  expect(A.getViewTextWithSelection()).toMatchInlineSnapshot(`"a│aa"`);
+});

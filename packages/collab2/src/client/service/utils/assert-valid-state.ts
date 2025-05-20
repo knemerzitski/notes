@@ -59,6 +59,36 @@ export function assertValidState(state: State) {
     }
   });
 
+  // First externalChange is followable on inverse
+  state.undoStack.forEach((record, i) => {
+    if (record.type === 'view') {
+      try {
+        const firstExternalChange = record.externalChanges[0];
+        if (firstExternalChange) {
+          Changeset.assertIsFollowable(record.inverse, firstExternalChange);
+        }
+      } catch (err) {
+        throw new Error(`Undo record inverse and externalChange at index ${i}`, {
+          cause: err,
+        });
+      }
+    }
+  });
+  state.redoStack.forEach((record, i) => {
+    if (record.type === 'view') {
+      try {
+        const firstExternalChange = record.externalChanges[0];
+        if (firstExternalChange) {
+          Changeset.assertIsFollowable(record.inverse, firstExternalChange);
+        }
+      } catch (err) {
+        throw new Error(`Redo record inverse and externalChange at index ${i}`, {
+          cause: err,
+        });
+      }
+    }
+  });
+
   // Undo/redo record is not no-op
   state.undoStack.forEach((record, i) => {
     if (record.type === 'view') {
