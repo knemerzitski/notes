@@ -250,65 +250,6 @@ describe('noteLink', () => {
     );
   });
 
-  it('textAtRevision', async () => {
-    const QUERY_TEXT_AT_REVISION = `#graphql
-      query($userId: ObjectID!, $noteId: ObjectID!, $tailRevision: NonNegativeInt!) {
-        signedInUser(by: {id: $userId}) {
-          noteLink(by: {id: $noteId}) {
-            note {
-              collabText {
-                textAtRevision(revision: $tailRevision) {
-                  revision
-                  text
-                }
-              }
-            }
-          }
-        }
-      }
-    `;
-
-    const response = await apolloServer.executeOperation<
-      {
-        userNoteLink: UserNoteLink;
-      },
-      { userId: ObjectId; noteId: ObjectId; tailRevision: number }
-    >(
-      {
-        query: QUERY_TEXT_AT_REVISION,
-        variables: {
-          userId: user._id,
-          noteId: note._id,
-          tailRevision: 1,
-        },
-      },
-      {
-        contextValue: createGraphQLResolversContext({
-          user,
-        }),
-      }
-    );
-
-    const data = expectGraphQLResponseData(response);
-
-    expect(data).toMatchInlineSnapshot(`
-      {
-        "signedInUser": {
-          "noteLink": {
-            "note": {
-              "collabText": {
-                "textAtRevision": {
-                  "revision": 1,
-                  "text": "canal fabulous",
-                },
-              },
-            },
-          },
-        },
-      }
-    `);
-  });
-
   describe('errors', () => {
     it('throws note not found if noteId is invalid', async () => {
       const response = await executeOperation(

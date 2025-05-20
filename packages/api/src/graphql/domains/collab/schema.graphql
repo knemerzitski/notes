@@ -207,10 +207,6 @@ type CollabText {
   """
   tailRecord: ComposedTextRecord!
   """
-  Text at specific revision. Is composition of all previous changes.
-  """
-  textAtRevision(revision: NonNegativeInt!): ComposedTextRecord!
-  """
   A list of records containing all changes made to the text
   """
   recordConnection(

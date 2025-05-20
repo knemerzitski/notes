@@ -1,11 +1,7 @@
-import { GraphQLError } from 'graphql/index.js';
-
-import { Changeset } from '../../../../../../collab2/src';
-
 import { QueryableCollabRecord } from '../../../../mongodb/loaders/note/descriptions/collab-record';
 import { applyLimit } from '../../../../mongodb/pagination/cursor-array-pagination';
 import { CursorBoundPagination } from '../../../../mongodb/pagination/cursor-struct';
-import { createMapQueryFn, createValueQueryFn } from '../../../../mongodb/query/query';
+import { createMapQueryFn } from '../../../../mongodb/query/query';
 import { TextRecordSchema } from '../../../../mongodb/schema/collab-text';
 import { PreFetchedArrayGetItemFn } from '../../../utils/pre-execute';
 import type { CollabTextResolvers } from '../../types.generated';
@@ -42,63 +38,6 @@ export const CollabText: CollabTextResolvers = {
         (query) => ({ tailRecord: query }),
         (result) => result.tailRecord
       ),
-    };
-  },
-  textAtRevision: (parent, { revision: targetRevision }) => {
-    return {
-      query: createValueQueryFn<TextRecordSchema>(async ({ revision, text }) => {
-        if (!revision && !text) return {};
-
-        if (!text) {
-          return {
-            revision: targetRevision,
-          };
-        }
-
-        if (targetRevision <= 0) {
-          return {
-            revision: 0,
-            text: '',
-          };
-        }
-
-        const collabText = await parent.query({
-          tailRecord: {
-            revision: 1,
-            text: 1,
-          },
-          records: {
-            $pagination: {
-              before: targetRevision + 1,
-            },
-            revision: 1,
-            changeset: 1,
-          },
-        });
-        if (!collabText) return null;
-
-        const lastRecord = collabText.records[collabText.records.length - 1];
-        if (!lastRecord) {
-          if (collabText.tailRecord.revision !== targetRevision) {
-            throw new GraphQLError(`Invalid revision ${targetRevision}`);
-          }
-          return collabText.tailRecord;
-        }
-
-        if (lastRecord.revision !== targetRevision) {
-          throw new GraphQLError(`Invalid revision ${targetRevision}`);
-        }
-
-        return {
-          revision: targetRevision,
-          text: collabText.records
-            .reduce(
-              (a, b) => Changeset.compose(a, b.changeset),
-              Changeset.fromText(collabText.tailRecord.text)
-            )
-            .getText(),
-        };
-      }),
     };
   },
   recordConnection: (parent, args) => {
