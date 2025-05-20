@@ -5,7 +5,7 @@ import { NoteCategory, NoteTextFieldName } from '../../../__generated__/graphql'
 import { DateTimeNullable } from '../../../graphql/scalars/DateTime';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../../graphql/types';
 
-import { readUserNoteLinkRef } from '../../utils/read-user-note-link-ref';
+import { readUserNoteLinkId } from '../../utils/read-user-note-link-id';
 
 import { _external, readExternalState } from './_external';
 
@@ -13,10 +13,10 @@ import { _external, readExternalState } from './_external';
 export const UserNoteLink: CreateTypePolicyFn = function (ctx: TypePoliciesContext) {
   return {
     fields: {
-      _external: _external(ctx),
+      external: _external(ctx),
       collabService(_existing, options): CollabService {
         return readExternalState(
-          readUserNoteLinkRef(options),
+          readUserNoteLinkId(options),
           options,
           ctx.custom.userNoteLink.externalState
         ).service;
@@ -42,7 +42,7 @@ export const UserNoteLink: CreateTypePolicyFn = function (ctx: TypePoliciesConte
           __typename: 'NoteTextField',
           // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
           id: readField('id') as string,
-          userNoteLinkRef: readUserNoteLinkRef(options),
+          userNoteLinkId: readUserNoteLinkId(options),
           fieldName: name as NoteTextFieldName,
         };
       },
@@ -53,7 +53,7 @@ export const UserNoteLink: CreateTypePolicyFn = function (ctx: TypePoliciesConte
           __typename: 'NoteTextField',
           // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
           id: readField('id') as string,
-          userNoteLinkRef: readUserNoteLinkRef(options),
+          userNoteLinkId: readUserNoteLinkId(options),
           fieldName,
         }));
       },

@@ -26,6 +26,7 @@ const config: CodegenConfig = {
           Changeset: '../../../collab2/src#Changeset',
           Selection: '../../../collab2/src#Selection',
           CollabService: '../../../collab2/src#CollabService',
+          NoteExternalState: '../note/types#NoteExternalState',
           NoteTextFieldEditor: '../note/types#NoteTextFieldEditor',
         },
         enumsAsTypes: false,

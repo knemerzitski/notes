@@ -1,9 +1,4 @@
-import {
-  ApolloCache,
-  DocumentNode,
-  FieldFunctionOptions,
-  Reference,
-} from '@apollo/client';
+import { ApolloCache, FieldFunctionOptions, makeReference } from '@apollo/client';
 
 import { number, string, type } from 'superstruct';
 
@@ -13,25 +8,15 @@ import { Changeset, createClientStateFromHeadRecord } from '../../../../../colla
 import { CreateFieldPolicyFn, TypePoliciesContext } from '../../../graphql/types';
 import { NoteExternalState } from '../../types';
 import { parseUserNoteLinkId } from '../../utils/id';
-import { readUserNoteLinkRef } from '../../utils/read-user-note-link-ref';
+import { readUserNoteLinkId } from '../../utils/read-user-note-link-id';
+import { gql } from '../../../__generated__';
 
-const FIELD_NAME = '_external';
-
-// TODO use query instead?
-const _External_UserNoteLinkFragment = {
-  kind: 'Document',
-  definitions: [
-    {
-      kind: 'FragmentDefinition',
-      name: { kind: 'Name', value: '_External_NoteFragment' },
-      typeCondition: { kind: 'NamedType', name: { kind: 'Name', value: 'UserNoteLink' } },
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: [{ kind: 'Field', name: { kind: 'Name', value: FIELD_NAME } }],
-      },
-    },
-  ],
-} as DocumentNode;
+const UserNoteLinkExternal_UserNoteLinkFragment = gql(`
+  fragment UserNoteLinkExternal_UserNoteLinkFragment on UserNoteLink {
+    id
+    external
+  }
+`);
 
 const HeadRecordStruct = type({
   revision: number(),
@@ -49,17 +34,9 @@ export const _external: CreateFieldPolicyFn = function (ctx: TypePoliciesContext
     read(existing, options) {
       const { cache, readField, isReference, toReference } = options;
 
-      const userNoteLinkRef = readUserNoteLinkRef(options);
+      const userNoteLinkId = readUserNoteLinkId(options);
 
-      const id = readField('id', userNoteLinkRef);
-      if (typeof id !== 'string') {
-        throw new Error(
-          // eslint-disable-next-line @typescript-eslint/no-base-to-string
-          `Expected UserNoteLink.id to be defined string but is ${String(id)}`
-        );
-      }
-
-      const { userId, noteId } = parseUserNoteLinkId(id);
+      const { userId, noteId } = parseUserNoteLinkId(userNoteLinkId);
 
       // External state is already an instance
       if (externalState.isInstance(existing)) {
@@ -89,7 +66,7 @@ export const _external: CreateFieldPolicyFn = function (ctx: TypePoliciesContext
         });
 
         // Replace serialized with parsed class instance
-        write(userNoteLinkRef, inst, cache);
+        write(userNoteLinkId, inst, cache);
 
         return inst;
       }
@@ -112,7 +89,7 @@ export const _external: CreateFieldPolicyFn = function (ctx: TypePoliciesContext
           cache,
         }
       );
-      write(userNoteLinkRef, inst, cache);
+      write(userNoteLinkId, inst, cache);
 
       return inst;
     },
@@ -120,15 +97,23 @@ export const _external: CreateFieldPolicyFn = function (ctx: TypePoliciesContext
 };
 
 export function readExternalState(
-  userNoteLinkRef: Reference,
-  { readField }: FieldFunctionOptions,
+  userNoteLinkId: string,
+  { cache, readField }: FieldFunctionOptions,
   externalState: TypePoliciesContext['custom']['userNoteLink']['externalState']
 ): NoteExternalState {
-  const inst = readField(FIELD_NAME, userNoteLinkRef);
+  const dataId = cache.identify({
+    __typename: 'UserNoteLink',
+    id: userNoteLinkId,
+  });
+  if (!dataId) {
+    throw new Error(`Failed to get dataId from UserNoteLink.id "${userNoteLinkId}"`);
+  }
+
+  const inst = readField('external', makeReference(dataId));
   if (!externalState.isInstance(inst)) {
     throw new Error(
       // eslint-disable-next-line @typescript-eslint/no-base-to-string
-      `Failed to read note external state field. Expect and instance but is "${String(inst)}"`
+      `Failed to read note external state field. Expected an instance but is "${String(inst)}"`
     );
   }
 
@@ -136,31 +121,38 @@ export function readExternalState(
 }
 
 function read(
-  userNoteLinkRef: Reference,
-  cache: Pick<ApolloCache<unknown>, 'readFragment'>
+  userNoteLinkId: string,
+  cache: Pick<ApolloCache<unknown>, 'readFragment' | 'identify'>
 ): NoteExternalState | undefined {
   const userNoteLink = cache.readFragment({
-    fragment: _External_UserNoteLinkFragment,
-    id: userNoteLinkRef.__ref,
+    fragment: UserNoteLinkExternal_UserNoteLinkFragment,
+    id: cache.identify({
+      __typename: 'UserNoteLink',
+      id: userNoteLinkId,
+    }),
   });
   if (!isObjectLike(userNoteLink)) {
     return;
   }
 
-  return userNoteLink[FIELD_NAME] as NoteExternalState;
+  return userNoteLink.external;
 }
 
 function write(
-  userNoteLinkRef: Reference,
+  userNoteLinkId: string,
   externalState: NoteExternalState,
-  cache: Pick<ApolloCache<unknown>, 'writeFragment'>
+  cache: Pick<ApolloCache<unknown>, 'writeFragment' | 'identify'>
 ) {
   cache.writeFragment({
-    fragment: _External_UserNoteLinkFragment,
-    id: userNoteLinkRef.__ref,
+    fragment: UserNoteLinkExternal_UserNoteLinkFragment,
+    id: cache.identify({
+      __typename: 'UserNoteLink',
+      id: userNoteLinkId,
+    }),
     data: {
       __typename: 'UserNoteLink',
-      [FIELD_NAME]: externalState,
+      id: userNoteLinkId,
+      external: externalState,
     },
     overwrite: true,
     broadcast: false,
@@ -168,14 +160,14 @@ function write(
 }
 
 export function copyExternalState(
-  sourceUserNoteLinkRef: Reference,
-  targetUserNoteLinkRef: Reference,
-  cache: Pick<ApolloCache<unknown>, 'readFragment' | 'writeFragment'>
+  sourceUserNoteLinkId: string,
+  targetUserNoteLinkId: string,
+  cache: Pick<ApolloCache<unknown>, 'readFragment' | 'writeFragment' | 'identify'>
 ) {
-  const externalState = read(sourceUserNoteLinkRef, cache);
+  const externalState = read(sourceUserNoteLinkId, cache);
   if (!externalState) {
     return;
   }
-  write(targetUserNoteLinkRef, externalState, cache);
+  write(targetUserNoteLinkId, externalState, cache);
   return externalState.service;
 }

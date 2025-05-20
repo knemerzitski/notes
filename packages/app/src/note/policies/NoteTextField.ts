@@ -3,7 +3,7 @@ import { FieldFunctionOptions } from '@apollo/client/cache';
 import { NoteTextFieldName } from '../../__generated__/graphql';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../graphql/types';
 
-import { readUserNoteLinkRef } from '../utils/read-user-note-link-ref';
+import { readUserNoteLinkId } from '../utils/read-user-note-link-id';
 
 import { readExternalState } from './UserNoteLink/_external';
 
@@ -22,7 +22,7 @@ export const NoteTextField: CreateTypePolicyFn = function (ctx: TypePoliciesCont
     fields: {
       value(_existing, options) {
         const externalState = readExternalState(
-          readUserNoteLinkRef(options),
+          readUserNoteLinkId(options),
           options,
           ctx.custom.userNoteLink.externalState
         );
@@ -32,7 +32,7 @@ export const NoteTextField: CreateTypePolicyFn = function (ctx: TypePoliciesCont
       },
       editor(_existing, options) {
         const externalState = readExternalState(
-          readUserNoteLinkRef(options),
+          readUserNoteLinkId(options),
           options,
           ctx.custom.userNoteLink.externalState
         );

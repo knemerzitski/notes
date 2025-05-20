@@ -1,4 +1,4 @@
-import { ApolloCache, makeReference } from '@apollo/client';
+import { ApolloCache } from '@apollo/client';
 
 import { Maybe } from '../../../../utils/src/types';
 
@@ -89,24 +89,7 @@ export function convertLocalToRemoteNote(
   }
 
   // Link CollabService
-  const sourceUserNoteLinkId = cache.identify({
-    __typename: 'UserNoteLink',
-    id: localUserNoteLinkId,
-  });
-  if (!sourceUserNoteLinkId) {
-    throw new Error(`Failed to identify UserNoteLink "${localUserNoteLinkId}"`);
-  }
-  const sourceUserNoteLinkRef = makeReference(sourceUserNoteLinkId);
-
-  const targetUserNoteLinkId = cache.identify({
-    __typename: 'Note',
-    id: remoteUserNoteLinkId,
-  });
-  if (!targetUserNoteLinkId) {
-    throw new Error(`Failed to identify note "${remoteUserNoteLinkId}"`);
-  }
-  const targetUserNoteLinkRef = makeReference(targetUserNoteLinkId);
-  const service = copyExternalState(sourceUserNoteLinkRef, targetUserNoteLinkRef, cache);
+  const service = copyExternalState(localUserNoteLinkId, remoteUserNoteLinkId, cache);
 
   // Copy hiddenInList
   if (

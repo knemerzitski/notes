@@ -1,6 +1,11 @@
 """
 TODO desc
 """
+scalar NoteExternalState
+
+"""
+TODO desc
+"""
 scalar CollabService
 
 """
@@ -41,6 +46,10 @@ extend type UserNoteLink {
   Note is still kept until app is online.
   """
   outdated: Boolean!
+  """
+  INTERNAL USE ONLY. Do not query. Use `collabService` or `textField` instead.
+  """
+  external: NoteExternalState!
   """
   Service responsible for managing user collaborative text
   """
