@@ -2,7 +2,7 @@ import { FieldFunctionOptions } from '@apollo/client';
 
 import { binarySearchIndexOf } from '../../../../../utils/src/array/binary-search';
 
-import { Changeset } from '../../../../../collab2/src';
+import { Changeset } from '../../../../../collab/src';
 
 import { gql } from '../../../__generated__';
 import { CollabTextRecord, ComposedTextRecord } from '../../../__generated__/graphql';

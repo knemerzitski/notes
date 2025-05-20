@@ -1,6 +1,6 @@
 import { Infer, InferRaw } from 'superstruct';
 
-import { ChangesetStruct } from '../../../../collab2/src';
+import { ChangesetStruct } from '../../../../collab/src';
 
 export const ChangesetSchema = ChangesetStruct;
 

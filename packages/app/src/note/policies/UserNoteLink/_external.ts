@@ -4,7 +4,7 @@ import { number, string, type } from 'superstruct';
 
 import { isObjectLike } from '../../../../../utils/src/type-guards/is-object-like';
 
-import { Changeset, createClientStateFromHeadRecord } from '../../../../../collab2/src';
+import { Changeset, createClientStateFromHeadRecord } from '../../../../../collab/src';
 import { gql } from '../../../__generated__';
 import { CreateFieldPolicyFn, TypePoliciesContext } from '../../../graphql/types';
 import { NoteExternalState } from '../../types';

@@ -1,7 +1,7 @@
 import {
   CollabServiceSubmittedServiceRecord,
   ServerRecord,
-} from '../../../../collab2/src';
+} from '../../../../collab/src';
 import { gql } from '../../__generated__';
 import {
   CollabTextRecordInput,

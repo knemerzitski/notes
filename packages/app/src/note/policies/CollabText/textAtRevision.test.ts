@@ -6,7 +6,7 @@ import { gql } from '@apollo/client';
 import { MockLink } from '@apollo/client/testing';
 import { it, expect, describe } from 'vitest';
 
-import { Changeset } from '../../../../../collab2/src';
+import { Changeset } from '../../../../../collab/src';
 import { createGraphQLService } from '../../../graphql/create/service';
 import { createDefaultGraphQLServiceParams } from '../../../graphql-service';
 import { getCollabTextId } from '../../utils/id';

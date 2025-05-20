@@ -1,6 +1,6 @@
 import { GraphQLScalarType, Kind, ValueNode } from 'graphql/index.js';
 
-import { Selection as SelectionClass } from '../../../../../../collab2/src';
+import { Selection as SelectionClass } from '../../../../../../collab/src';
 
 export const Selection = new GraphQLScalarType({
   name: 'Selection',

@@ -2,7 +2,7 @@ import { useApolloClient, useFragment } from '@apollo/client';
 
 import { RefObject, useState, useRef, useEffect, useMemo } from 'react';
 
-import { Selection } from '../../../../collab2/src';
+import { Selection } from '../../../../collab/src';
 
 import { gql } from '../../__generated__';
 import { User } from '../../__generated__/graphql';

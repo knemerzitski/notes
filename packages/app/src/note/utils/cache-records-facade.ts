@@ -8,7 +8,7 @@ import {
   HeadRecord,
   TextRecord,
   CollabServiceServerFacadeRecord,
-} from '../../../../collab2/src';
+} from '../../../../collab/src';
 import { getFragmentData, gql } from '../../__generated__';
 
 import {

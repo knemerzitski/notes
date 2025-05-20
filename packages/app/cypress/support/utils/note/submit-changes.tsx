@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react';
 
 import { ReactNode } from 'react';
 
-import { CollabService } from '../../../../../collab2/src';
+import { CollabService } from '../../../../../collab/src';
 
 import { GraphQLServiceProvider } from '../../../../src/graphql/components/GraphQLServiceProvider';
 import { GraphQLService } from '../../../../src/graphql/types';

@@ -4,7 +4,7 @@ import {
   Changeset,
   createServerStateFromRecords,
   Selection,
-} from '../../../../../../collab2/src';
+} from '../../../../../../collab/src';
 
 import { CollabRecordSchema, SelectionSchema } from '../../../schema/collab-record';
 import { CollabTextSchema } from '../../../schema/collab-text';

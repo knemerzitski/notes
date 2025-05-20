@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { date, Infer, InferRaw, instance, number, object, string } from 'superstruct';
 
-import { SelectionStruct } from '../../../../collab2/src';
+import { SelectionStruct } from '../../../../collab/src';
 import { CollectionDescription } from '../collections';
 
 import { ChangesetSchema } from './changeset';

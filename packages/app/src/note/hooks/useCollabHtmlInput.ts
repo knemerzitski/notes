@@ -3,7 +3,7 @@ import { Options, useDebouncedCallback } from 'use-debounce';
 
 import { EMPTY_ARRAY } from '../../../../utils/src/array/empty';
 
-import { Changeset, CollabService, Selection } from '../../../../collab2/src';
+import { Changeset, CollabService, Selection } from '../../../../collab/src';
 
 import { useLogger } from '../../utils/context/logger';
 import { NoteTextFieldEditor } from '../types';

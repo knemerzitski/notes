@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 
-import { Changeset, Selection } from '../../../../../../collab2/src';
+import { Changeset, Selection } from '../../../../../../collab/src';
 
 import { DBCollabRecordSchema } from '../../../../mongodb/schema/collab-record';
 import { DBCollabTextSchema } from '../../../../mongodb/schema/collab-text';

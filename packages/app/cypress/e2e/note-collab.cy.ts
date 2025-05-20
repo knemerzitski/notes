@@ -8,7 +8,7 @@ import { createLogger } from '../../../utils/src/logging';
 
 import { MaybePromise } from '../../../utils/src/types';
 
-import { CollabService, Selection } from '../../../collab2/src';
+import { CollabService, Selection } from '../../../collab/src';
 
 import { NoteTextFieldName } from '../../src/__generated__/graphql';
 import { GraphQLService } from '../../src/graphql/types';

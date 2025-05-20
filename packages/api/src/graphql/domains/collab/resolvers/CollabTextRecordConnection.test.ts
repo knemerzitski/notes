@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import { maybeCallFn } from '../../../../../../utils/src/maybe-call-fn';
 
-import { Changeset } from '../../../../../../collab2/src';
+import { Changeset } from '../../../../../../collab/src';
 
 import { mockResolver } from '../../../../__tests__/helpers/graphql/mock-resolver';
 import { STRUCT_NUMBER } from '../../../../mongodb/constants';

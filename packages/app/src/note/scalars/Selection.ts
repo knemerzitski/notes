@@ -1,6 +1,6 @@
 import { FieldPolicy } from '@apollo/client';
 
-import { Selection as CollabSelection } from '../../../../collab2/src';
+import { Selection as CollabSelection } from '../../../../collab/src';
 
 function parseSelection(value: unknown) {
   if (value == null) {

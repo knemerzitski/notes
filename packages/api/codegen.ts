@@ -20,10 +20,10 @@ const config: CodegenConfig = {
           type: '../../services/note/user-note-link-id#UserNoteLinkId',
         },
         Changeset: {
-          type: '../../../../collab2/src#Changeset',
+          type: '../../../../collab/src#Changeset',
         },
         Selection: {
-          type: '../../../../collab2/src#Selection',
+          type: '../../../../collab/src#Selection',
         },
         Cursor: {
           type: 'string | number',

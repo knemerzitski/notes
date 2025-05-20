@@ -1,7 +1,7 @@
 import { useApolloClient } from '@apollo/client';
 import { useEffect } from 'react';
 
-import { Changeset } from '../../../../collab2/src';
+import { Changeset } from '../../../../collab/src';
 import { getFragmentData, gql } from '../../__generated__';
 import { MapRecordCollabTextRecordFragmentFragmentDoc } from '../../__generated__/graphql';
 import { useUserId } from '../../user/context/user-id';

@@ -1,6 +1,6 @@
 import { ApolloCache } from '@apollo/client';
 
-import { CollabService } from '../../../../../collab2/src';
+import { CollabService } from '../../../../../collab/src';
 
 import { gql } from '../../../__generated__';
 import { NoteByInput, UserByInput } from '../../../__generated__/graphql';

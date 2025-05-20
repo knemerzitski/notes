@@ -1,4 +1,4 @@
-import { CollabService, Selection } from '../../../collab2/src';
+import { CollabService, Selection } from '../../../collab/src';
 import { Note, NoteTextFieldName } from '../../src/__generated__/graphql';
 import { GraphQLService } from '../../src/graphql/types';
 import { NoteTextFieldEditor } from '../../src/note/types';

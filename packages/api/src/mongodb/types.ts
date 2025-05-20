@@ -2,7 +2,7 @@ import { ObjectId } from 'mongodb';
 
 import { Primitive, PartialDeep, ReadonlyDeep } from '../../../utils/src/types';
 
-import { Changeset, Selection } from '../../../collab2/src';
+import { Changeset, Selection } from '../../../collab/src';
 
 /**
  * This interface conforms to $arrayToObject \

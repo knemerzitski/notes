@@ -7,7 +7,7 @@ import {
   InputType,
 } from '../../../../api-app-shared/src/graphql/error-codes';
 
-import { RecordSubmissionServerError } from '../../../../collab2/src';
+import { RecordSubmissionServerError } from '../../../../collab/src';
 import { NoteNotFoundQueryLoaderError } from '../../mongodb/loaders/note/loader';
 import { objectIdToStr } from '../../mongodb/utils/objectid';
 import {

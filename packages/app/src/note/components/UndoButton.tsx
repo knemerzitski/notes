@@ -12,7 +12,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { useDebouncedCallback } from 'use-debounce';
 
-import { CollabService } from '../../../../collab2/src';
+import { CollabService } from '../../../../collab/src';
 
 import { useLogger } from '../../utils/context/logger';
 import { useShowError } from '../../utils/context/show-message';

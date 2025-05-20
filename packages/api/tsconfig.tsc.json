@@ -4,7 +4,7 @@
   "exclude": [
     "../api-app-shared/src",
     "../lambda-graphql/src",
-    "../collab2/src",
+    "../collab/src",
     "../utils/src"
   ]
 }

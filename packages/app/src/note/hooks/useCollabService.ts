@@ -2,7 +2,7 @@ import { useQuery } from '@apollo/client';
 
 import { Maybe } from '../../../../utils/src/types';
 
-import { CollabService } from '../../../../collab2/src';
+import { CollabService } from '../../../../collab/src';
 
 import { gql } from '../../__generated__';
 import { useUserId } from '../../user/context/user-id';

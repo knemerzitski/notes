@@ -1,7 +1,7 @@
 import { useApolloClient } from '@apollo/client';
 import { useCallback } from 'react';
 
-import { CollabServiceSubmittedServiceRecord } from '../../../../collab2/src';
+import { CollabServiceSubmittedServiceRecord } from '../../../../collab/src';
 import { Note } from '../../__generated__/graphql';
 import { useMutation } from '../../graphql/hooks/useMutation';
 import { PersistLink } from '../../graphql/link/persist';

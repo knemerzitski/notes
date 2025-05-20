@@ -2,7 +2,7 @@ import { ObjectId } from 'mongodb';
 
 import { isObjectLike } from '../../../../../utils/src/type-guards/is-object-like';
 
-import { Changeset, Selection } from '../../../../../collab2/src';
+import { Changeset, Selection } from '../../../../../collab/src';
 
 import { MongoPrimitive } from '../../types';
 

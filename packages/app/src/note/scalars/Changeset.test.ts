@@ -4,7 +4,7 @@ import { ApolloClient, gql, InMemoryCache } from '@apollo/client';
 import { MockLink } from '@apollo/client/testing';
 import { it, expect } from 'vitest';
 
-import { Changeset as CollabChangeset } from '../../../../collab2/src';
+import { Changeset as CollabChangeset } from '../../../../collab/src';
 
 import { Changeset } from './Changeset';
 

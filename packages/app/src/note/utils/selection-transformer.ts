@@ -3,7 +3,7 @@ import { ApolloCache } from '@apollo/client';
 import { Logger } from '../../../../utils/src/logging';
 import { Maybe } from '../../../../utils/src/types';
 
-import { Changeset, CollabService, Selection } from '../../../../collab2/src';
+import { Changeset, CollabService, Selection } from '../../../../collab/src';
 
 import { gql } from '../../__generated__';
 import { Note, User } from '../../__generated__/graphql';

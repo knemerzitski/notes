@@ -10,7 +10,7 @@ import { CustomHeaderName } from '../../../../api-app-shared/src/custom-headers'
 import { GraphQLErrorCode } from '../../../../api-app-shared/src/graphql/error-codes';
 import { createDeferred } from '../../../../utils/src/deferred';
 
-import { Selection } from '../../../../collab2/src';
+import { Selection } from '../../../../collab/src';
 import {
   SignedInUserEventsInput,
   UpdateOpenNoteSelectionRangeInput,

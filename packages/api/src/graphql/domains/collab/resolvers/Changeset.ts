@@ -1,6 +1,6 @@
 import { GraphQLScalarType, Kind, ValueNode } from 'graphql/index.js';
 
-import { Changeset as ChangesetClass } from '../../../../../../collab2/src';
+import { Changeset as ChangesetClass } from '../../../../../../collab/src';
 
 // TODO move to bottom
 function valueFromAST(value: ValueNode): string {

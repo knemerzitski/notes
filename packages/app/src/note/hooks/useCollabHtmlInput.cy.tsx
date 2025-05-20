@@ -1,4 +1,4 @@
-import { CollabService, Changeset, Selection } from '../../../../collab2/src';
+import { CollabService, Changeset, Selection } from '../../../../collab/src';
 
 import {
   createNoteExternalStateContext,

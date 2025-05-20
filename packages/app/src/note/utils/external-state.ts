@@ -9,7 +9,7 @@ import {
   CollabService,
   CollabServiceSerializer,
   CollabTyper,
-} from '../../../../collab2/src';
+} from '../../../../collab/src';
 
 export function createNoteExternalStateContext<TKey extends string>(
   { keys }: { keys: TKey[] },

@@ -1,6 +1,6 @@
 import { gql } from '@apollo/client';
 
-import { CollabService } from '../../../../../collab2/src';
+import { CollabService } from '../../../../../collab/src';
 
 import { Note, NoteTextFieldName, User } from '../../../../src/__generated__/graphql';
 import { GraphQLService } from '../../../../src/graphql/types';

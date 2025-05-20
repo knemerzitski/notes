@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react';
 
 import { ReactNode } from 'react';
 
-import { Selection } from '../../../../../collab2/src';
+import { Selection } from '../../../../../collab/src';
 
 import { getFragmentData } from '../../../../src/__generated__';
 import {

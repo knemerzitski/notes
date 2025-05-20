@@ -1,6 +1,6 @@
 import { Maybe } from '../../../../../utils/src/types';
 
-import { CollabService } from '../../../../../collab2/src';
+import { CollabService } from '../../../../../collab/src';
 import { NoteCategory, NoteTextFieldName } from '../../../__generated__/graphql';
 import { DateTimeNullable } from '../../../graphql/scalars/DateTime';
 import { CreateTypePolicyFn, TypePoliciesContext } from '../../../graphql/types';

@@ -11,7 +11,7 @@ import {
   ServerError,
   ServerRecord,
   SubmittedRecord,
-} from '../../../../collab2/src';
+} from '../../../../collab/src';
 import { CollectionName } from '../../mongodb/collection-names';
 import { MongoDBCollections } from '../../mongodb/collections';
 import { MongoDBLoaders } from '../../mongodb/loaders';

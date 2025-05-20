@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb';
 
-import { ServerError } from '../../../../collab2/src';
+import { ServerError } from '../../../../collab/src';
 import { objectIdToStr } from '../../mongodb/utils/objectid';
 import { ServiceError } from '../errors';
 

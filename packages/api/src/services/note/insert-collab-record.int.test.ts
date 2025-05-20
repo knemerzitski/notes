@@ -4,7 +4,7 @@ import { faker } from '@faker-js/faker';
 import { ObjectId } from 'mongodb';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 
-import { Changeset, Selection } from '../../../../collab2/src';
+import { Changeset, Selection } from '../../../../collab/src';
 
 import {
   mongoClient,

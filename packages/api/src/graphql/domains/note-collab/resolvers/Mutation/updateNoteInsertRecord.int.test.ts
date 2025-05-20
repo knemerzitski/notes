@@ -7,7 +7,7 @@ import { beforeEach, it, expect, describe, beforeAll } from 'vitest';
 
 import { Subscription } from '../../../../../../../lambda-graphql/src/dynamodb/models/subscription';
 
-import { Changeset, Selection } from '../../../../../../../collab2/src';
+import { Changeset, Selection } from '../../../../../../../collab/src';
 
 import { apolloServer } from '../../../../../__tests__/helpers/graphql/apollo-server';
 import {

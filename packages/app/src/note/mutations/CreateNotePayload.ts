@@ -1,4 +1,4 @@
-import { Changeset } from '../../../../collab2/src';
+import { Changeset } from '../../../../collab/src';
 import { getFragmentData, gql } from '../../__generated__';
 import {
   MapRecordCollabTextRecordFragmentFragmentDoc,
