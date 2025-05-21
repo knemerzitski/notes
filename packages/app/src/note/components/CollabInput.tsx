@@ -1,16 +1,19 @@
-import { useQuery } from '@apollo/client';
 import { Box, BoxProps } from '@mui/material';
-import { ComponentType } from 'react';
+import { ComponentType, Suspense } from 'react';
 
 import { gql } from '../../__generated__';
-import { CollabInputQueryQuery, NoteTextFieldName } from '../../__generated__/graphql';
 
-import { useUserId } from '../../user/context/user-id';
 import { LoggerProvider, useLogger } from '../../utils/context/logger';
-import { useNoteId } from '../context/note-id';
-import { NoteTextFieldNameProvider } from '../context/note-text-field-name';
+import {
+  NoteTextFieldNameProvider,
+  useNoteTextFieldName,
+} from '../context/note-text-field-name';
 
+import { useCacheViewTextFieldValue } from '../hooks/useCacheViewTextFieldValue';
+import { useCollabFacade } from '../hooks/useCollabFacade';
 import { useCollabHtmlInput } from '../hooks/useCollabHtmlInput';
+
+import { NoteTextFieldName } from '../types';
 
 import { CollabInputUsersEditingCarets } from './CollabInputUsersEditingCarets';
 import { SubmitSelectionChangeDebounced } from './SubmitSelectionChangeDebounced';
@@ -21,67 +24,30 @@ const _CollabInput_NoteFragment = gql(`
   }
 `);
 
-const CollabInput_Query = gql(`
-  query CollabInput_Query($userBy: UserByInput!, $noteBy: NoteByInput!, $fieldName: NoteTextFieldName!) {
-    signedInUser(by: $userBy) {
-      id
-      noteLink(by: $noteBy) {
-        id
-        collabService
-        textField(name: $fieldName) {
-          editor
-        }
-      }
-    }
-  }
-`);
+interface BaseInputProps {
+  disabled?: boolean;
+}
 
-export type CollabInputProps<TInputProps> = Parameters<
+export type CollabInputProps<TInputProps extends BaseInputProps> = Parameters<
   typeof CollabInput<TInputProps>
 >[0];
 
-export function CollabInput<TInputProps>({
+export function CollabInput<TInputProps extends BaseInputProps>({
   fieldName,
   ...restProps
-}: { fieldName: NoteTextFieldName } & Omit<
-  Parameters<typeof NoteDefined<TInputProps>>[0],
-  'noteLink'
->) {
-  const logger = useLogger('CollabInput');
-
-  const userId = useUserId();
-  const noteId = useNoteId();
-
-  const { data } = useQuery(CollabInput_Query, {
-    variables: {
-      userBy: {
-        id: userId,
-      },
-      noteBy: {
-        id: noteId,
-      },
-      fieldName,
-    },
-    fetchPolicy: 'cache-only',
-  });
-
-  if (!data) {
-    return null;
-  }
-
+}: Parameters<typeof Loaded<TInputProps>>[0] & {
+  fieldName: NoteTextFieldName;
+}) {
   return (
     <NoteTextFieldNameProvider textFieldName={fieldName}>
-      <LoggerProvider logger={logger?.extend(fieldName)}>
-        <NoteDefined<TInputProps> {...restProps} noteLink={data.signedInUser.noteLink} />
-      </LoggerProvider>
+      <Suspense fallback={<Fallback {...restProps} />}>
+        <Loaded {...restProps} />
+      </Suspense>
     </NoteTextFieldNameProvider>
   );
 }
 
-type CollabHtmlInputProps = ReturnType<typeof useCollabHtmlInput>;
-
-function NoteDefined<TInputProps>({
-  noteLink,
+function Loaded<TInputProps extends BaseInputProps>({
   slots,
   slotProps,
 }: {
@@ -91,27 +57,49 @@ function NoteDefined<TInputProps>({
   };
   slotProps?: {
     root?: Omit<BoxProps, 'position'>;
-    input?: Omit<TInputProps, keyof CollabHtmlInputProps>;
+    input?: Omit<TInputProps, keyof ReturnType<typeof useCollabHtmlInput>>;
   };
-  noteLink: CollabInputQueryQuery['signedInUser']['noteLink'];
 }) {
+  const fieldName = useNoteTextFieldName();
+
+  const logger = useLogger('CollabInput');
+
+  const collabFacade = useCollabFacade();
+
+  const fieldCollab = collabFacade.fieldCollab;
+
   const collabHtmlInput = useCollabHtmlInput(
-    noteLink.textField.editor,
-    noteLink.collabService
+    fieldCollab.getField(fieldName),
+    fieldCollab.service
   );
 
   const InputSlot = slots.input;
   const RootSlot = slots.root ?? Box;
 
   return (
-    <>
-      <SubmitSelectionChangeDebounced inputRef={collabHtmlInput.inputRef} />
-      <RootSlot {...slotProps?.root} position="relative">
-        {/* @ts-expect-error Safe to spread props in normal use */}
-        <InputSlot {...slotProps?.input} {...collabHtmlInput} />
-        {/* Uses inputRef to render caret in correct position */}
-        <CollabInputUsersEditingCarets inputRef={collabHtmlInput.inputRef} />
-      </RootSlot>
-    </>
+    <LoggerProvider logger={logger?.extend(fieldName)}>
+      <>
+        <SubmitSelectionChangeDebounced inputRef={collabHtmlInput.inputRef} />
+        <RootSlot {...slotProps?.root} position="relative">
+          {/* @ts-expect-error Safe to spread props in normal use */}
+          <InputSlot {...slotProps?.input} {...collabHtmlInput} />
+          {/* Uses inputRef to render caret in correct position */}
+          <CollabInputUsersEditingCarets inputRef={collabHtmlInput.inputRef} />
+        </RootSlot>
+      </>
+    </LoggerProvider>
   );
+}
+
+function Fallback<TInputProps extends BaseInputProps>({
+  slots,
+  slotProps,
+}: Parameters<typeof Loaded<TInputProps>>[0]) {
+  const fieldName = useNoteTextFieldName();
+  const value = useCacheViewTextFieldValue(fieldName) ?? '';
+
+  const InputSlot = slots.input;
+
+  // @ts-expect-error Might not match correct type
+  return <InputSlot {...slotProps?.input} value={value} disabled={true} />;
 }

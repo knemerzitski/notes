@@ -10,10 +10,22 @@ function parseSelection(value: unknown) {
   } else if (typeof value === 'string') {
     return CollabSelection.parse(value);
   } else {
-    // eslint-disable-next-line @typescript-eslint/no-base-to-string
-    throw new Error(`Failed parse Selection: ${String(value)}`);
+    console.error(value);
+    throw new Error(`Failed to parse Selection`);
   }
 }
+
+function serializeSelection(value: unknown) {
+  if (value instanceof CollabSelection) {
+    return value.serialize();
+  } else if (typeof value === 'string') {
+    return value;
+  } else {
+    console.error(value);
+    throw new Error(`Failed to serialize Selection`);
+  }
+}
+
 function createSelectionPolicy(nullable?: boolean): FieldPolicy<unknown, unknown> {
   const readExisting = nullable ? null : undefined;
   return {
@@ -21,7 +33,7 @@ function createSelectionPolicy(nullable?: boolean): FieldPolicy<unknown, unknown
       return parseSelection(existing);
     },
     merge: (_, incoming) => {
-      return parseSelection(incoming);
+      return serializeSelection(incoming);
     },
   };
 }

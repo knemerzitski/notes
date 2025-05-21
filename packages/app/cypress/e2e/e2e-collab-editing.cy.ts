@@ -147,7 +147,7 @@ it('sign in, create note, share link and collab edit with another user', () => {
               // Sign in with user 1 in the background and insert record
               graphQLService = await createGraphQLService({
                 // Ensures user 2 cache is not overwritten since same localStorage is used
-                storageKey: 'user1',
+                storageKeyPrefix: 'user1:',
               });
 
               ({ userId } = await signIn({
@@ -177,7 +177,7 @@ it('sign in, create note, share link and collab edit with another user', () => {
             cy.get('[placeholder="Note"]').should('have.value', 'foo content');
 
             cy.then(async () => {
-              const { fields, collabService } = createCollabService({
+              const { fields, collabService } = await createCollabService({
                 graphQLService,
                 noteId,
                 userId,

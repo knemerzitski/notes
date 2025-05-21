@@ -20,7 +20,7 @@ const SearchLocalNotes_Query = gql(`
       id
       allNoteLinks {
         id
-        collabService
+        viewText
         note {
           id
         }
@@ -59,11 +59,10 @@ export function SearchLocalNotes({
     if (!data) {
       return;
     }
-    const itemsForFuse = data.signedInUser.allNoteLinks.map((noteLink) => {
-      const text = noteLink.collabService.viewText;
 
+    const itemsForFuse = data.signedInUser.allNoteLinks.map((noteLink) => {
       return {
-        text,
+        text: noteLink.viewText,
         noteId: noteLink.note.id,
       };
     });

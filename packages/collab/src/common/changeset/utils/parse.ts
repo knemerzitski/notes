@@ -9,7 +9,8 @@ export function parse(value: string): Changeset {
     if (err instanceof ChangesetParseError) {
       throw err;
     } else {
-      throw new ChangesetParseError(`Failed to parse Changeset value: ${String(value)}`, {
+      console.error(value);
+      throw new ChangesetParseError('Failed to parse Changeset', {
         cause: err,
       });
     }

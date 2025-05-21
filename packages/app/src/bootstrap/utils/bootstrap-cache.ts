@@ -20,10 +20,6 @@ const BootstrapCacheStruct = defaulted(
         }
         return ColorMode.SYSTEM;
       }),
-      apolloCacheVersion: coerce(string(), unknown(), (value) =>
-        // eslint-disable-next-line @typescript-eslint/no-base-to-string
-        typeof value === 'undefined' ? '0' : String(value)
-      ),
     }),
     nullable(string()),
     (value) => {

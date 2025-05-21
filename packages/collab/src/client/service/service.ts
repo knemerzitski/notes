@@ -10,7 +10,6 @@ import {
   IncomingServerMessage,
   State,
   SubmittedServiceRecord,
-  ServerFacade,
   Properties,
   SerializedState,
   LocalTypingRecord,
@@ -84,16 +83,20 @@ export class Service {
 
   private readonly eventPhaseQueue = new TaskQueue();
 
-  private readonly listeners = {
-    recordsUpdated: this.recordsUpdated.bind(this),
-  };
-
   constructor(props?: Properties | PartialProperties) {
     this.props = transformPartialProperties(props);
 
     this.logger?.debug('constructor');
     // Triggers validation
     this.setNextState(this.state);
+
+    if (this.serverFacade) {
+      this.serverFacade.on('records:updated', () => {
+        this.eventPhaseQueue.addAndFlush(() => {
+          this.eventBus.emit('records:updated', this.createEvent());
+        });
+      });
+    }
   }
 
   protected get computedState() {
@@ -157,27 +160,6 @@ export class Service {
   }
 
   /**
-   * Adding facade enables service to undo records from server.
-   */
-  setServerFacade(serverFacade: ServerFacade | null) {
-    if (this.props.serverFacade) {
-      this.props.serverFacade.off('records:updated', this.listeners.recordsUpdated);
-    }
-
-    const hasChanged = serverFacade !== this.serverFacade;
-
-    this.props.serverFacade = serverFacade;
-
-    if (serverFacade) {
-      serverFacade.on('records:updated', this.listeners.recordsUpdated);
-    }
-
-    if (hasChanged) {
-      this.recordsUpdated();
-    }
-  }
-
-  /**
    * Resets state to a specific server record.
    * Local history is deleted.
    */
@@ -196,7 +178,7 @@ export class Service {
     this.eventPhaseQueue.addAndFlush(() => {
       this.eventBus.emit('headRecord:reset', this.createEvent());
 
-      this.emitCommonEvents();
+      this.emitCommonEvents(true);
     });
   }
 
@@ -455,18 +437,17 @@ export class Service {
     return this.serialize();
   }
 
-  serialize() {
-    return this.context.serializer.serialize(this.state);
+  serialize(raw?: boolean) {
+    return this.context.serializer.serialize(this.state, raw);
   }
 
   deserialize(serializedState: SerializedState) {
-    this.setNextState(this.context.serializer.deserialize(serializedState));
-  }
+    const initialState = this.state;
+    this.setCommonEventsInitialState(initialState);
 
-  private recordsUpdated() {
-    this.eventPhaseQueue.addAndFlush(() => {
-      this.eventBus.emit('records:updated', this.createEvent());
-    });
+    this.setNextState(this.context.serializer.deserialize(serializedState));
+
+    this.emitCommonEvents(true);
   }
 
   private createEvent(): BaseEvent;
@@ -553,7 +534,7 @@ export class Service {
     }
   }
 
-  private emitCommonEvents() {
+  private emitCommonEvents(replaced = false) {
     const initialState = this.commonEventsInitalState;
     if (!initialState) {
       return;
@@ -581,16 +562,32 @@ export class Service {
       this.eventBus.emit('localChanges:have', baseEvent);
     }
 
-    const viewChangeStart =
-      initialState.viewChanges.length +
-      (current.state.viewIndexOffset - initialState.viewIndexOffset);
-    for (const change of current.state.viewChanges.slice(viewChangeStart)) {
+    if (replaced) {
       this.eventBus.emit(
         'view:changed',
         this.createEvent({
-          change,
+          change: {
+            changeset: current.state.viewText,
+            inverse: Changeset.create(
+              current.state.viewText.outputLength,
+              prev.state.viewText
+            ),
+            viewRevision: -1,
+          },
         })
       );
+    } else {
+      const viewChangeStart =
+        initialState.viewChanges.length +
+        (current.state.viewIndexOffset - initialState.viewIndexOffset);
+      for (const change of current.state.viewChanges.slice(viewChangeStart)) {
+        this.eventBus.emit(
+          'view:changed',
+          this.createEvent({
+            change,
+          })
+        );
+      }
     }
   }
 }

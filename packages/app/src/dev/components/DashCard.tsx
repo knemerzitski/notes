@@ -1,5 +1,5 @@
-import { Paper, Typography } from '@mui/material';
-import { ReactNode } from 'react';
+import { Paper, Skeleton, Typography } from '@mui/material';
+import { ReactNode, Suspense } from 'react';
 
 export function DashCard({ label, children }: { label?: string; children: ReactNode }) {
   return (
@@ -12,7 +12,7 @@ export function DashCard({ label, children }: { label?: string; children: ReactN
       }}
     >
       {label && <Typography variant="overline">{label}</Typography>}
-      {children}
+      <Suspense fallback={<Skeleton />}>{children}</Suspense>
     </Paper>
   );
 }

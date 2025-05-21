@@ -5,8 +5,9 @@ import { Changeset } from '../../../../collab/src';
 import { getFragmentData, gql } from '../../__generated__';
 import { MapRecordCollabTextRecordFragmentFragmentDoc } from '../../__generated__/graphql';
 import { useUserId } from '../../user/context/user-id';
+import { useCollabServiceManager } from '../context/collab-service-manager';
 import { useNoteId } from '../context/note-id';
-import { getCollabService } from '../models/note/get-collab-service';
+import { getUserNoteLinkId } from '../utils/id';
 import { cacheRecordToCollabServerRecord } from '../utils/map-record';
 
 const SyncHeadTextWatch_Query = gql(`
@@ -59,6 +60,7 @@ export function SyncHeadText() {
   const client = useApolloClient();
   const userId = useUserId();
   const noteId = useNoteId();
+  const collabServiceManager = useCollabServiceManager();
 
   useEffect(() => {
     const observable = client.watchQuery({
@@ -78,56 +80,65 @@ export function SyncHeadText() {
 
       const note = value.data.note;
       const collabText = note.collabText;
-      const collabService = getCollabService({ id: userId }, note, client.cache);
 
-      const cacheHeadRevision = collabText.headRecord.revision;
+      const userNoteLinkId = getUserNoteLinkId(noteId, userId);
 
-      const isCollabServiceOutdated = collabService.serverRevision < cacheHeadRevision;
-      if (isCollabServiceOutdated) {
-        // Query for required records and process them as external changes
-        void client
-          .query({
-            query: SyncHeadText_Query,
-            variables: {
-              userBy: {
-                id: userId,
+      void collabServiceManager.loadIfExists(userNoteLinkId).then((facade) => {
+        if (!facade) {
+          return;
+        }
+
+        const service = facade.fieldCollab.service;
+
+        const cacheHeadRevision = collabText.headRecord.revision;
+
+        const isCollabServiceOutdated = service.serverRevision < cacheHeadRevision;
+        if (isCollabServiceOutdated) {
+          // Query for required records and process them as external changes
+          void client
+            .query({
+              query: SyncHeadText_Query,
+              variables: {
+                userBy: {
+                  id: userId,
+                },
+                noteBy: {
+                  id: noteId,
+                },
+                after: service.serverRevision,
+                first: cacheHeadRevision - service.serverRevision,
               },
-              noteBy: {
-                id: noteId,
-              },
-              after: collabService.serverRevision,
-              first: cacheHeadRevision - collabService.serverRevision,
-            },
-          })
-          .then(({ data }) => {
-            data.signedInUser.note.collabText.recordConnection.edges.forEach((edge) => {
-              const record = getFragmentData(
-                MapRecordCollabTextRecordFragmentFragmentDoc,
-                edge.node
-              );
+            })
+            .then(({ data }) => {
+              data.signedInUser.note.collabText.recordConnection.edges.forEach((edge) => {
+                const record = getFragmentData(
+                  MapRecordCollabTextRecordFragmentFragmentDoc,
+                  edge.node
+                );
 
-              collabService.addExternalTyping(cacheRecordToCollabServerRecord(record));
-            });
-          })
-          .then(() => {
-            const isCollabServiceStillOutdated =
-              collabService.serverRevision < cacheHeadRevision;
-            if (isCollabServiceStillOutdated) {
-              // Didn't get required records from server, reset local history
-              // TODO persist old CollabService state to avoid losing local and submitted changes
-              collabService.reset({
-                revision: collabText.headRecord.revision,
-                text: Changeset.fromText(collabText.headRecord.text),
+                service.addExternalTyping(cacheRecordToCollabServerRecord(record));
               });
-            }
-          });
-      }
+            })
+            .then(() => {
+              const isCollabServiceStillOutdated =
+                service.serverRevision < cacheHeadRevision;
+              if (isCollabServiceStillOutdated) {
+                // Didn't get required records from server, reset local history
+                // TODO persist old CollabService state to avoid losing local and submitted changes
+                service.reset({
+                  revision: collabText.headRecord.revision,
+                  text: Changeset.fromText(collabText.headRecord.text),
+                });
+              }
+            });
+        }
+      });
     });
 
     return () => {
       sub.unsubscribe();
     };
-  }, [client, userId, noteId]);
+  }, [client, userId, noteId, collabServiceManager]);
 
   return null;
 }

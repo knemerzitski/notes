@@ -6,7 +6,6 @@ import {
   FetchResult,
   DefaultContext,
   InMemoryCache,
-  ApolloCache,
   DocumentNode,
 } from '@apollo/client';
 
@@ -92,7 +91,7 @@ export class PersistLink extends ApolloLink {
       addOngoingOperation(
         {
           id: operationId,
-          context: JSON.stringify(contextNoCache(context)),
+          context: JSON.stringify(serializableContext(context)),
           operationName: operation.operationName,
           query: JSON.stringify(operation.query),
           variables: JSON.stringify(operation.variables),
@@ -132,12 +131,9 @@ export class PersistLink extends ApolloLink {
   }
 }
 
-function contextNoCache(context: DefaultContext) {
-  if (context.cache instanceof ApolloCache) {
-    const { cache, ...rest } = context;
-    return rest;
-  }
-  return context;
+function serializableContext(context: DefaultContext) {
+  const { cache, getUserGate, module, taggedEvict, ...rest } = context;
+  return rest;
 }
 
 export function hasPersistDirective(document: DocumentNode) {

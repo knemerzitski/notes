@@ -1,27 +1,23 @@
-import { bootstrapCache } from '../../../../src/bootstrap';
 import { createGraphQLService as app_createGraphQLService } from '../../../../src/graphql/create/service';
-import { processCacheVersion } from '../../../../src/graphql/utils/process-cache-version';
-import {
-  APOLLO_CACHE_VERSION,
-  createDefaultGraphQLServiceParams,
-} from '../../../../src/graphql-service';
+import { createDefaultGraphQLServiceParams } from '../../../../src/graphql-service';
+
+type Options = Parameters<typeof app_createGraphQLService>[0];
 
 export async function createGraphQLService(
-  options?: Partial<
-    Pick<Parameters<typeof app_createGraphQLService>[0], 'storageKey' | 'logger'>
-  > &
-    Pick<
-      NonNullable<Parameters<typeof app_createGraphQLService>[0]['linkOptions']>,
-      'debug'
-    >
+  options?: Partial<Pick<Options, 'logger'>> &
+    Pick<NonNullable<Options['linkOptions']>, 'debug'> & {
+      readonly storageKeyPrefix?: Options['storage']['keyPrefix'];
+    }
 ) {
   // Ensure cache is not pruged
-  processCacheVersion(bootstrapCache, APOLLO_CACHE_VERSION);
-
   const params = createDefaultGraphQLServiceParams();
   const service = app_createGraphQLService({
     ...params,
-    storageKey: options?.storageKey ?? params.storageKey,
+    storage: {
+      ...params.storage,
+      preferredType: 'localStorage',
+      keyPrefix: options?.storageKeyPrefix ?? params.storage.keyPrefix,
+    },
     logger: options?.logger,
     linkOptions: {
       ...params.linkOptions,

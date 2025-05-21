@@ -25,14 +25,8 @@ const config: CodegenConfig = {
           SerializeKey: 'string | number | boolean',
           Changeset: '../../../collab/src#Changeset',
           Selection: '../../../collab/src#Selection',
-          CollabService: '../../../collab/src#CollabService',
-          NoteExternalState: '../note/types#NoteExternalState',
-          NoteTextFieldEditor: '../note/types#NoteTextFieldEditor',
         },
         enumsAsTypes: false,
-        enumValues: {
-          NoteTextFieldName: '../note/types#NoteTextFieldName',
-        },
         namingConvention: {
           typeNames: 'change-case-all#pascalCase',
           enumValues: 'change-case-all#upperCase',

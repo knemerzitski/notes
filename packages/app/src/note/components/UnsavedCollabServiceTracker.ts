@@ -14,14 +14,9 @@ function isServiceUpToDate(service: CollabService) {
 export function UnsavedCollabServiceTracker() {
   const client = useApolloClient();
   const userNoteLinkId = useUserNoteLinkId();
-  const maybeService = useCollabService(true);
+  const service = useCollabService();
 
   useEffect(() => {
-    if (!maybeService) {
-      return;
-    }
-    const service = maybeService;
-
     function update() {
       updateUnsavedCollabService(
         {
@@ -42,7 +37,7 @@ export function UnsavedCollabServiceTracker() {
       eventBusOff();
       update();
     };
-  }, [maybeService, client, userNoteLinkId]);
+  }, [service, client, userNoteLinkId]);
 
   return null;
 }

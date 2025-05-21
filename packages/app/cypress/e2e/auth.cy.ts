@@ -252,13 +252,13 @@ it('refreshes user expired session', () => {
 
     cy.then(async () => {
       const graphQLService2 = await createGraphQLService({
-        storageKey: 'user2',
+        storageKeyPrefix: 'user2:',
       });
 
       // Insert change to note in the background in separate cache right before expiring session
       graphQLService2.client.restore(graphQLService.client.extract());
 
-      const { fields, collabService } = createCollabService({
+      const { fields, collabService } = await createCollabService({
         graphQLService: graphQLService2,
         userId,
         noteId,
@@ -550,7 +550,7 @@ it('shows sync notes list after signing in with different user from expired user
 
   cy.resetDatabase().then(async () => {
     const graphQLService = await createGraphQLService({
-      storageKey: `apollo:cache:test:user2:${nextStorageKeyCounter++}`,
+      storageKeyPrefix: `test:user2:${nextStorageKeyCounter++}:`,
     });
 
     const { userId } = await signIn({

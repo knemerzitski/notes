@@ -8,37 +8,29 @@ import {
   styled,
   Tooltip,
 } from '@mui/material';
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 
 import { useDebouncedCallback } from 'use-debounce';
-
-import { CollabService } from '../../../../collab/src';
 
 import { useLogger } from '../../utils/context/logger';
 import { useShowError } from '../../utils/context/show-message';
 import { useIsOnline } from '../../utils/hooks/useIsOnline';
 import { useCollabService } from '../hooks/useCollabService';
 
-export function UndoButton(
-  props: Omit<Parameters<typeof CollabServiceDefined>[0], 'service'>
-) {
-  const collabService = useCollabService(true);
-
-  if (!collabService) {
-    return null;
-  }
-
-  return <CollabServiceDefined {...props} service={collabService} />;
+export function UndoButton(props: Parameters<typeof Loaded>[0]) {
+  return (
+    <Suspense fallback={<Fallback />}>
+      <Loaded {...props} />
+    </Suspense>
+  );
 }
 
-// TODO writecomponent tests for UndoButton
+// TODO write component tests for UndoButton
 
-function CollabServiceDefined({
-  service,
+function Loaded({
   IconButtonProps,
   cancelUndoTimeout = 1000,
 }: {
-  service: CollabService;
   IconButtonProps?: Omit<IconButtonProps, 'disabled' | 'aria-label' | 'onClick'>;
   /**
    * When undo takes longer than expected, cancel it after timeout in millis
@@ -46,12 +38,14 @@ function CollabServiceDefined({
    */
   cancelUndoTimeout?: number;
 }) {
+  const collabService = useCollabService();
+
   const logger = useLogger('UndoButton');
 
   const isOnline = useIsOnline();
   const showError = useShowError();
 
-  const [canUndo, setCanUndo] = useState(service.canUndo());
+  const [canUndo, setCanUndo] = useState(collabService.canUndo());
 
   const [isUndoPending, setIsUndoPending] = useState(false);
   const isUndoPendingRef = useRef(false);
@@ -71,8 +65,8 @@ function CollabServiceDefined({
 
   function handleClickUndo() {
     logger?.debug('click');
-    if (!service.undo()) {
-      const hasMoreServerRecords = service.canUndo();
+    if (!collabService.undo()) {
+      const hasMoreServerRecords = collabService.canUndo();
       logger?.debug('click.undo.false', {
         isOnline,
         hasMoreServerRecords,
@@ -90,11 +84,11 @@ function CollabServiceDefined({
 
   // Update setCanUndo
   useEffect(() => {
-    setCanUndo(service.canUndo());
-    return service.on(['localTyping:applied', 'records:updated'], () => {
-      setCanUndo(service.canUndo());
+    setCanUndo(collabService.canUndo());
+    return collabService.on(['localTyping:applied', 'records:updated'], () => {
+      setCanUndo(collabService.canUndo());
     });
-  }, [service]);
+  }, [collabService]);
 
   // Cancel pending when offline
   useEffect(() => {
@@ -117,7 +111,7 @@ function CollabServiceDefined({
 
     let isRunningTimeout = false;
 
-    return service.on(['records:updated'], () => {
+    return collabService.on(['records:updated'], () => {
       if (isRunningTimeout) {
         return;
       }
@@ -129,13 +123,13 @@ function CollabServiceDefined({
             return;
           }
 
-          const hasMoreServerRecords = service.canUndo();
+          const hasMoreServerRecords = collabService.canUndo();
           logger?.debug('userRecordsUpdated', {
             hasMoreServerRecords,
             isUndoPending: isUndoPendingRef.current,
           });
 
-          if (!service.undo()) {
+          if (!collabService.undo()) {
             logger?.debug('userRecordsUpdated.undo.false');
             if (!hasMoreServerRecords) {
               logger?.debug('userRecordsUpdated.undo.noMoreRecords');
@@ -157,22 +151,32 @@ function CollabServiceDefined({
         }
       }, 0);
     });
-  }, [isUndoPending, service, showError, cancelPendingUndoDebounced, logger]);
+  }, [isUndoPending, collabService, showError, cancelPendingUndoDebounced, logger]);
 
   return (
     <RootBoxStyled>
-      <IconButton
+      <Base
         onClick={handleClickUndo}
         aria-label="history undo"
         disabled={!canUndo || isUndoPending}
         {...IconButtonProps}
-      >
-        <Tooltip title="Undo">
-          <UndoIcon />
-        </Tooltip>
-      </IconButton>
+      />
       {isUndoPending && <CircularProgressStyled size={16} />}
     </RootBoxStyled>
+  );
+}
+
+function Fallback() {
+  return <Base disabled={true} />;
+}
+
+function Base(props?: IconButtonProps) {
+  return (
+    <IconButton {...props}>
+      <Tooltip title="Undo">
+        <UndoIcon />
+      </Tooltip>
+    </IconButton>
   );
 }
 

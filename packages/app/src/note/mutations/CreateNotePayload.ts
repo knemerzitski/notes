@@ -9,10 +9,9 @@ import { convertLocalToRemoteNote } from '../models/convert-local-to-remote-note
 import { isNoteHiddenInList } from '../models/local-note/hidden-in-list';
 import { setNotePendingStatus } from '../models/local-note/set-status';
 import { addUserToNote } from '../models/note/add-user';
-import { getCollabService } from '../models/note/get-collab-service';
 import { addNoteToConnection } from '../models/note-connection/add';
 import { addRecordToConnection } from '../models/record-connection/add';
-import { parseUserNoteLinkId } from '../utils/id';
+import { getUserNoteLinkId, parseUserNoteLinkId } from '../utils/id';
 import { cacheRecordToCollabServerRecord } from '../utils/map-record';
 
 /**
@@ -55,6 +54,11 @@ export const CreateNotePayload = mutationDefinition(
     );
 
     const { context } = options;
+    const collabManager = context?.module?.note.collabManager;
+
+    if (!collabManager) {
+      throw new Error('Unexpected missing collabManager in context');
+    }
 
     const firstRecord = getFragmentData(
       MapRecordCollabTextRecordFragmentFragmentDoc,
@@ -63,11 +67,11 @@ export const CreateNotePayload = mutationDefinition(
 
     const { userId } = parseUserNoteLinkId(data.userNoteLink.id);
 
-    const localNoteId = context?.localNoteId;
+    const localNoteId = context.localNoteId;
     if (localNoteId) {
       convertLocalToRemoteNote(
         {
-          noteId: localNoteId,
+          userNoteLinkId: getUserNoteLinkId(localNoteId, userId),
         },
         {
           userNoteLinkId: data.userNoteLink.id,
@@ -75,6 +79,7 @@ export const CreateNotePayload = mutationDefinition(
         {
           userId,
           cache,
+          collabManager,
         }
       );
 
@@ -89,7 +94,7 @@ export const CreateNotePayload = mutationDefinition(
       );
     }
 
-    if (context?.isSubscriptionOperation) {
+    if (context.isSubscriptionOperation) {
       addNoteToConnection(
         {
           id: data.userNoteLink.id,
@@ -102,28 +107,31 @@ export const CreateNotePayload = mutationDefinition(
       addRecordToConnection(data.userNoteLink.note.collabText.id, firstRecord, cache);
     }
 
-    const service = getCollabService(
-      { id: userId },
-      { id: data.userNoteLink.note.id },
-      cache
-    );
-
     if (options.context?.isSubscriptionOperation) {
       const headRecord = data.userNoteLink.note.collabText.headRecord;
-      service.reset({
-        revision: headRecord.revision,
-        text: Changeset.fromText(headRecord.text),
+
+      void collabManager.loadOrCreate(data.userNoteLink.id).then((facade) => {
+        const service = facade.fieldCollab.service;
+
+        service.reset({
+          revision: headRecord.revision,
+          text: Changeset.fromText(headRecord.text),
+        });
       });
     } else {
-      service.submittedChangesAcknowledged(
-        firstRecord
-          ? cacheRecordToCollabServerRecord(firstRecord)
-          : {
-              // Server didn't return a record on note creation, assume revision increased and submittedChanges is acknowledged
-              revision: service.serverRevision + 1,
-              changeset: service.submittedChanges,
-            }
-      );
+      void collabManager.loadOrCreate(data.userNoteLink.id).then((facade) => {
+        const service = facade.fieldCollab.service;
+
+        service.submittedChangesAcknowledged(
+          firstRecord
+            ? cacheRecordToCollabServerRecord(firstRecord)
+            : {
+                // Server didn't return a record on note creation, assume revision increased and submittedChanges is acknowledged
+                revision: service.serverRevision + 1,
+                changeset: service.submittedChanges,
+              }
+        );
+      });
     }
   }
 );

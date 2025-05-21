@@ -143,6 +143,7 @@ function Subscription({
             },
             {
               context: {
+                ...client.defaultContext,
                 isSubscriptionOperation: true,
               },
             }

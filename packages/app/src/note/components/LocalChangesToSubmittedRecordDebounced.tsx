@@ -18,11 +18,7 @@ export function LocalChangesToSubmittedRecordDebounced({
   },
   ...restProps
 }: Omit<ToggleSingleOrMultipleUsersProps, 'service'>) {
-  const service = useCollabService(true);
-
-  if (!service) {
-    return null;
-  }
+  const service = useCollabService();
 
   return (
     <ToggleSingleOrMultipleUsers
@@ -104,6 +100,32 @@ function ServiceDefined({
       debouncedSubmitChanges.flush();
     };
   }, [debouncedSubmitChanges, service]);
+
+  // Stop submitting in case when user leaves the page
+  useEffect(() => {
+    const timeoutMs = 100;
+
+    function handleBeforeUnload() {
+      const isPending = debouncedSubmitChanges.isPending();
+      if (!isPending) {
+        return;
+      }
+      debouncedSubmitChanges.cancel();
+
+      setTimeout(() => {
+        // Must wrap in another timeout to prevent submit triggering if user decided to leave the page
+        setTimeout(() => {
+          debouncedSubmitChanges();
+          debouncedSubmitChanges.flush();
+        }, timeoutMs);
+      }, timeoutMs);
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [debouncedSubmitChanges]);
 
   return null;
 }

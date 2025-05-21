@@ -1,7 +1,8 @@
 import { InputProps } from '@mui/material';
 
 import { gql } from '../../__generated__';
-import { NoteTextFieldName } from '../../__generated__/graphql';
+
+import { NoteTextFieldName } from '../types';
 
 import { CollabInput, CollabInputProps } from './CollabInput';
 import { TitleInput } from './TitleInput';

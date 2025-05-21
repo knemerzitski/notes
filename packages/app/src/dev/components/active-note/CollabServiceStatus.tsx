@@ -14,11 +14,11 @@ import { useCollabService } from '../../../note/hooks/useCollabService';
 
 export function CollabServiceStatus() {
   const [_renderCounter, setRenderCounter] = useState(0);
-  const collabService = useCollabService(true);
+  const collabService = useCollabService();
 
   useEffect(
     () =>
-      collabService?.on(
+      collabService.on(
         [
           'localTyping:applied',
           'serverRevision:changed',
@@ -31,10 +31,6 @@ export function CollabServiceStatus() {
       ),
     [collabService]
   );
-
-  if (!collabService) {
-    return null;
-  }
 
   return (
     <TableContainer

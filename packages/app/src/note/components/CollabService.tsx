@@ -1,19 +1,20 @@
 import { ReactNode } from '@tanstack/react-router';
 import mitt from 'mitt';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 
 import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
 import { useNoteId } from '../context/note-id';
 import { useIsLocalOnlyNote } from '../hooks/useIsLocalOnlyNote';
 
+import { CollabServiceStatus } from './CollabServiceStatus';
 import { HistoryRestoration } from './HistoryRestoration';
 import { LocalChangesToSubmittedRecordDebounced } from './LocalChangesToSubmittedRecordDebounced';
 import { OpenNoteSubscription } from './OpenNoteSubscription';
-import { PersistCollabServiceChanges } from './PersistCollabServiceChanges';
 import { SubmittedRecordMutation } from './SubmittedRecordMutation';
 
 import { SyncHeadText } from './SyncHeadText';
 import { SyncMissingRecords } from './SyncMissingRecords';
+import { SyncViewText } from './SyncViewText';
 import { UnsavedCollabServiceTracker } from './UnsavedCollabServiceTracker';
 
 interface CollabServiceProps {
@@ -49,8 +50,10 @@ function Run(props: CollabServiceProps) {
   const isVisible = props.visible ?? false;
 
   return (
-    <>
+    <Suspense>
       <Base />
+      {isVisible && <BaseOpen />}
+
       {isLocalOnly ? (
         <Local />
       ) : (
@@ -59,7 +62,7 @@ function Run(props: CollabServiceProps) {
           {isVisible && <RemoteOpen />}
         </>
       )}
-    </>
+    </Suspense>
   );
 }
 
@@ -121,7 +124,15 @@ function NoteSingleton({ children }: { children: ReactNode }) {
 function Base() {
   return (
     <>
-      <PersistCollabServiceChanges />
+      <SyncViewText />
+    </>
+  );
+}
+
+function BaseOpen() {
+  return (
+    <>
+      <CollabServiceStatus />
     </>
   );
 }

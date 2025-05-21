@@ -10,6 +10,8 @@ import { NoteCategory, ListAnchorPosition } from '../../../__generated__/graphql
 import { createGraphQLService } from '../../../graphql/create/service';
 import { createDefaultGraphQLServiceParams } from '../../../graphql-service';
 import * as generateId from '../../../user/models/local-user/generate-id';
+import { primeLocalUser } from '../../../user/models/local-user/prime';
+import { addUser } from '../../../user/models/signed-in-user/add';
 import { setCurrentUser } from '../../../user/models/signed-in-user/set-current';
 import { getUserNoteLinkId } from '../../utils/id';
 
@@ -22,6 +24,7 @@ const danglingNoteId = 'dangling';
 beforeEach(() => {
   vi.spyOn(generateId, 'generateSignedInUserId').mockReturnValueOnce(userId);
   const params = createDefaultGraphQLServiceParams();
+  params.skipRestoreCache = true;
   const service = createGraphQLService(params);
   cache = service.client.cache;
 
@@ -31,6 +34,8 @@ beforeEach(() => {
   createNotesAndAddToList([], 'empty', cacheObj);
   createNote(danglingNoteId, 'unknown', cacheObj);
   cache.restore(cacheObj);
+  primeLocalUser(cache);
+  addUser(userId, cache);
   setCurrentUser(userId, cache);
 });
 

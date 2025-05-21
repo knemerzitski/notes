@@ -2,7 +2,7 @@ import { createContext, ReactNode, useContext } from 'react';
 
 import { Maybe } from '../../../../utils/src/types';
 
-import { NoteTextFieldName } from '../../__generated__/graphql';
+import { NoteTextFieldName } from '../types';
 
 const TextFieldNameContext = createContext<NoteTextFieldName | null>(null);
 

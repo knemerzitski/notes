@@ -1,10 +1,6 @@
 import { CollabService, Changeset, Selection } from '../../../../collab/src';
-
-import {
-  createNoteExternalStateContext,
-  NoteExternalState,
-  NoteTextFieldEditor,
-} from '../utils/external-state';
+import { FieldCollabServiceFactory } from '../collab-manager/field-collab-service-factory';
+import { NoteTextFieldEditor } from '../types';
 
 import { useCollabHtmlInput } from './useCollabHtmlInput';
 
@@ -13,20 +9,23 @@ enum FieldName {
   TITLE = 'title',
 }
 
-let noteState: NoteExternalState<FieldName>;
 let editor: NoteTextFieldEditor;
 let service: CollabService;
 
-beforeEach(() => {
-  const externalStateContext = createNoteExternalStateContext({
-    keys: Object.values(FieldName),
-  });
+let factory: FieldCollabServiceFactory<FieldName>;
 
-  noteState = externalStateContext.newValue(undefined, {
-    userId: '2',
+before(() => {
+  factory = new FieldCollabServiceFactory({
+    fieldNames: Object.values(FieldName),
+    fallbackFieldName: FieldName.CONTENT,
   });
-  editor = noteState.fields[FieldName.CONTENT].editor;
-  service = noteState.service;
+});
+
+beforeEach(() => {
+  const fieldCollab = factory.create();
+
+  editor = fieldCollab.getField(FieldName.CONTENT);
+  service = fieldCollab.service;
 
   const submittedRecord = service.submitChanges();
   if (submittedRecord) {

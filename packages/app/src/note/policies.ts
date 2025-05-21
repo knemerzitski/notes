@@ -1,11 +1,6 @@
 import { PossibleTypesMap } from '@apollo/client';
 
-import { NoteTextFieldName } from '../__generated__/graphql';
-import {
-  CreateTypePoliciesFn,
-  CustomTypePoliciesInitContext,
-  MutationDefinitions,
-} from '../graphql/types';
+import { CreateTypePoliciesFn, MutationDefinitions } from '../graphql/types';
 import { TaggedEvictOptionsList } from '../graphql/utils/tagged-evict';
 
 import { CreateNote } from './mutations/CreateNote';
@@ -34,37 +29,18 @@ import { CollabTextRecord } from './policies/CollabTextRecord';
 import { CollabTextRecordConnection } from './policies/CollabTextRecordConnection';
 import { LocalUser } from './policies/LocalUser';
 import { Note } from './policies/Note';
-import { NoteTextField } from './policies/NoteTextField';
 import { OpenedNote } from './policies/OpenedNote';
 import { evictOptions as Query_evictOptions, Query } from './policies/Query';
 import { RevisionChangeset } from './policies/RevisionChangeset';
 import { User } from './policies/User';
 import { UserNoteLink } from './policies/UserNoteLink';
 import { UserNoteLinkConnection } from './policies/UserNoteLinkConnection';
-import { createNoteExternalStateContext } from './utils/external-state';
-
-export const userNoteLinkContext = function (ctx: CustomTypePoliciesInitContext) {
-  const externalState = createNoteExternalStateContext<NoteTextFieldName>(
-    {
-      keys: Object.values(NoteTextFieldName),
-    },
-    {
-      defaultKey: NoteTextFieldName.CONTENT,
-      logger: ctx.logger?.extend('external'),
-    }
-  );
-
-  return {
-    externalState,
-  };
-};
 
 export const notePolicies: CreateTypePoliciesFn = function (ctx) {
   return {
     Query: Query(ctx),
     UserNoteLink: UserNoteLink(ctx),
     Note: Note(ctx),
-    NoteTextField: NoteTextField(ctx),
     RevisionChangeset: RevisionChangeset(ctx),
     CollabText: CollabText(ctx),
     CollabTextRecord: CollabTextRecord(ctx),

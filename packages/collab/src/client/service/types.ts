@@ -32,7 +32,7 @@ export interface Properties {
   /**
    * Server facade enable service to undo server records not in local history stack.
    */
-  serverFacade: ServerFacade | null;
+  readonly serverFacade: ServerFacade | null;
 }
 
 export interface State {
@@ -305,7 +305,7 @@ export interface Serializer {
   /**
    * Serialize state into JSON compatible format
    */
-  serialize(state: State): SerializedState;
+  serialize(state: State, raw?: boolean): SerializedState;
 
   /**
    * Parse serialized state to be used by Service

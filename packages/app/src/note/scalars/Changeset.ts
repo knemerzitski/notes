@@ -10,10 +10,22 @@ function parseChangeset(value: unknown) {
   } else if (typeof value === 'string') {
     return CollabChangeset.parse(value);
   } else {
-    // eslint-disable-next-line @typescript-eslint/no-base-to-string
-    throw new Error(`Failed parse Changeset: ${String(value)}`);
+    console.error(value);
+    throw new Error('Failed to parse Changeset');
   }
 }
+
+function serializeChangeset(value: unknown) {
+  if (value instanceof CollabChangeset) {
+    return value.serialize();
+  } else if (typeof value === 'string') {
+    return value;
+  } else {
+    console.error(value);
+    throw new Error('Failed to serialize Changeset');
+  }
+}
+
 function createChangesetPolicy(nullable?: boolean): FieldPolicy<unknown, unknown> {
   const readExisting = nullable ? null : undefined;
   return {
@@ -21,7 +33,7 @@ function createChangesetPolicy(nullable?: boolean): FieldPolicy<unknown, unknown
       return parseChangeset(existing);
     },
     merge: (_, incoming) => {
-      return parseChangeset(incoming);
+      return serializeChangeset(incoming);
     },
   };
 }

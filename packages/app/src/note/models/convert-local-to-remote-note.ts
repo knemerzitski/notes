@@ -7,7 +7,7 @@ import { User, UserNoteLinkByInput } from '../../__generated__/graphql';
 import { addUserOperations } from '../../user/models/operations/add';
 import { getCurrentUserId } from '../../user/models/signed-in-user/get-current';
 import { isLocalId } from '../../utils/is-local-id';
-import { copyExternalState } from '../policies/UserNoteLink/_external';
+import { NoteCollabServiceManager } from '../types';
 import {
   getUserNoteLinkId,
   getUserNoteLinkIdFromByInput,
@@ -27,6 +27,7 @@ export function convertLocalToRemoteNote(
   {
     cache,
     userId = getCurrentUserId(cache),
+    collabManager,
   }: {
     /**
      * Use who runs required mutations
@@ -43,6 +44,7 @@ export function convertLocalToRemoteNote(
       | 'watchFragment'
       | 'evict'
     >;
+    collabManager: NoteCollabServiceManager;
   }
 ) {
   const localUserNoteLinkId = getUserNoteLinkIdFromByInput(localBy, cache);
@@ -86,11 +88,11 @@ export function convertLocalToRemoteNote(
       cache
     );
     // Return early since note is already deleted
-    return false;
+    return;
   }
 
-  // Move CollabService to remote
-  const service = copyExternalState(localUserNoteLinkId, remoteUserNoteLinkId, cache);
+  // Move CollabService to remote id
+  collabManager.changeId(localUserNoteLinkId, remoteUserNoteLinkId);
 
   // Copy hiddenInList
   if (
@@ -179,6 +181,4 @@ export function convertLocalToRemoteNote(
       cache
     );
   }, 0);
-
-  return { service };
 }

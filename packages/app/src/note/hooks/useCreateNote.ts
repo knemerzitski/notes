@@ -12,11 +12,11 @@ import {
 import { useMutation } from '../../graphql/hooks/useMutation';
 import { useUserId } from '../../user/context/user-id';
 import { useIsLocalOnlyUser } from '../../user/hooks/useIsLocalOnlyUser';
+import { useCollabServiceManager } from '../context/collab-service-manager';
 import { getOrCreatePendingNote } from '../models/local-note/get-or-create-pending';
 import { getNotePendingStatus } from '../models/local-note/get-status';
 import { clearNoteHiddenInList } from '../models/local-note/hidden-in-list';
 import { setNotePendingStatus } from '../models/local-note/set-status';
-import { getCollabService } from '../models/note/get-collab-service';
 import { addNoteToConnection } from '../models/note-connection/add';
 import { CreateNote } from '../mutations/CreateNote';
 
@@ -40,6 +40,7 @@ export function useCreateNote(): {
 
   const userId = useUserId();
   const isLocalOnlyUser = useIsLocalOnlyUser();
+  const collabServiceManager = useCollabServiceManager();
 
   const [overrideNoteId, setOverrideNoteId] = useState<Note['id'] | null>();
 
@@ -79,7 +80,7 @@ export function useCreateNote(): {
     }
   });
 
-  const create = useCallback(() => {
+  const create = useCallback(async () => {
     const currentStatus = getNotePendingStatus({ noteId }, client.cache);
     if (currentStatus !== NotePendingStatus.EMPTY) {
       return Promise.resolve(false);
@@ -90,7 +91,11 @@ export function useCreateNote(): {
       return Promise.resolve(true);
     }
 
-    const service = getCollabService({ id: userId }, { id: noteId }, client.cache);
+    const userNoteLinkId = getUserNoteLinkId(noteId, userId);
+
+    const collabFacade = await collabServiceManager.loadOrCreate(userNoteLinkId);
+    const service = collabFacade.fieldCollab.service;
+
     const submittedRecord = service.submitChanges();
 
     setNotePendingStatus({ noteId }, NotePendingStatus.SUBMITTING, client.cache);
@@ -126,7 +131,7 @@ export function useCreateNote(): {
 
       return true;
     });
-  }, [client, noteId, userId, createNoteMutation, isLocalOnlyUser]);
+  }, [client, noteId, userId, createNoteMutation, isLocalOnlyUser, collabServiceManager]);
 
   const complete = useCallback(() => {
     const currentStatus = getNotePendingStatus({ noteId }, client.cache);

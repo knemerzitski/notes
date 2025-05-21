@@ -152,6 +152,7 @@ export function UserCollabEditingCaret({
       data-user-name={displayName}
       data-user-id={userNoteLink.user.id}
       data-index={editorSelection.selection.end}
+      overrideInputValue={editor.value}
       caret={{
         inputRef,
         selection: editorSelection.selection.end,

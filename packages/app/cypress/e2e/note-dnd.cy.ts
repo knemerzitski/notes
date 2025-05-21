@@ -60,6 +60,10 @@ function noteByText(value: string) {
   return noteItems().contains(value).parent('li[aria-roledescription="sortable"]');
 }
 
+function shouldNotesListHaveLoaded() {
+  return notesList().find('[data-loading="true"]').should('not.exist');
+}
+
 /**
  * @see {@link https://github.com/cypress-io/cypress/issues/5655#issuecomment-734629040}
  */
@@ -78,7 +82,7 @@ function shouldAppStatusEqual(value: AppStatus[] | AppStatus) {
 function shouldHavePersistedCache() {
   // eslint-disable-next-line cypress/no-unnecessary-waiting
   cy.wait(0); // Wait for next tick before checking
-  return cy.get('[aria-label="cache status"]').should(haveData('pending', 'false'));
+  return cy.get('[aria-label="persist status"]').should(haveData('pending', 'false'));
 }
 
 function shouldAppBeSync() {
@@ -149,6 +153,7 @@ function arrowDnD(noteContent: string, commands: ('right' | 'left' | 'up' | 'dow
       cy.visit('/');
 
       shouldAppBeSync();
+      shouldNotesListHaveLoaded();
 
       if (network === 'offline') {
         cy.goOffline();
@@ -169,12 +174,14 @@ function arrowDnD(noteContent: string, commands: ('right' | 'left' | 'up' | 'dow
         } else {
           shouldAppBeSync();
         }
+        shouldNotesListHaveLoaded();
         expectedFn();
       }
 
       cy.goOnline();
       // Extra check without optimistic response
       shouldAppBeSync();
+      shouldNotesListHaveLoaded();
       expectedFn();
     }
 

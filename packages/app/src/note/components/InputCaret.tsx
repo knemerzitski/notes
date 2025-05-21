@@ -7,9 +7,10 @@ import {
   useRef,
   useState,
 } from 'react';
-import getCaretCoordinates from 'textarea-caret';
 
 import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
+
+import { getCaretCoordinates } from './../../utils/textarea-caret';
 
 /**
  * Renders a custom caret for a input or textarea element
@@ -17,6 +18,7 @@ import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
 export const InputCaret = forwardRef<
   HTMLDivElement,
   BoxProps & {
+    overrideInputValue?: string;
     caret: {
       /**
        * Ref to element that contains either a textarea or input
@@ -52,6 +54,7 @@ export const InputCaret = forwardRef<
   }
 >(function InputCaret(
   {
+    overrideInputValue,
     caret: {
       inputRef,
       selection,
@@ -90,7 +93,11 @@ export const InputCaret = forwardRef<
     const inputEl = maybeInputEl;
 
     function update() {
-      setCaretCoordinates(getCaretCoordinates(inputEl, selection));
+      setCaretCoordinates(
+        getCaretCoordinates(inputEl, selection, {
+          overrideValue: overrideInputValue,
+        })
+      );
     }
 
     update();
@@ -103,7 +110,7 @@ export const InputCaret = forwardRef<
       inputEl.removeEventListener('input', update);
       resizeObserver.disconnect();
     };
-  }, [inputRef, selection]);
+  }, [inputRef, selection, overrideInputValue]);
 
   // Restart blink animation when `resetBlink` changes
   useEffect(() => {

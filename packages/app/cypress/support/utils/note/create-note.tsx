@@ -5,15 +5,13 @@ import { ReactNode } from 'react';
 import { Selection } from '../../../../../collab/src';
 
 import { getFragmentData } from '../../../../src/__generated__';
-import {
-  CreateNotePayloadFragmentDoc,
-  NoteTextFieldName,
-} from '../../../../src/__generated__/graphql';
+import { CreateNotePayloadFragmentDoc } from '../../../../src/__generated__/graphql';
 import { GraphQLServiceProvider } from '../../../../src/graphql/components/GraphQLServiceProvider';
 
 import { useMutation } from '../../../../src/graphql/hooks/useMutation';
 import { GraphQLService } from '../../../../src/graphql/types';
 import { CreateNote } from '../../../../src/note/mutations/CreateNote';
+import { NoteTextFieldName } from '../../../../src/note/types';
 import { CurrentUserIdProvider } from '../../../../src/user/components/CurrentUserIdProvider';
 
 export async function createNote({
@@ -39,19 +37,12 @@ export async function createNote({
     },
   });
 
-  const externalState =
-    graphQLService.typePoliciesContext.custom.userNoteLink.externalState.newValue(
-      undefined,
-      {
-        userId,
-      }
-    );
+  const collabManager = graphQLService.moduleContext.note.collabManager;
+  const fieldCollab = collabManager.newInstance();
+
   if (initialText) {
     Object.entries(initialText).forEach(([key, value]) => {
-      externalState.fields[key as NoteTextFieldName].editor.insert(
-        value,
-        Selection.create(0)
-      );
+      fieldCollab.getField(key as NoteTextFieldName).insert(value, Selection.create(0));
     });
   }
 
@@ -62,7 +53,7 @@ export async function createNote({
           id: userId,
         },
         collabText: {
-          initialText: externalState.service.viewText,
+          initialText: fieldCollab.service.viewText,
           insertToTail: true,
         },
       },

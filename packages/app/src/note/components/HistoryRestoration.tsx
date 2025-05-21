@@ -34,7 +34,52 @@ const HistoryRestoration_Query = gql(`
   }
 `);
 
-export function HistoryRestoration({
+const HistoryRestorationHasPreviousPage_Query = gql(`
+  query HistoryRestorationHasPreviousPage_Query($userBy: UserByInput!, $noteBy: NoteByInput!){
+    signedInUser(by: $userBy) {
+      id
+      note(by: $noteBy) {
+        id
+        collabText {
+          id
+          recordConnection {
+            pageInfo {
+              hasPreviousPage
+            }
+          }
+        }
+      }
+    }
+  }
+`);
+
+export function HistoryRestoration(props: Parameters<typeof HaveMoreRecords>[0]) {
+  const noteId = useNoteId();
+  const userId = useUserId();
+  const client = useApolloClient();
+
+  const data = client.readQuery({
+    query: HistoryRestorationHasPreviousPage_Query,
+    variables: {
+      userBy: {
+        id: userId,
+      },
+      noteBy: {
+        id: noteId,
+      },
+    },
+  });
+
+  if (
+    data?.signedInUser.note.collabText.recordConnection.pageInfo.hasPreviousPage === false
+  ) {
+    return null;
+  }
+
+  return <HaveMoreRecords {...props} />;
+}
+
+function HaveMoreRecords({
   fetchEntriesCount = 20,
   triggerEntriesRemaining = 10,
 }: {

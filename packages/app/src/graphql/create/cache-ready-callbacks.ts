@@ -1,7 +1,7 @@
 import { InMemoryCache } from '@apollo/client';
 
+import { DeferredRestorer } from '../../persistence/utils/deferred-restorer';
 import { CacheReadyCallbacks } from '../types';
-import { CacheRestorer } from '../utils/cache-restorer';
 
 export function createRunCacheReadyCallbacks({
   callbacks,
@@ -9,7 +9,7 @@ export function createRunCacheReadyCallbacks({
   cache,
 }: {
   callbacks: CacheReadyCallbacks;
-  restorer: CacheRestorer;
+  restorer: DeferredRestorer;
   cache: InMemoryCache;
 }) {
   void restorer.restored().then(() => {

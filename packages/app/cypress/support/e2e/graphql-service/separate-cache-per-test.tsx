@@ -9,13 +9,15 @@
 
 import { createGraphQLService } from '../../../../src/graphql/create/service';
 
+type Options = Parameters<typeof createGraphQLService>[0];
+
 declare global {
   // eslint-disable-next-line no-var
   var appEnvironment:
     | {
-        overrideDefaultGraphQLServiceParams?: Partial<
-          Parameters<typeof createGraphQLService>[0]
-        >;
+        overrideDefaultGraphQLServiceParams?: Partial<Omit<Options, 'storage'>> & {
+          storage?: Partial<Options['storage']>;
+        };
       }
     | undefined;
 }
@@ -30,7 +32,10 @@ let nextStorageKeyCounter = 0;
 
 beforeEach(() => {
   appEnvironment.overrideDefaultGraphQLServiceParams = {
-    storageKey: `apollo:cache:test:${nextStorageKeyCounter++}`,
+    storage: {
+      preferredType: 'localStorage',
+      keyPrefix: `test:${nextStorageKeyCounter++}:`,
+    },
   };
   window.appEnvironment = appEnvironment;
 });

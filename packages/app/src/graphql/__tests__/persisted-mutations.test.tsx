@@ -7,6 +7,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 
 import { createUsersForCache } from '../../__tests__/helpers/populate/users';
 import { createDefaultGraphQLServiceParams } from '../../graphql-service';
+import { LocalStorageStore } from '../../persistence/utils/local-storage-store';
 import { CurrentUserIdProvider } from '../../user/components/CurrentUserIdProvider';
 import { useUpdateDisplayNameMutation } from '../../user/hooks/useUpdateDisplayNameMutation';
 import { setCurrentUser } from '../../user/models/signed-in-user/set-current';
@@ -63,8 +64,8 @@ it('remembers displayName mutation when app goes offline and resumes when online
   );
 
   const params = createDefaultGraphQLServiceParams();
-  params.storageKey = 'cache';
-  params.storage = {
+  params.storage.keys.apolloCache = 'cache';
+  params.storage.custom = new LocalStorageStore({
     getItem(key) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return storage.get(key);
@@ -75,8 +76,10 @@ it('remembers displayName mutation when app goes offline and resumes when online
     removeItem(key) {
       storage.delete(key);
     },
-  };
-  params.purgeCache = false;
+    clear() {
+      storage.clear();
+    },
+  });
 
   params.linkOptions = {
     ...params.linkOptions,
@@ -127,7 +130,7 @@ it('remembers displayName mutation when app goes offline and resumes when online
     // Wait for links to execute
     await new Promise(process.nextTick.bind(process));
 
-    await service.persistor.persist();
+    await service.persistor.flush();
     await service.dispose();
   }
 
@@ -196,8 +199,8 @@ it('remembers displayName mutation when session expires', async () => {
   );
 
   const params = createDefaultGraphQLServiceParams();
-  params.storageKey = 'cache';
-  params.storage = {
+  params.storage.keys.apolloCache = 'cache';
+  params.storage.custom = new LocalStorageStore({
     getItem(key) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return storage.get(key);
@@ -208,8 +211,10 @@ it('remembers displayName mutation when session expires', async () => {
     removeItem(key) {
       storage.delete(key);
     },
-  };
-  params.purgeCache = false;
+    clear() {
+      storage.clear();
+    },
+  });
 
   params.linkOptions = {
     ...params.linkOptions,

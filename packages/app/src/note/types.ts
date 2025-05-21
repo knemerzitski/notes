@@ -1,13 +1,14 @@
-import {
-  NoteExternalState as _NoteExternalState,
-  NoteTextFieldEditor as _NoteTextFieldEditor,
-} from './utils/external-state';
+import { CollabTyper } from '../../../collab/src';
+
+import { CollabFacade, CollabServiceManager } from './collab-manager';
 
 export enum NoteTextFieldName {
   TITLE = 't',
   CONTENT = 'c',
 }
 
-export type NoteExternalState = _NoteExternalState<NoteTextFieldName>;
+export type NoteCollabServiceManager = CollabServiceManager<NoteTextFieldName>;
 
-export type NoteTextFieldEditor = _NoteTextFieldEditor;
+export type NoteCollabFacade = CollabFacade<NoteTextFieldName>;
+
+export type NoteTextFieldEditor = CollabTyper;

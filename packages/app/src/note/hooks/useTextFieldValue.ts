@@ -1,9 +1,9 @@
-import { useQuery } from '@apollo/client';
+import { useEffect, useState } from 'react';
 
 import { gql } from '../../__generated__';
-import { NoteTextFieldName } from '../../__generated__/graphql';
-import { useUserId } from '../../user/context/user-id';
-import { useNoteId } from '../context/note-id';
+import { NoteTextFieldName } from '../types';
+
+import { useCollabFacade } from './useCollabFacade';
 
 // textField is derived from headText
 const _UseTextFieldValue_NoteFragment = gql(`
@@ -19,40 +19,20 @@ const _UseTextFieldValue_NoteFragment = gql(`
   }
 `);
 
-const UseTextFieldValue_Query = gql(`
-  query UseTextFieldValue_Query($userBy: UserByInput!, $noteBy: NoteByInput!, $fieldName: NoteTextFieldName!) {
-    signedInUser(by: $userBy) {
-      id
-      noteLink(by: $noteBy) {
-        id
-        textField(name: $fieldName) {
-          value
-        }
-      }
-    }    
-  }
-`);
-
 export function useTextFieldValue(fieldName: NoteTextFieldName) {
-  const userId = useUserId();
-  const noteId = useNoteId();
+  const collabFacade = useCollabFacade();
 
-  const { data } = useQuery(UseTextFieldValue_Query, {
-    variables: {
-      userBy: {
-        id: userId,
-      },
-      noteBy: {
-        id: noteId,
-      },
-      fieldName,
-    },
-    fetchPolicy: 'cache-only',
-  });
+  const field = collabFacade.fieldCollab.getField(fieldName);
 
-  if (!data) {
-    return null;
-  }
+  const [value, setValue] = useState(field.value);
 
-  return data.signedInUser.noteLink.textField.value;
+  useEffect(
+    () =>
+      field.on('value:changed', ({ newValue }) => {
+        setValue(newValue);
+      }),
+    [field]
+  );
+
+  return value;
 }

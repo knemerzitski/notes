@@ -4,7 +4,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 
 import { gql } from '../../__generated__';
-import { useCachePersistor } from '../../graphql/context/cache-persistor';
+import { usePersistor } from '../../persistence/context/persistor';
 import { useLogger } from '../../utils/context/logger';
 import { useUserId } from '../context/user-id';
 
@@ -26,7 +26,7 @@ const SessionExpiredPromtSignInOnce_Query = gql(`
 export function SessionExpiredPromptSignInOnce() {
   const logger = useLogger('SessionExpiredPromptSignInOnce');
 
-  const cachePersistor = useCachePersistor();
+  const persistor = usePersistor();
   const client = useApolloClient();
   const navigate = useNavigate();
 
@@ -61,10 +61,10 @@ export function SessionExpiredPromptSignInOnce() {
       // Remember that prompted so it won't be triggered again
       setUserSessionExpiredPromptedToSignIn(userId, true, client.cache);
 
-      // Persist immediately
-      void cachePersistor.persist();
+      // Flush cache changes immediately
+      void persistor.flush();
     });
-  }, [logger, cachePersistor, client, navigate, userId, prompt]);
+  }, [logger, persistor, client, navigate, userId, prompt]);
 
   return null;
 }

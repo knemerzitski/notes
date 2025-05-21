@@ -281,11 +281,12 @@ class Client {
 
     this.server = options.server;
 
-    this.service = new CollabService(options.service);
+    this.service = new CollabService({
+      serverFacade: new LocalServerFacade(this.server),
+      ...options.service,
+    });
     this.on = this.service.on.bind(this.service);
     this.off = this.service.on.bind(this.service);
-
-    this.service.setServerFacade(new LocalServerFacade(this.server));
 
     const serviceTyper = new BasicTyper(this.service);
     this.typer = new ControlledTyper(serviceTyper, new BasicSelection(serviceTyper));

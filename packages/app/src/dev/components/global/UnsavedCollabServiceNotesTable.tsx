@@ -1,5 +1,6 @@
 import { useQuery } from '@apollo/client';
 import CheckIcon from '@mui/icons-material/Check';
+import QuestionMarkIcon from '@mui/icons-material/QuestionMark';
 import RemoveIcon from '@mui/icons-material/Remove';
 import {
   Paper,
@@ -11,7 +12,9 @@ import {
   TableRow,
 } from '@mui/material';
 
+import { CollabService } from '../../../../../collab/src';
 import { gql } from '../../../__generated__';
+import { useCollabServiceManager } from '../../../note/context/collab-service-manager';
 import { useUserId } from '../../../user/context/user-id';
 
 const UnsavedCollabServiceNotesTable_Query = gql(`
@@ -22,7 +25,6 @@ const UnsavedCollabServiceNotesTable_Query = gql(`
         id
         unsavedCollabServices {
           id
-          collabService
         }
       }
     }
@@ -30,6 +32,8 @@ const UnsavedCollabServiceNotesTable_Query = gql(`
 `);
 
 export function UnsavedCollabServiceNotesTable() {
+  const collabServiceManager = useCollabServiceManager();
+
   const userId = useUserId();
   const { data } = useQuery(UnsavedCollabServiceNotesTable_Query, {
     fetchPolicy: 'cache-only',
@@ -42,7 +46,17 @@ export function UnsavedCollabServiceNotesTable() {
     return null;
   }
 
-  const unsavedCollabServices = data.signedInUser.local.unsavedCollabServices;
+  const unsavedCollabServices = data.signedInUser.local.unsavedCollabServices.map(
+    ({ id }) => {
+      let collabService: CollabService | undefined;
+      const collabItem = collabServiceManager.getIfExists(id);
+      if (collabItem && !collabItem.initStatus.isPending) {
+        collabService = collabItem.get().fieldCollab.service;
+      }
+
+      return { id, collabService };
+    }
+  );
 
   return (
     <TableContainer
@@ -64,10 +78,26 @@ export function UnsavedCollabServiceNotesTable() {
             <TableRow key={id}>
               <TableCell>{id}</TableCell>
               <TableCell>
-                {collabService.haveLocalChanges() ? <CheckIcon /> : <RemoveIcon />}
+                {collabService ? (
+                  collabService.haveLocalChanges() ? (
+                    <CheckIcon />
+                  ) : (
+                    <RemoveIcon />
+                  )
+                ) : (
+                  <QuestionMarkIcon />
+                )}
               </TableCell>
               <TableCell>
-                {collabService.haveSubmittedChanges() ? <CheckIcon /> : <RemoveIcon />}
+                {collabService ? (
+                  collabService.haveSubmittedChanges() ? (
+                    <CheckIcon />
+                  ) : (
+                    <RemoveIcon />
+                  )
+                ) : (
+                  <QuestionMarkIcon />
+                )}
               </TableCell>
             </TableRow>
           ))}

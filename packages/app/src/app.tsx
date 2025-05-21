@@ -2,6 +2,7 @@ import { AppBootstrapModuleProvider } from './bootstrap/components/AppBootstrapM
 import { AppDndModuleProvider } from './dnd/components/AppDndModuleProvider';
 import { AppGraphQLModuleProvider } from './graphql/components/AppGraphQLModuleProvider';
 import { AppNoteModuleProvider } from './note/components/AppNoteModuleProvider';
+import { AppPersistenceModuleProvider } from './persistence/components/AppPersistenceModuleProvider';
 import { AppRouterModuleProvider } from './router/components/AppRouterModuleProvider';
 import { AppThemeModuleProvider } from './theme/components/AppThemeModuleProvider';
 import { AppThirdPartyModuleProvider } from './third-party/components/AppThirdPartyModuleProvider';
@@ -13,19 +14,21 @@ export function App() {
   return (
     <AppBootstrapModuleProvider>
       <AppGraphQLModuleProvider restoringCacheFallback={<AppFallbackRestoringCache />}>
-        <AppThemeModuleProvider>
-          <AppThirdPartyModuleProvider>
-            <AppUtilsModuleProvider>
-              <AppUserModuleProvider>
-                <AppNoteModuleProvider>
-                  <AppDndModuleProvider>
-                    <AppRouterModuleProvider />
-                  </AppDndModuleProvider>
-                </AppNoteModuleProvider>
-              </AppUserModuleProvider>
-            </AppUtilsModuleProvider>
-          </AppThirdPartyModuleProvider>
-        </AppThemeModuleProvider>
+        <AppPersistenceModuleProvider>
+          <AppThemeModuleProvider>
+            <AppThirdPartyModuleProvider>
+              <AppUtilsModuleProvider>
+                <AppUserModuleProvider>
+                  <AppNoteModuleProvider>
+                    <AppDndModuleProvider>
+                      <AppRouterModuleProvider />
+                    </AppDndModuleProvider>
+                  </AppNoteModuleProvider>
+                </AppUserModuleProvider>
+              </AppUtilsModuleProvider>
+            </AppThirdPartyModuleProvider>
+          </AppThemeModuleProvider>
+        </AppPersistenceModuleProvider>
       </AppGraphQLModuleProvider>
     </AppBootstrapModuleProvider>
   );

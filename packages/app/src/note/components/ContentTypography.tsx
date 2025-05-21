@@ -1,9 +1,12 @@
-import { css, styled, Theme, Typography } from '@mui/material';
+import { css, Skeleton, styled, Theme, Typography } from '@mui/material';
+
+import { Suspense, useCallback } from 'react';
 
 import { gql } from '../../__generated__';
-import { NoteTextFieldName } from '../../__generated__/graphql';
 import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
-import { useTextFieldValue } from '../hooks/useTextFieldValue';
+import { NoteTextFieldName } from '../types';
+
+import { TextFieldValue } from './TextFieldValue';
 
 const _ContentTypography_NoteFragment = gql(`
   fragment ContentTypography_NoteFragment on Note {
@@ -18,15 +21,33 @@ interface TypographyStyledProps {
   };
 }
 
-export function ContentTypography(props: TypographyStyledProps) {
-  const value = useTextFieldValue(NoteTextFieldName.CONTENT) ?? '';
-
+export function ContentTypography(props: Parameters<typeof Loaded>[0]) {
   return (
-    <TypographyStyled aria-label="content" bottomGradient={props.bottomGradient}>
-      {value}
-    </TypographyStyled>
+    <>
+      <Suspense fallback={<FallbackStyled data-loading="true" />}>
+        <Loaded {...props} />
+      </Suspense>
+    </>
   );
 }
+
+function Loaded(props: TypographyStyledProps) {
+  const render = useCallback(
+    (value: string) =>
+      value && (
+        <TypographyStyled aria-label="content" bottomGradient={props.bottomGradient}>
+          {value}
+        </TypographyStyled>
+      ),
+    [props.bottomGradient]
+  );
+
+  return <TextFieldValue fieldName={NoteTextFieldName.CONTENT} render={render} />;
+}
+
+const FallbackStyled = styled(Skeleton)(css`
+  flex: 1 1 100%;
+`);
 
 const bottomGradient = {
   style: ({ bottomGradient, theme }: TypographyStyledProps & { theme: Theme }) => {

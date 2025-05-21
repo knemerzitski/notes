@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ApolloLink, execute, GraphQLRequest, Observable } from '@apollo/client';
 import { Kind } from 'graphql';
@@ -27,6 +28,7 @@ async function runLink(link: ApolloLink, inputValues: string[]) {
             },
             context: {
               data: value,
+              noteCollab: {} as any,
               getUserGate: vi.fn(),
             },
           }) satisfies GraphQLRequest

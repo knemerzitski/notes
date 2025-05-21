@@ -39,8 +39,6 @@ describe('recover from invalid data', () => {
       expect.objectContaining({
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         colorMode: expect.any(String),
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        apolloCacheVersion: expect.any(String),
       })
     );
   });
@@ -58,25 +56,4 @@ describe('recover from invalid colorMode', () => {
       );
     }
   );
-});
-
-describe('recover from invalid data apolloCacheVersion', () => {
-  it.each(['{"apolloCacheVersion":false}'])('%s', (data) => {
-    const { storage, cache } = init(data);
-
-    cache.set('apolloCacheVersion', '2');
-    expect(JSON.parse(storage.map.get('boot') ?? '')).toStrictEqual(
-      expect.objectContaining({ apolloCacheVersion: '2' })
-    );
-  });
-});
-
-it('apolloCacheVersion defaults to 0', () => {
-  const { storage, cache } = init('');
-
-  cache.set('colorMode', ColorMode.DARK);
-  expect(JSON.parse(storage.map.get('boot') ?? '')).toStrictEqual({
-    colorMode: 'DARK',
-    apolloCacheVersion: '0',
-  });
 });

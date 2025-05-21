@@ -4,22 +4,14 @@ import { useEffect, useState } from 'react';
 import { useCollabService } from '../hooks/useCollabService';
 
 export function CollabServiceStatus() {
-  const collabService = useCollabService(true);
+  const collabService = useCollabService();
   const [_renderCounter, setRenderCounter] = useState(0);
 
   useEffect(() => {
-    if (!collabService) {
-      return;
-    }
-
     return collabService.on('serverRevision:changed', () => {
       setRenderCounter((prev) => prev + 1);
     });
   });
-
-  if (!collabService) {
-    return null;
-  }
 
   return (
     <NoLayoutDiv

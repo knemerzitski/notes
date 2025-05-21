@@ -200,7 +200,7 @@ export function SubmitSelectionChangeDebounced({
 
       isSubmittingRef.current = true;
 
-      logger?.info('submitSelection', {
+      logger?.debug('submitSelection', {
         inputSelection,
         adjustedInputSelection,
         inputAsHeadTextSelection: serverSelection,

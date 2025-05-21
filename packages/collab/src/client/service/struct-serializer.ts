@@ -38,7 +38,7 @@ const ViewHistoryServiceRecordStruct = assign(
 const ServerHistoryServiceRecordStruct = object({
   type: literal('server'),
   revision: number(),
-  externrevisionalChanges: optional(number()),
+  untilRevision: optional(union([literal(true), number()])),
 });
 
 const HistoryServiceRecordStruct = union([
@@ -120,8 +120,12 @@ const StateStruct = object({
 });
 
 export class StructSerializer implements Serializer {
-  serialize(state: State): SerializedState {
-    return StateStruct.mask(state);
+  serialize(state: State, raw?: boolean): SerializedState {
+    if (raw) {
+      return StateStruct.createRaw(state);
+    } else {
+      return StateStruct.mask(state);
+    }
   }
 
   deserialize(serializedState: SerializedState): State {

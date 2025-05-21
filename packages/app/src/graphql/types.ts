@@ -9,8 +9,6 @@ import SerializingLink from 'apollo-link-serialize';
 
 import { Logger } from '../../../utils/src/logging';
 
-import { CustomTypePoliciesContext } from '../graphql-service';
-
 import { createGraphQLService } from './create/service';
 import { GateController, GateLink } from './link/gate';
 import { PersistLink } from './link/persist';
@@ -48,17 +46,25 @@ declare module '@apollo/client' {
      * @default false
      */
     skipAddUserMessageOnError?: boolean;
+
+    readonly module?: ModuleContext;
   }
+}
+
+export interface InitializeModuleContextOptions {
+  readonly logger?: Logger;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface ModuleContext {
+  // Extensible
 }
 
 export type TypePoliciesList = (CreateTypePoliciesFn | TypePolicies)[];
 
 export interface TypePoliciesContext {
   logger?: Logger;
-  custom: CustomTypePoliciesContext;
 }
-
-export type CustomTypePoliciesInitContext = Omit<TypePoliciesContext, 'custom'>;
 
 export type CreateTypePoliciesFn = (context: TypePoliciesContext) => TypePolicies;
 export type CreateTypePolicyFn = (context: TypePoliciesContext) => TypePolicy;

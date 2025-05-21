@@ -12,14 +12,9 @@ export function SubmittedRecordMutation() {
   const submittingRef = useRef(false);
 
   const noteId = useNoteId();
-  const maybeService = useCollabService(true);
+  const service = useCollabService();
 
   useEffect(() => {
-    if (!maybeService) {
-      return;
-    }
-    const service = maybeService;
-
     function update() {
       if (submittingRef.current) {
         return;
@@ -46,7 +41,7 @@ export function SubmittedRecordMutation() {
       eventBusOff();
       update();
     };
-  }, [maybeService, noteId, insertRecord]);
+  }, [service, noteId, insertRecord]);
 
   return null;
 }

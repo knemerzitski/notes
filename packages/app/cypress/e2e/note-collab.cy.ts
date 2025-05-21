@@ -10,9 +10,8 @@ import { MaybePromise } from '../../../utils/src/types';
 
 import { CollabService, Selection } from '../../../collab/src';
 
-import { NoteTextFieldName } from '../../src/__generated__/graphql';
 import { GraphQLService } from '../../src/graphql/types';
-import { NoteTextFieldEditor } from '../../src/note/types';
+import { NoteTextFieldEditor, NoteTextFieldName } from '../../src/note/types';
 import { AppStatus } from '../../src/utils/hooks/useAppStatus';
 import { createGraphQLService } from '../support/utils/graphql/create-graphql-service';
 import { persistCache } from '../support/utils/graphql/persist-cache';
@@ -371,7 +370,7 @@ beforeEach(() => {
       noteId,
     });
 
-    const { fields, collabService } = createCollabService({
+    const { fields, collabService } = await createCollabService({
       graphQLService,
       noteId,
       userId,
@@ -422,7 +421,7 @@ beforeEach(() => {
 
     // Init user 2, who will be programmatically controlled in the background
     await createGraphQLService({
-      storageKey: `apollo:cache:test:user2:${nextStorageKeyCounter++}`,
+      storageKeyPrefix: `test:user2:${nextStorageKeyCounter++}:`,
       logger: createLogger('user2:graphql'),
       debug: {
         logging: false,
@@ -457,7 +456,7 @@ beforeEach(() => {
         noteId,
       });
 
-      const { fields, collabService } = createCollabService({
+      const { fields, collabService } = await createCollabService({
         graphQLService,
         noteId,
         userId,

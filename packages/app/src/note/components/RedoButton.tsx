@@ -1,52 +1,56 @@
 import RedoIcon from '@mui/icons-material/Redo';
 import { IconButton, IconButtonProps, Tooltip } from '@mui/material';
-import { useEffect, useState } from 'react';
-
-import { CollabService } from '../../../../collab/src';
+import { Suspense, useEffect, useState } from 'react';
 
 import { useCollabService } from '../hooks/useCollabService';
 
-export function RedoButton(
-  props: Omit<Parameters<typeof CollabServiceDefined>[0], 'service'>
-) {
-  const collabService = useCollabService(true);
-
-  if (!collabService) {
-    return null;
-  }
-
-  return <CollabServiceDefined {...props} service={collabService} />;
+export function RedoButton(props: Parameters<typeof Loaded>[0]) {
+  return (
+    <Suspense fallback={<Fallback />}>
+      <Loaded {...props} />
+    </Suspense>
+  );
 }
 
-function CollabServiceDefined({
-  service,
+function Loaded({
   IconButtonProps,
 }: {
-  service: CollabService;
   IconButtonProps?: Omit<IconButtonProps, 'disabled' | 'aria-label' | 'onClick'>;
 }) {
-  const [canRedo, setCanRedo] = useState(service.canRedo());
+  const collabService = useCollabService();
+
+  const [canRedo, setCanRedo] = useState(collabService.canRedo());
 
   function handleClickRedo() {
-    if (!service.redo()) {
+    if (!collabService.redo()) {
       setCanRedo(false);
     }
   }
 
   useEffect(() => {
-    setCanRedo(service.canRedo());
-    return service.on(['localTyping:applied', 'records:updated'], () => {
-      setCanRedo(service.canRedo());
+    setCanRedo(collabService.canRedo());
+    return collabService.on(['localTyping:applied', 'records:updated'], () => {
+      setCanRedo(collabService.canRedo());
     });
-  }, [service]);
+  }, [collabService]);
 
   return (
-    <IconButton
+    <Base
       onClick={handleClickRedo}
       aria-label="history redo"
       disabled={!canRedo}
       {...IconButtonProps}
-    >
+    />
+  );
+}
+
+function Fallback() {
+  return <Base disabled={true} />;
+}
+
+function Base(props?: IconButtonProps) {
+  return (
+    <IconButton {...props}>
       <Tooltip title="Redo">
         <RedoIcon />
       </Tooltip>

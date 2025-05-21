@@ -1,15 +1,12 @@
 import './graphql/dev';
 
 import { PossibleTypesMap } from '@apollo/client';
-import { LocalStorageWrapper } from 'apollo3-cache-persist';
 
 import { GraphQLErrorCode } from '../../api-app-shared/src/graphql/error-codes';
 
 import { createLogger } from '../../utils/src/logging';
 
 import generatedPossibleTypes from './__generated__/possible-types.json';
-import { bootstrapCache } from './bootstrap';
-import { localStorageKey, LocalStoragePrefix } from './bootstrap/utils/local-storage-key';
 import { devGraphQLServiceActions } from './dev';
 import { devicePreferencesPolicies } from './device-preferences/policies';
 import { createGraphQLService } from './graphql/create/service';
@@ -20,10 +17,9 @@ import {
   MutationDefinitions,
   TypePoliciesList,
 } from './graphql/types';
-import { processCacheVersion } from './graphql/utils/process-cache-version';
 import { TaggedEvictOptionsList } from './graphql/utils/tagged-evict';
+import { noteContext } from './note/context';
 import {
-  userNoteLinkContext,
   noteEvictOptions,
   noteMutationDefinitions,
   notePolicies,
@@ -36,11 +32,8 @@ import {
   userPolicies,
 } from './user/policies';
 
-export const APOLLO_CACHE_VERSION = '4';
-
-// DESTRUCTIVE, CACHE VERSION MISMATCH
-// Any future cache breaking change must have a update/rollback to adjust cache
-const PURGE_APOLLO_CACHE = !processCacheVersion(bootstrapCache, APOLLO_CACHE_VERSION);
+export const DB_NAME = 'app';
+export const STORE_NAME = 'v1';
 
 const HTTP_URL = import.meta.env.PROD
   ? import.meta.env.VITE_GRAPHQL_HTTP_URL
@@ -50,18 +43,11 @@ const WS_URL = import.meta.env.PROD
   ? import.meta.env.VITE_GRAPHQL_WS_URL
   : `ws://${location.host}/graphql-ws`;
 
-const CUSTOM_TYPE_POLICIES_CONTEXT_INITIALIZERS = {
-  userNoteLink: userNoteLinkContext,
+const DEFAULT_CONTEXT_INITIALIZERS = {
+  note: noteContext,
 };
 
-export type CustomTypePoliciesContextInitializer =
-  typeof CUSTOM_TYPE_POLICIES_CONTEXT_INITIALIZERS;
-
-export type CustomTypePoliciesContext = {
-  [Key in keyof CustomTypePoliciesContextInitializer]: ReturnType<
-    CustomTypePoliciesContextInitializer[Key]
-  >;
-};
+export type DefaultContextInitializers = typeof DEFAULT_CONTEXT_INITIALIZERS;
 
 const TYPE_POLICIES_LIST: TypePoliciesList = [
   devicePreferencesPolicies,
@@ -92,17 +78,17 @@ const SERVICE_ACTIONS: GraphQLServiceAction[] = [...devGraphQLServiceActions];
 export function createDefaultGraphQLServiceParams(): Parameters<
   typeof createGraphQLService
 >[0] {
+  const override = window.appEnvironment?.overrideDefaultGraphQLServiceParams;
+
   return {
     httpUri: HTTP_URL,
     wsUrl: WS_URL,
     possibleTypesList: POSSIBLE_TYPES_LIST,
-    customTypePoliciesContextInitializer: CUSTOM_TYPE_POLICIES_CONTEXT_INITIALIZERS,
+    defaultContextInitializers: DEFAULT_CONTEXT_INITIALIZERS,
     typePoliciesList: TYPE_POLICIES_LIST,
     cacheReadyCallbacks: CACHE_READY_CALLBACKS,
     evictOptionsList: EVICT_OPTIONS_LIST,
     mutationDefinitions: MUTATION_DEFINITIONS,
-    storageKey: localStorageKey(LocalStoragePrefix.APOLLO, 'cache'),
-    storage: new LocalStorageWrapper(window.localStorage),
     linkOptions: {
       persist: {
         persistErrorCodes: [GraphQLErrorCode.UNAUTHENTICATED],
@@ -115,10 +101,22 @@ export function createDefaultGraphQLServiceParams(): Parameters<
         : undefined,
     },
     actions: SERVICE_ACTIONS,
-    purgeCache: PURGE_APOLLO_CACHE,
     logger: createLogger('graphql'),
-    ...(!import.meta.env.PROD &&
-      window.appEnvironment?.overrideDefaultGraphQLServiceParams),
+    ...(!import.meta.env.PROD && override),
+    storage: {
+      preferredType: 'indexedDB',
+      dbName: DB_NAME,
+      storeName: STORE_NAME,
+      keys: {
+        apolloCache: 'apollo-cache',
+        collabManager: 'collab-manager',
+      },
+      debounce: {
+        wait: 1500,
+        maxWait: 10000,
+      },
+      ...(!import.meta.env.PROD && override?.storage),
+    },
   };
 }
 

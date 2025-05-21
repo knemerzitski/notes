@@ -6,6 +6,7 @@ import { DefaultConnectionNotesTable } from './global/DefaultConnectionNotesTabl
 import { OngoingOperationsByNameList } from './global/OngoingOperationsByNameList';
 import { OngoingOperationsCountsByTypeTable } from './global/OngoingOperationsCountsByTypeTable';
 import { PendingNotesTable } from './global/PendingNotesTable';
+import { PrintLogApolloClient } from './global/PrintLogApolloClient';
 import { SimulateOfflineToggleButton } from './global/SimulateOfflineToggleButton';
 import { UnsavedCollabServiceNotesTable } from './global/UnsavedCollabServiceNotesTable';
 
@@ -24,8 +25,9 @@ export function GlobalDashCards() {
         <SimulateOfflineToggleButton />
       </DashCard>
 
-      <DashCard label="Cache GC">
+      <DashCard label="Apollo Client">
         <CacheGcButton />
+        <PrintLogApolloClient />
       </DashCard>
 
       <DashCard label="Ongoing Operations">

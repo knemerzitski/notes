@@ -7,21 +7,31 @@ import {
   PossibleTypesMap,
 } from '@apollo/client';
 import { isQueryOperation } from '@apollo/client/utilities';
-import { CachePersistor, PersistentStorage } from 'apollo3-cache-persist';
+
+import { createStore } from 'idb-keyval';
+import mapObject from 'map-obj';
 
 import { Logger } from '../../../../utils/src/logging';
 
-import { CustomTypePoliciesContextInitializer } from '../../graphql-service';
+import { DefaultContextInitializers } from '../../graphql-service';
+import { ApolloCachePersist } from '../../persistence/apollo-cache/persist';
+import { ApolloCacheRestore } from '../../persistence/apollo-cache/restore';
+import { Store } from '../../persistence/types';
+import { DebounceSetManyStoreBuffer } from '../../persistence/utils/debounce-set-many-store-buffer';
+import { DeferredRestorer } from '../../persistence/utils/deferred-restorer';
+import { GetManyStoreBatcher } from '../../persistence/utils/get-many-batcher';
+import { IndexedDBStore } from '../../persistence/utils/idb-store';
+import { LocalStorageStore } from '../../persistence/utils/local-storage-store';
 import {
   CacheReadyCallbacks,
-  CustomTypePoliciesInitContext,
   GraphQLServiceAction,
   MutationDefinitions,
-  TypePoliciesContext,
   TypePoliciesList,
+  InitializeModuleContextOptions,
+  ModuleContext,
 } from '../types';
-import { CacheRestorer } from '../utils/cache-restorer';
 
+import { CacheEvictionTracker } from '../utils/eviction-tracker';
 import { createOnlineGate } from '../utils/online-gate';
 import { TaggedEvict, TaggedEvictOptionsList } from '../utils/tagged-evict';
 import { createUsersGates, initUsersGates } from '../utils/user-gate';
@@ -40,15 +50,13 @@ export function createGraphQLService({
   terminatingLink,
   httpOptions,
   possibleTypesList,
-  customTypePoliciesContextInitializer,
+  defaultContextInitializers,
   typePoliciesList,
   cacheReadyCallbacks,
   evictOptionsList,
   mutationDefinitions,
-  storageKey,
   storage,
   skipRestoreCache = false,
-  purgeCache = false,
   linkOptions,
   actions,
   logger,
@@ -67,13 +75,11 @@ export function createGraphQLService({
    */
   httpOptions?: Omit<HttpOptions, 'uri'>;
   possibleTypesList?: PossibleTypesMap[];
-  customTypePoliciesContextInitializer: CustomTypePoliciesContextInitializer;
+  defaultContextInitializers: DefaultContextInitializers;
   typePoliciesList: TypePoliciesList;
   cacheReadyCallbacks: CacheReadyCallbacks;
   evictOptionsList: TaggedEvictOptionsList;
   mutationDefinitions: MutationDefinitions;
-  storageKey: string;
-  storage: PersistentStorage<string>;
   /**
    * Call persistor.restore() immediately.
    * Restore status can be checked in `restorer`.
@@ -81,10 +87,24 @@ export function createGraphQLService({
    */
   skipRestoreCache?: boolean;
   /**
-   * Deletes the cache
+   * Deletes all data from storage
    * @default false
    */
-  purgeCache?: boolean;
+  storage: {
+    custom?: Store;
+    preferredType?: 'indexedDB' | 'localStorage';
+    dbName: string;
+    storeName: string;
+    keyPrefix?: string;
+    keys: {
+      apolloCache: string;
+      collabManager: string;
+    };
+    debounce: Pick<
+      ConstructorParameters<typeof DebounceSetManyStoreBuffer>[1],
+      'wait' | 'maxWait'
+    >;
+  };
   linkOptions?: Parameters<typeof createLinks>[0]['options'];
   actions?: GraphQLServiceAction[];
   logger?: Logger;
@@ -101,44 +121,44 @@ export function createGraphQLService({
     cache.policies.addPossibleTypes(possibleTypes);
   });
 
-  const persistor = new CachePersistor({
+  const storageKeyPrefix = storage.keyPrefix ?? '';
+  const store =
+    storage.custom ??
+    (typeof window.indexedDB !== 'undefined' &&
+    (storage.preferredType === 'indexedDB' || storage.preferredType === undefined)
+      ? new IndexedDBStore(createStore(storage.dbName, storage.storeName))
+      : new LocalStorageStore(window.localStorage, {
+          keyPrefix: `${storage.dbName}:${storage.storeName}:`,
+        }));
+
+  const debounceStoreBuffer = new DebounceSetManyStoreBuffer(store, storage.debounce);
+  const getManyStoreBatcher = new GetManyStoreBatcher(store);
+
+  const _apolloCachePersist = new ApolloCachePersist({
+    key: `${storageKeyPrefix}${storage.keys.apolloCache}`,
     cache,
-    key: storageKey,
-    storage,
+    storeBuffer: debounceStoreBuffer,
+  });
+  const apolloCacheRestore = new ApolloCacheRestore({
+    key: `${storageKeyPrefix}${storage.keys.apolloCache}`,
+    cache,
+    store: getManyStoreBatcher,
   });
 
-  if (purgeCache) {
-    void persistor.purge();
-  }
-
-  const restorer = new CacheRestorer(persistor);
+  const deferredRestorer = new DeferredRestorer(apolloCacheRestore);
   if (!skipRestoreCache) {
-    void restorer.restore();
+    void deferredRestorer.restore();
   }
 
   createRunCacheReadyCallbacks({
     callbacks: cacheReadyCallbacks,
-    restorer,
+    restorer: deferredRestorer,
     cache,
   });
 
-  const typePoliciesInitContext: CustomTypePoliciesInitContext = {
+  const typePolicies = createTypePolicies(typePoliciesList, {
     logger,
-  };
-
-  const typePoliciesContext: TypePoliciesContext = {
-    ...typePoliciesInitContext,
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    custom: Object.fromEntries(
-      Object.entries(customTypePoliciesContextInitializer).map(([key, init]) => [
-        key,
-        init(typePoliciesInitContext),
-      ])
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ) as any,
-  };
-
-  const typePolicies = createTypePolicies(typePoliciesList, typePoliciesContext);
+  });
 
   addTypePolicies(typePolicies, cache);
 
@@ -157,7 +177,7 @@ export function createGraphQLService({
 
   const disposeOnlineGate = createOnlineGate(links.pick.gateLink);
   const getUserGate = createUsersGates(links.pick.gateLink);
-  void restorer.restored().then(() => {
+  void deferredRestorer.restored().then(() => {
     initUsersGates(getUserGate, cache);
   });
 
@@ -180,9 +200,28 @@ export function createGraphQLService({
     }
   );
 
+  const initializeContextOptions: InitializeModuleContextOptions = {
+    logger,
+    cache,
+    evictionTracker: new CacheEvictionTracker(cache),
+    store: {
+      get: getManyStoreBatcher.get.bind(getManyStoreBatcher),
+    },
+    storeBuffer: debounceStoreBuffer,
+    collabManager: {
+      storeKeyPrefix: `${storageKeyPrefix}${storage.keys.collabManager}:`,
+    },
+  };
+
+  const moduleContext: ModuleContext = mapObject(
+    defaultContextInitializers,
+    (key, init) => [key, init(initializeContextOptions)]
+  );
+
   const defaultContext: DefaultContext = {
     getUserGate,
     taggedEvict,
+    module: moduleContext,
   };
 
   const apolloClient = new ApolloClient({
@@ -224,9 +263,9 @@ export function createGraphQLService({
 
   const result = {
     client: apolloClient,
-    typePoliciesContext,
-    persistor,
-    restorer,
+    moduleContext,
+    persistor: debounceStoreBuffer,
+    restorer: deferredRestorer,
     wsClient,
     links: links.pick,
     mutationUpdaterFnMap,

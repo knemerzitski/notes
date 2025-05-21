@@ -1,29 +1,10 @@
-import { gql } from '@apollo/client';
-
-import { CollabService } from '../../../../../collab/src';
-
-import { Note, NoteTextFieldName, User } from '../../../../src/__generated__/graphql';
+import { Note, User } from '../../../../src/__generated__/graphql';
 import { GraphQLService } from '../../../../src/graphql/types';
 
-import { NoteTextFieldEditor } from '../../../../src/note/types';
+import { NoteTextFieldEditor, NoteTextFieldName } from '../../../../src/note/types';
+import { getUserNoteLinkId } from '../../../../src/note/utils/id';
 
-const Test_CreateCollabService_Query = gql(`
-  query Test_CreateCollabService_Query($userBy: UserByInput!, $noteBy: NoteByInput!) {
-    signedInUser(by: $userBy) {
-      id
-      noteLink(by: $noteBy) {
-        id
-        collabService
-        textFields {
-          name
-          editor
-        }
-      }
-    }
-  }
-`);
-
-export function createCollabService({
+export async function createCollabService({
   userId,
   noteId,
   graphQLService,
@@ -32,35 +13,19 @@ export function createCollabService({
   userId: User['id'];
   noteId: Note['id'];
 }) {
-  const data = graphQLService.client.cache.readQuery<{
-    signedInUser: {
-      id: string;
-      noteLink: {
-        id: string;
-        collabService: CollabService;
-        textFields: { name: NoteTextFieldName; editor: NoteTextFieldEditor }[];
-      };
-    };
-  }>({
-    query: Test_CreateCollabService_Query,
-    variables: {
-      userBy: {
-        id: userId,
-      },
-      noteBy: {
-        id: noteId,
-      },
-    },
-  });
+  const collabManager = graphQLService.moduleContext.note.collabManager;
 
-  if (!data) {
-    throw new Error(`Unexpected null data when createCollabService for note "${noteId}"`);
-  }
+  const fieldCollab = (
+    await collabManager.loadOrCreate(getUserNoteLinkId(noteId, userId))
+  ).fieldCollab;
 
   return {
-    collabService: data.signedInUser.noteLink.collabService,
+    collabService: fieldCollab.service,
     fields: Object.fromEntries(
-      data.signedInUser.noteLink.textFields.map(({ name, editor }) => [name, editor])
+      Object.values(NoteTextFieldName).map((field) => [
+        field,
+        fieldCollab.getField(field),
+      ])
     ) as Record<NoteTextFieldName, NoteTextFieldEditor>,
   };
 }
