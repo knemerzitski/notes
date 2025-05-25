@@ -882,6 +882,8 @@ describe('with initial text', () => {
   it('shows user 2 caret from recent record', () => {
     cy.visit(noteRoute());
 
+    shouldContentHaveValue('[above]\n\n[below]\n');
+
     cy.then(() => {
       // [above]>\n\n[below]\n
       user2.editor.content.select(8);
