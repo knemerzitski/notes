@@ -139,11 +139,20 @@ export function useCollabHtmlInput(
     });
   }, [editor, logger]);
 
-  // Request focus when undo or redo
+  // Request focus when undo or redo and current element is an input
   useEffect(
     () =>
       editor.on(['redo:applied', 'undo:applied'], ({ type }) => {
         logger?.debug(`eventBus.${type}`);
+        const el = document.activeElement;
+        if (!el) {
+          return;
+        }
+
+        if (!(el instanceof HTMLInputElement) && !(el instanceof HTMLTextAreaElement)) {
+          return;
+        }
+
         inputRef.current?.focus();
       }),
     [editor, logger]
