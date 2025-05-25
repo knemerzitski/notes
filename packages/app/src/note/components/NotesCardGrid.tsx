@@ -63,6 +63,10 @@ const BoxStyled = styled(Box)(
   ({ theme }) => css`
     display: grid;
 
+    /* Override ol padding and margin */
+    padding: 0;
+    margin: 0;
+
     ${theme.breakpoints.up('xs')} {
       grid-template-columns: 100%;
       grid-auto-rows: 200px;
