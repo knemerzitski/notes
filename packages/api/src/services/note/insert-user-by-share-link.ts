@@ -76,6 +76,11 @@ export async function insertUserByShareLink({
                   },
                 },
               },
+              collabText: {
+                headRecord: {
+                  revision: 1,
+                },
+              },
             },
           },
           {
@@ -126,6 +131,10 @@ export async function insertUserByShareLink({
           createdAt: new Date(),
           readOnly: shareLink.permissions?.user?.readOnly ?? false,
         };
+        if (note.collabText) {
+          newNoteUser.collabTextHeadRevisionAtCreation =
+            note.collabText.headRecord.revision;
+        }
 
         await insertNoteUser({
           mongoDB: {

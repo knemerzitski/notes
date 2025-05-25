@@ -210,7 +210,7 @@ export class CollabServiceManager<TFieldName extends string> {
 
     this.byUserNoteLinkId.delete(userNoteLinkId);
 
-    item.userNoteLinkIdToRecordsFacade.facade.dispose();
+    item.userNoteLinkIdToRecordsFacade.dispose();
   }
 
   private trackEviction(userNoteLinkId: string) {

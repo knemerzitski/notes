@@ -30,6 +30,12 @@ type UserNoteLink implements Node {
   Access to note is read-only. User cannot modify the note.
   """
   readOnly: Boolean!
+
+  """
+  CollabText revision where this user history starts. User cannot have
+  records past this revision.
+  """
+  historyTailRevision: Int!
 }
 
 extend type Note {

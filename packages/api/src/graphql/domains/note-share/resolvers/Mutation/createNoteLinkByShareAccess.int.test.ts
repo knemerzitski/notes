@@ -171,6 +171,7 @@ it('links existing note and creates UserNote with access to note', async () => {
           _id: otherUser._id,
           categoryName: NoteCategory.DEFAULT,
           createdAt: expect.any(Date),
+          collabTextHeadRevisionAtCreation: 1,
           readOnly: true,
         },
       ]),

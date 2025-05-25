@@ -14,6 +14,10 @@ const HistoryRestoration_Query = gql(`
   query HistoryRestoration_Query($userBy: UserByInput!, $noteBy: NoteByInput!, $before: NonNegativeInt!, $last: PositiveInt!){
     signedInUser(by: $userBy) {
       id
+      noteLink(by: $noteBy) {
+        id
+        historyTailRevision
+      }
       note(by: $noteBy) {
         id
         collabText {
@@ -101,10 +105,11 @@ function HaveMoreRecords({
   const collabService = useCollabService();
 
   const isFetchingRef = useRef(false);
+  const haveReachedTailRef = useRef(false);
 
   useEffect(() => {
     async function attemptFetchMore() {
-      if (isFetchingRef.current) {
+      if (isFetchingRef.current || haveReachedTailRef.current) {
         return;
       }
 
@@ -185,7 +190,7 @@ function HaveMoreRecords({
           collabTextAt: getCollabTextAt(noteId, tailRevision, client.cache),
         });
 
-        await client.query({
+        const { data } = await client.query({
           query: HistoryRestoration_Query,
           variables: {
             userBy: {
@@ -199,6 +204,13 @@ function HaveMoreRecords({
           },
           fetchPolicy: 'network-only',
         });
+
+        if (
+          recordsBeforeRevision - recordsLast <=
+          data.signedInUser.noteLink.historyTailRevision
+        ) {
+          haveReachedTailRef.current = true;
+        }
 
         // Cache update will emit 'records:update' event from CacheRecordsFacade
         // Event flow: Cache update => CacheRecordsFacade => CollabService

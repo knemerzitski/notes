@@ -85,6 +85,8 @@ export class CollabTextRecordsFacade implements CollabServiceServerFacade {
 
   private collabTextDataId: string;
 
+  private tailRevision: number | null = null;
+
   private unsubscribe?: () => void;
 
   constructor(
@@ -95,6 +97,14 @@ export class CollabTextRecordsFacade implements CollabServiceServerFacade {
     >
   ) {
     this.updateCollabTextId(collabTextId);
+  }
+
+  setTailRevision(value: number) {
+    this.tailRevision = value;
+
+    this.eventBus.emit('records:updated', {
+      facade: this,
+    });
   }
 
   updateCollabTextId(collabTextId: string) {
@@ -217,6 +227,10 @@ export class CollabTextRecordsFacade implements CollabServiceServerFacade {
   }
 
   *beforeIterable(beforeRevision: number): Iterable<CollabServiceServerFacadeRecord> {
+    if (this.tailRevision !== null && beforeRevision <= this.tailRevision) {
+      return;
+    }
+
     const records = this.readRecords({
       before: beforeRevision,
     });
@@ -234,6 +248,10 @@ export class CollabTextRecordsFacade implements CollabServiceServerFacade {
   }
 
   hasBefore(beforeRevision: number): boolean {
+    if (this.tailRevision !== null && beforeRevision <= this.tailRevision) {
+      return false;
+    }
+
     const collabText = this.cache.readFragment({
       id: this.collabTextDataId,
       fragment: CacheRecordsFacadeWatchRecords_CollabTextFragment,

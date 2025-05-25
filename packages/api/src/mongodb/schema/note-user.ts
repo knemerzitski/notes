@@ -8,6 +8,7 @@ import {
   optional,
   boolean,
   InferRaw,
+  number,
 } from 'superstruct';
 
 /**
@@ -59,6 +60,11 @@ export const NoteUserSchema = object({
       originalCategoryName: string(),
     })
   ),
+  /**
+   * When user is linked to note, remember headRecord.revision at that moment.
+   * It's an optimization to to abort history undo past this revision.
+   */
+  collabTextHeadRevisionAtCreation: optional(number()),
 });
 
 export type DBNoteUserSchema = InferRaw<typeof NoteUserSchema>;

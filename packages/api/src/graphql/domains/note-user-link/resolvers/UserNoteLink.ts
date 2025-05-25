@@ -24,6 +24,7 @@ export const UserNoteLink: Pick<
   UserNoteLinkResolvers,
   | 'categoryName'
   | 'deletedAt'
+  | 'historyTailRevision'
   | 'id'
   | 'isOwner'
   | 'note'
@@ -120,5 +121,16 @@ export const UserNoteLink: Pick<
         }
       ),
     };
+  },
+  historyTailRevision: async (parent, _arg, _ctx) => {
+    const queryNoteUser = createNoteUserQuery(parent);
+
+    return (
+      (
+        await queryNoteUser({
+          collabTextHeadRevisionAtCreation: 1,
+        })
+      )?.collabTextHeadRevisionAtCreation ?? -1
+    );
   },
 };
