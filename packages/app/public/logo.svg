@@ -27,14 +27,14 @@
      borderlayer="true"
      shape-rendering="auto"
      inkscape:zoom="1"
-     inkscape:cx="157.5"
-     inkscape:cy="330.5"
+     inkscape:cx="94.5"
+     inkscape:cy="255.5"
      inkscape:window-width="1920"
      inkscape:window-height="1017"
      inkscape:window-x="1912"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer1" />
+     inkscape:current-layer="layer2" />
   <defs
      id="defs1">
     <clipPath
@@ -52,36 +52,26 @@
      inkscape:groupmode="layer"
      id="layer1">
     <rect
-       style="fill:#6344ff;fill-opacity:1;stroke-width:0.265885;stroke-linecap:round;paint-order:normal"
+       style="fill:#ffbc05;fill-opacity:1;stroke-width:0.265885;stroke-linecap:round;paint-order:normal"
        id="rect2"
        width="74.083336"
        height="86.254166"
        x="30.691664"
        y="24.606249"
        ry="7.4035192" />
-    <rect
-       style="fill:#5836e9;fill-opacity:1;stroke-width:0.265885;stroke-linecap:round;paint-order:normal"
-       id="rect2-1"
-       width="74.083336"
-       height="86.254166"
-       x="30.691664"
-       y="24.606249"
-       ry="7.4035192"
-       clip-path="url(#clipPath2)"
-       inkscape:label="rect2-1-clip" />
     <path
-       style="fill:none;stroke:#000000;stroke-width:7.9375;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
-       d="M 43.656249,47.625001 H 93.133332"
+       style="fill:none;stroke:#000000;stroke-width:5.29167;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
+       d="M 42.333333,47.625001 H 94.456249"
        id="path5"
        sodipodi:nodetypes="cc" />
     <path
-       style="fill:none;stroke:#000000;stroke-width:7.9375;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
-       d="M 43.656249,66.145834 H 66.145833"
+       style="fill:none;stroke:#000000;stroke-width:5.29167;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
+       d="M 42.333334,66.145834 H 64.822918"
        id="path5-5"
        sodipodi:nodetypes="cc" />
     <path
-       style="fill:none;stroke:#000000;stroke-width:7.9375;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
-       d="m 84.666666,66.145834 h 8.466666"
+       style="fill:none;stroke:#000000;stroke-width:5.29167;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
+       d="m 84.666666,66.145834 h 9.789583"
        id="path5-5-8"
        sodipodi:nodetypes="cc" />
   </g>
