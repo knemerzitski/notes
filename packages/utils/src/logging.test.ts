@@ -6,7 +6,7 @@ import { createLogger } from './logging';
 beforeAll(() => {
   debug.enable('*');
   vi.useFakeTimers();
-  vi.setSystemTime(new Date(2000, 0, 2, 0, 0, 0, 0));
+  vi.setSystemTime(946684800000);
 });
 
 afterAll(() => {
@@ -36,6 +36,7 @@ describe('extend', () => {
 it('allows overriding console', () => {
   const infoFn = vi.fn();
   const logger = createLogger('root', {
+    format: 'json',
     console: {
       info: infoFn,
       debug: vi.fn(),
@@ -49,7 +50,7 @@ it('allows overriding console', () => {
   expect(infoFn.mock.calls).toMatchInlineSnapshot(`
     [
       [
-        "2000-01-01T22:00:00.000Z root:INFO %s",
+        "2000-01-01T00:00:00.000Z root:INFO %s",
         "hi",
       ],
     ]
@@ -59,6 +60,7 @@ it('allows overriding console', () => {
 it('allows anything as message', () => {
   const infoFn = vi.fn();
   const logger = createLogger('root', {
+    format: 'json',
     console: {
       info: infoFn,
       debug: vi.fn(),
@@ -72,7 +74,7 @@ it('allows anything as message', () => {
   expect(infoFn.mock.calls).toMatchInlineSnapshot(`
     [
       [
-        "2000-01-01T22:00:00.000Z root:INFO {"message":{"foo":"bar"}}",
+        "2000-01-01T00:00:00.000Z root:INFO {"message":{"foo":"bar"}}",
       ],
     ]
   `);
