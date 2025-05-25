@@ -1177,6 +1177,7 @@ describe('with history', () => {
 
     shouldContentHaveValue('123');
 
+    user1.editor.content.select(0);
     user1.editor.content.insert('a');
     shouldContentHaveValue('a123');
 
