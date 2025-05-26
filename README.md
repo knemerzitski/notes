@@ -1,94 +1,163 @@
 # Notes
-A single page note keeping app with collaborative editing capabilities powered by AWS Lambda.
 
-- Front-end: React web app with [Apollo Client](https://www.apollographql.com/docs/react/), [Material UI](https://mui.com/)
-- Back-end: GraphQL API with [Apollo Server](https://www.apollographql.com/docs/apollo-server), [MongoDB](https://www.mongodb.com/)
+A modern, single-page note-taking app with real-time collaborative editing, built as a serverless application on AWS Lambda.
 
-# Getting Started
+- **Front-end:** React web app using [Apollo Client](https://www.apollographql.com/docs/react/) and [Material UI](https://mui.com/)
+- **Back-end:** GraphQL API powered by [Apollo Server](https://www.apollographql.com/docs/apollo-server), [MongoDB](https://www.mongodb.com/) (for data), and [DynamoDB](https://aws.amazon.com/dynamodb/) (for WebSocket subscription state)
 
-[Docker](https://www.docker.com/) must be running to create local database containers.
+## Demo
 
-1. Install dependencies `npm install`
-2. Run in development mode `npm run dev`
-3. Open in browser `http://localhost:5173`
+[![Demo](./packages/app/docs/demo.gif)](https://notes.knemerzitski.com)
 
-# Motivation
-I wanted to develop a robust app that I would use myself. Since I take notes
-daily to help organize my life, I thought it would be a fun and motivating topic to work on.
+## Features
 
-I could just keep using an already existing app like Google Keep. Implementing collaborative
-editing is reinventing the wheel since there are libraries I could use. But then I wouldn't 
-learn as much and I wanted to have a technical challenge. When starting this project
-I had no idea what I was getting myself into and it has taken me much longer that expected
-but it's been worth given all what I've learned.
+- Real-time collaborative editing with operational transformation
+- Per-user version history
+- Full offline support with Progressive Web App (PWA) features
+- Live presence and caret position tracking for collaborators
+- Secure note sharing via unique links and QR codes
+- Multi-account support, including a privacy-focused local-only account
+- Drag-and-drop note organization
+- Responsive, high-performance user interface
+- Mobile-friendly design
+- Dark mode
+- Serverless, cost-efficient architecture using managed cloud services
 
-# Architecture
-I chose serverless specifically because I want to keep the app running and I don't expect
-it to have high demand since it's mostly my portfolio project. It made no sense
-to pay for a server.
+## Getting Started
 
-I'm experienced with relational databases. I wanted to know how
-non-relational databases work, so I chose MongoDB. It has good integration with
-AWS services and plenty of resources.
+**Prerequisites:**
 
-Architecture diagram
+- [Docker](https://www.docker.com/) (for local MongoDB and DynamoDB)
+- [Node.js](https://nodejs.org/) (v22+ recommended)
+- [AWS CLI](https://aws.amazon.com/cli/) (optional, for deployment)
+
+**Development:**
+
+1. Install dependencies: `npm install`
+2. Start development mode: `npm run dev`
+3. Open [http://localhost:5173](http://localhost:5173) in your browser
+
+## Motivation
+
+I built this project to showcase my ability to develop robust, full-stack applications using modern web technologies and cloud-native architectures. 
+Note-taking is a widely applicable use case that highlights core challenges of most web apps, including real-time sync and offline-first design. 
+By leveraging managed cloud services like AWS Lambda, MongoDB, and DynamoDB, I aimed to build a scalable, serverless solution aligned with current industry demands.
+
+## Architecture
+
+Notes is designed to be always available and cost-effective by leveraging AWS Lambda and other managed services. 
+MongoDB is used for its flexible schema and easy integration with AWS. 
+The architecture supports real-time collaboration and sharing without the need for a dedicated server.
+
+**Architecture diagram:**  
 ![Architecture overview](packages/infra/docs/architecture-overview.png)
 
-# Packages Overview
+## Packages Overview
 
-## collab
-Contains the building blocks for collaborative editing.  
-Operational transformations are implemented based on [easysync-full-description](https://github.com/ether/etherpad-lite/blob/v2.1.0/doc/public/easysync/easysync-full-description.pdf).
+- **collab:**  
+  Core collaborative editing logic, including operational transformation based on [easysync-full-description](./packages/collab/docs/easysync-full-description.pdf).
+- **api:**  
+  GraphQL API logic, MongoDB schemas, and DataLoader for efficient data fetching.
+- **lambda-graphql:**  
+  Lambda handlers for GraphQL HTTP requests and WebSocket subscriptions. Subscription state is managed in DynamoDB.  
+  Based on [Graphql Lambda Subscriptions](https://github.com/reconbot/graphql-lambda-subscriptions).
+- **app:**  
+  React front-end with account management, note sharing, and local notes.
+- **infra:**  
+  AWS CDK code for deploying infrastructure as CloudFormation templates.
+- **api-dev-server:**  
+  Local development server that adapts Lambda handlers for Express and WebSocket, enabling fast local development.
 
-## api
-API Logic is implemented in GraphQL resolvers. Contains MongoDB schemas. Uses DataLoader for
-deduplication.
+## Testing
 
-## lambda-graphql
-Contains core Lambda handlers functionality for supporting GraphQL API.  
-- Handler containing Apollo Server for handling HTTP requests 
-- Handler containing logic for handling GraphQL subscriptions from API Gateway WebSocket connections.  
-Subscriptions state is stored in DynamoDB tables.
+This project includes:
 
-Initial code is based on project [Graphql Lambda Subscriptions](https://github.com/reconbot/graphql-lambda-subscriptions).
+- **Unit and integration tests** (run with [Vitest](https://vitest.dev/))
+- **End-to-end tests** for the app (run with [Cypress](https://www.cypress.io/))
 
-## app
-TODO write docs 
+**To run all tests locally:**
 
-- Supports multiple accounts
-- Note sharing via links
-- Local only notes
-- Google sign in
+1. Install dependencies: `npm install`
+2. Build all packages: `npm run ci:step:build`
+3. Start local databases (required for integration and end-to-end tests): `npm run db:start`
+4. Run all tests: `npm run test`
 
-## infra
-Contains AWS CDK code which is deployed as CloudFormation template.
+**To visually run Cypress end-to-end tests only:**
 
-## api-dev-server
-API development server is an adapter between a stateful server and Lambda handlers.
-It transforms HTTP requests/responses into appropriate shapes.
-Uses packages `express`, `http` and `ws`.
+1. Start local databases: `npm run db:start`
+2. Build API for local usage: `npm run -w dev-server build`
+3. Start test version of the API: `npm run api:start:test`
+4. Build test version of the app: `npm run -w app build:test`
+5. Start test version of the app: `npm run app:start:test`
+6. Open Cypress UI: `npm run cypress`
 
-This makes development much quicker than using something like AWS `sam local start-api`, which
-doesn't support WebSockets.
+Cypress end-to-end tests can also be run in headless mode:
 
-# Tests
-TODO write docs
+```bash
+npm run -w app test:e2e:run
+```
 
-# Deploying
-TODO write docs 
+**To check code coverage:**
 
-[AWS CLI](https://aws.amazon.com/cli/) must be installed and properly set up with an account.
+Packages `app` and `collab` have coverage installed. 
+Run them with package-specific commands, e.g. `npm run -w collab coverage`.
 
-# Stack
-- Typescript
+Tests are also run automatically on each pull request via GitHub Actions.
+
+## Deployment
+
+**Prerequisites:**
+
+- [Node.js](https://nodejs.org/) (v22+)
+- [AWS CLI](https://aws.amazon.com/cli/) installed and configured (`aws configure`)
+
+**Steps:**
+
+1. Clone the repository and install dependencies:
+   ```bash
+   git clone https://github.com/knemerzitski/notes.git
+   cd notes
+   npm install
+   ```
+2. Create and fill `.env.production.local` with your production configuration.  
+   See `.env.example` for required variables.
+3. Build the project:
+   ```bash
+   npm run ci:step:build
+   ```
+4. Deploy infrastructure with AWS CDK:
+   ```bash
+   npm run deploy
+   ```
+
+**After deployment:**
+
+- The output will include the deployed app’s URL.
+- Visit the URL to verify the deployment.
+
+**To remove the deployed stack:**
+
+```bash
+(cd packages/infra && npx cdk destroy)
+```
+
+## Stack
+
 - React
+- Material UI
 - Vite
-- React Material UI
-- Docker
+- PWA
 - Apollo GraphQL
-- AWS Lambda
+- WebSockets
 - MongoDB
 - DynamoDB
+- AWS Lambda
+- AWS CDK
+- Docker
+- GitHub Actions
+- TypeScript
+- Vitest
 
-# License
-Notes is [MIT-licensed](LICENSE).
+## License
+
+Notes is [MIT licensed](./LICENSE).
