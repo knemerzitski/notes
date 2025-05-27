@@ -685,12 +685,17 @@ describe('with initial text', () => {
 
         shouldHaveRevision(initialHeadRevision);
 
-        cy.then(() => {
+        cy.then(async () => {
+          await new Promise((res) => {
+            setTimeout(res, 50);
+          });
           user2.editor.content.select(userBG.select);
           user2.editor.content.insert(userBG.insert, {
             delay: userBG.delay,
           });
         });
+
+        shouldHaveRevision(initialHeadRevision);
 
         user1.editor.content.select(userUI.select);
         user1.editor.content.insert(userUI.insert, {
