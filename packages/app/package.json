@@ -34,7 +34,7 @@
     "type-check": "tsc --noEmit --project tsconfig.tsc.json",
     "lint": "npm run type-check && npm run eslint",
     "gen-demo-gif": "NODE_ENV=test GIF=1 cypress run && mkdir -p tmp && npm run gen-demo-gif:ffmpeg",
-    "gen-demo-gif:crop": "ffmpeg -y -i cypress/videos/gen-demo-gif.cy.ts.mp4 -ss 10.5 -vf 'crop=799:601:624:80' tmp/crop.mp4",
+    "gen-demo-gif:crop": "ffmpeg -y -i cypress/videos/gen-demo-gif.cy.ts.mp4 -ss 10 -to 20 -vf 'crop=799:601:624:80' tmp/crop.mp4",
     "gen-demo-gif:palette": "ffmpeg -y -i tmp/crop.mp4 -vf 'fps=15,scale=800:-1:flags=lanczos,palettegen' tmp/palette.png",
     "gen-demo-gif:gif": "ffmpeg -y -i tmp/crop.mp4 -i tmp/palette.png -filter_complex 'fps=15,scale=800:-1:flags=lanczos[x];[x][1:v]paletteuse=dither=bayer:bayer_scale=5' docs/demo.gif",
     "gen-demo-gif:ffmpeg": "npm run gen-demo-gif:crop && npm run gen-demo-gif:palette && npm run gen-demo-gif:gif"

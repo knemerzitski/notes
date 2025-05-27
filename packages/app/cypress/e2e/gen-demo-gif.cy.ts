@@ -384,13 +384,13 @@ it('generate gif for demo', () => {
           const index = value.indexOf('ysers');
           bgCarol.editor.content.select(index + 1);
           await new Promise((res) => {
-            setTimeout(res, 400);
+            setTimeout(res, 500);
           });
           bgCarol.editor.content.delete(1);
           await new Promise((res) => {
-            setTimeout(res, 200);
+            setTimeout(res, 400);
           });
-          await insertDelayed(bgCarol, 'content', ['u'], 300);
+          await insertDelayed(bgCarol, 'content', ['u'], 350);
         })
         .then(() => {
           // Carol replaces "together" with "in real time"
@@ -400,7 +400,7 @@ it('generate gif for demo', () => {
             const value = bgCarol.editor.content.value;
             const index = value.indexOf('edit together.');
             bgCarol.editor.content.select(index + 5, index + 13);
-            await insertDelayed(bgCarol, 'content', ['in', ' real', ' time'], 250);
+            await insertDelayed(bgCarol, 'content', ['in', ' real', ' time'], 300);
           });
         })
         .then(async () => {
@@ -409,7 +409,7 @@ it('generate gif for demo', () => {
             setTimeout(res, 1000);
           });
           bgCarol.editor.content.select(-1);
-          void insertDelayed(bgCarol, 'content', ['Try', ' it', ' yourself', '!'], 600);
+          void insertDelayed(bgCarol, 'content', ['Try', ' ', 'it', ' yourself', '!'], 550);
         });
 
       // Alice types to title then undos are redos history
@@ -424,25 +424,25 @@ it('generate gif for demo', () => {
         delay: 20,
       });
 
-      cy.wait(100);
+      cy.wait(200);
       undoButton(noteId).click();
-      cy.wait(100);
+      cy.wait(200);
       undoButton(noteId).click();
-      cy.wait(100);
+      cy.wait(200);
       undoButton(noteId).click();
-      cy.wait(100);
+      cy.wait(200);
       undoButton(noteId).click();
 
       cy.wait(500);
       redoButton(noteId).click();
-      cy.wait(50);
+      cy.wait(80);
       redoButton(noteId).click();
-      cy.wait(50);
+      cy.wait(80);
       redoButton(noteId).click();
-      cy.wait(50);
+      cy.wait(80);
       redoButton(noteId).click();
 
-      cy.wait(2000);
+      cy.wait(3000);
     });
   });
 });
