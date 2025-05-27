@@ -60,9 +60,10 @@ export default async ({ mode, isPreview }: ConfigEnv) => {
               manifest: {
                 name: 'Notes',
                 short_name: 'Notes',
-                description: 'Collaborative note taking app',
+                description:
+                  'Real-time collaborative note-taking with offline support, sharing, and organization.',
                 start_url: '/',
-                theme_color: '#92fde1',
+                theme_color: '#87e8cf',
                 background_color: '#ffffff',
                 display: 'standalone',
                 icons: [

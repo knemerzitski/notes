@@ -30,7 +30,23 @@ export default defineConfig({
       videoCompression: false,
     }),
 
+    ...(process.env.GIF && {
+      defaultBrowser: 'chrome',
+      specPattern: 'cypress/e2e/gen-demo-gif.cy.ts',
+      viewportWidth: 800,
+      viewportHeight: 600,
+    }),
+
     setupNodeEvents(on, config) {
+      if (process.env.GIF) {
+        on('before:browser:launch', (browser, launchOptions) => {
+          if (browser.name === 'chrome') {
+            launchOptions.args.push('--window-size=1600,1200');
+          }
+          return launchOptions;
+        });
+      }
+
       on('file:preprocessor', vitePreprocessor());
 
       e2e_setupNodeEvents(on, config);

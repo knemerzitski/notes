@@ -1,6 +1,6 @@
 import { css, Skeleton, styled, Theme, Typography } from '@mui/material';
 
-import { Suspense, useCallback } from 'react';
+import { Suspense } from 'react';
 
 import { gql } from '../../__generated__';
 import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
@@ -32,17 +32,11 @@ export function ContentTypography(props: Parameters<typeof Loaded>[0]) {
 }
 
 function Loaded(props: TypographyStyledProps) {
-  const render = useCallback(
-    (value: string) =>
-      value && (
-        <TypographyStyled aria-label="content" bottomGradient={props.bottomGradient}>
-          {value}
-        </TypographyStyled>
-      ),
-    [props.bottomGradient]
+  return (
+    <TypographyStyled aria-label="content" bottomGradient={props.bottomGradient}>
+      <TextFieldValue fieldName={NoteTextFieldName.CONTENT} />
+    </TypographyStyled>
   );
-
-  return <TextFieldValue fieldName={NoteTextFieldName.CONTENT} render={render} />;
 }
 
 const FallbackStyled = styled(Skeleton)(css`

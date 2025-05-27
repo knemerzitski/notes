@@ -2,17 +2,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { faker } from '@faker-js/faker';
-import mitt, { ReadEmitter } from 'mitt';
 
 import { createLogger } from '../../../utils/src/logging';
 
 import { MaybePromise } from '../../../utils/src/types';
 
-import { CollabService, Selection } from '../../../collab/src';
-
-import { GraphQLService } from '../../src/graphql/types';
-import { NoteTextFieldEditor, NoteTextFieldName } from '../../src/note/types';
+import { NoteTextFieldName } from '../../src/note/types';
 import { AppStatus } from '../../src/utils/hooks/useAppStatus';
+import { CyElementField } from '../support/e2e/collab-users/cy-element-field';
+import { SimpleTextField } from '../support/e2e/collab-users/simple-text-field';
+import { SimpleTextFieldsOperationsQueue } from '../support/e2e/collab-users/simple-text-fields-operations-queue';
+import { FieldEditor, Field, UserContext } from '../support/e2e/collab-users/types';
 import { createGraphQLService } from '../support/utils/graphql/create-graphql-service';
 import { persistCache } from '../support/utils/graphql/persist-cache';
 import { createCollabService } from '../support/utils/note/create-collab-service';
@@ -25,304 +25,6 @@ import { syncHeadText } from '../support/utils/note/sync-head-text';
 import { updateOpenNoteSelectionRange } from '../support/utils/note/update-open-note-selection-range';
 import { signIn } from '../support/utils/user/sign-in';
 import { userSubscription } from '../support/utils/user/user-subscription';
-
-interface UserContext {
-  userId: string;
-  type: 'interface' | 'background';
-  graphQLService: GraphQLService;
-  collabService: {
-    service: CollabService;
-    fields: Record<NoteTextFieldName, NoteTextFieldEditor>;
-  };
-  editor: Record<Field, FieldEditor>;
-  submitChanges: () => Promise<void>;
-}
-
-interface TextOperationOptions {
-  delay?: number;
-  /**
-   * Don't queue operation for submission.
-   * @default false
-   */
-  noSubmit?: boolean;
-}
-
-interface FieldEditor {
-  getValue(): PromiseLike<string>;
-  insert(value: string, options?: TextOperationOptions): void;
-  delete(count: number, options?: TextOperationOptions): void;
-  select(start: number, end?: number, options?: TextOperationOptions): void;
-  selectOffset(offset: number, options?: TextOperationOptions): void;
-}
-
-type TextOperation = (
-  | {
-      type: 'insert';
-      value: string;
-    }
-  | {
-      type: 'delete';
-      count: number;
-    }
-  | {
-      type: 'selectOffset';
-      offset: Selection;
-    }
-) & {
-  simpleField: SimpleTextField;
-  options?: TextOperationOptions;
-};
-
-class SimpleTextField implements FieldEditor {
-  readonly eventBus = mitt<{
-    selectionChanged: undefined;
-  }>();
-
-  selection = Selection.ZERO;
-  selectionRevision: number;
-
-  get value() {
-    return this.field.value;
-  }
-
-  constructor(
-    readonly field: NoteTextFieldEditor,
-    private readonly service: CollabService,
-    private readonly queue: SimpleTextFieldsOperationsQueue
-  ) {
-    this.field.on('selection:changed', ({ newSelection }) => {
-      this.selection = newSelection;
-    });
-
-    field.on('selection:changed', ({ newSelection }) => {
-      this.selection = newSelection;
-      this.selectionRevision = service.serverRevision;
-    });
-
-    field.on('externalTyping:applied', ({ changeset }) => {
-      const newSelection = this.selection.follow(changeset, true);
-
-      this.selection = newSelection;
-      this.selectionRevision = this.service.serverRevision;
-    });
-  }
-
-  getValue(): PromiseLike<string> {
-    return Promise.resolve(this.field.value);
-  }
-
-  private _insert(value: string, options?: TextOperationOptions) {
-    if (options?.noSubmit) {
-      this.field.insert(value, this.selection);
-    } else {
-      this.queue.pushOperation({
-        simpleField: this,
-        type: 'insert',
-        value,
-        options,
-      });
-    }
-  }
-
-  insert(value: string, options?: TextOperationOptions) {
-    const delay = options?.delay ?? 10;
-    if (delay <= 0) {
-      this._insert(value, options);
-    } else {
-      value.split('').forEach((char) => {
-        this._insert(char, {
-          ...options,
-          delay,
-        });
-      });
-    }
-  }
-
-  _delete(count: number, options?: TextOperationOptions) {
-    if (options?.noSubmit) {
-      this.field.delete(count, this.selection);
-    } else {
-      this.queue.pushOperation({
-        simpleField: this,
-        type: 'delete',
-        count,
-        options,
-      });
-    }
-  }
-
-  delete(count: number, options?: TextOperationOptions) {
-    const delay = options?.delay ?? 10;
-    if (delay <= 0) {
-      this._delete(count, options);
-    } else {
-      [...new Array<undefined>(count)].forEach(() => {
-        this._delete(1, options);
-      });
-    }
-  }
-
-  select(start: number, end?: number, options?: Omit<TextOperationOptions, 'noSubmit'>) {
-    this.queue.pushOperation({
-      simpleField: this,
-      type: 'selectOffset',
-      offset: Selection.create(start, end).subtract(this.selection),
-      options,
-    });
-  }
-
-  selectOffset(offset: number, options?: Omit<TextOperationOptions, 'noSubmit'>) {
-    this.queue.pushOperation({
-      simpleField: this,
-      type: 'selectOffset',
-      offset: Selection.create(offset),
-      options,
-    });
-  }
-
-  getServiceSelection() {
-    return {
-      revision: this.selectionRevision,
-      selection: this.field.toServiceSelection(this.selection),
-    };
-  }
-}
-
-class SimpleTextFieldsOperationsQueue {
-  private _eventBus = mitt<{
-    doneExecutingOperations: undefined;
-  }>();
-  get eventBus(): ReadEmitter<{
-    doneExecutingOperations: undefined;
-  }> {
-    return this._eventBus;
-  }
-
-  private isExeceutingOperations = false;
-  private queue: TextOperation[] = [];
-  private prevOperationTime = 0;
-
-  constructor(
-    private readonly service: CollabService,
-    private readonly submitChanges: () => Promise<void>
-  ) {}
-
-  executingOperations() {
-    return new Promise<void>((res) => {
-      if (this.queue.length === 0) {
-        res();
-      } else {
-        const off = this._eventBus.on('doneExecutingOperations', () => {
-          off();
-          res();
-        });
-      }
-    });
-  }
-
-  pushOperation(op: TextOperation) {
-    this.queue.push(op);
-    void this.executeAllQueuedOperations();
-  }
-
-  /**
-   * Execute operations one at a time waiting for submitted record to be acknowledged
-   */
-  private async executeAllQueuedOperations() {
-    if (this.isExeceutingOperations) {
-      return;
-    }
-
-    this.isExeceutingOperations = true;
-    try {
-      let op: TextOperation | undefined;
-      while ((op = this.queue.shift()) !== undefined) {
-        const delay = op.options?.delay ?? 0;
-
-        const timeElapsed = Date.now() - this.prevOperationTime;
-        const timeout = delay - timeElapsed;
-
-        if (timeout > 0) {
-          await new Promise((res) => {
-            setTimeout(res, timeout);
-          });
-        }
-
-        // Wait for submitted ack
-        if (this.service.haveSubmittedChanges()) {
-          await new Promise((res) => {
-            const off = user2.collabService.service.on(
-              'submittedChanges:acknowledged',
-              () => {
-                off();
-                res(true);
-              }
-            );
-          });
-        }
-
-        this.prevOperationTime = Date.now();
-
-        if (op.type === 'insert') {
-          op.simpleField.field.insert(op.value, op.simpleField.selection);
-          await this.submitChanges();
-        } else if (op.type === 'delete') {
-          op.simpleField.field.delete(op.count, op.simpleField.selection);
-          await this.submitChanges();
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-        } else if (op.type === 'selectOffset') {
-          const newSelection = op.simpleField.selection.add(op.offset);
-          if (!op.simpleField.selection.isEqual(newSelection)) {
-            op.simpleField.selection = newSelection;
-            op.simpleField.selectionRevision = this.service.serverRevision;
-            op.simpleField.eventBus.emit('selectionChanged');
-          }
-        }
-      }
-    } finally {
-      this.isExeceutingOperations = false;
-      this._eventBus.emit('doneExecutingOperations');
-    }
-  }
-}
-
-class CyElementField implements FieldEditor {
-  constructor(private readonly getChainableEl: () => Cypress.Chainable<JQuery>) {}
-
-  getValue() {
-    return this.getChainableEl()
-      .invoke('val')
-      .then((value) => {
-        if (typeof value !== 'string') {
-          throw new Error(`Unexpected value is not string "${String(value)}"`);
-        }
-        return value;
-      });
-  }
-
-  insert(value: string, _options?: TextOperationOptions) {
-    this.getChainableEl().type(value);
-  }
-
-  delete(count: number, _options?: TextOperationOptions) {
-    this.getChainableEl().type('{backspace}'.repeat(count));
-  }
-
-  selectOffset(offset: number, _options?: TextOperationOptions): void {
-    this.getChainableEl().moveSelectionRange(offset);
-  }
-
-  select(start: number, end?: number, _options?: TextOperationOptions) {
-    const selection = Selection.create(start, end);
-    this.getChainableEl().setSelectionRange(selection.start, selection.end);
-  }
-
-  type(value: string, options?: TextOperationOptions) {
-    this.getChainableEl().type(value, options);
-  }
-}
-
-type Field = 'title' | 'content';
 
 let user1: UserContext & {
   editor: Record<Field, CyElementField>;
@@ -983,12 +685,17 @@ describe('with initial text', () => {
 
         shouldHaveRevision(initialHeadRevision);
 
-        cy.then(() => {
+        cy.then(async () => {
+          await new Promise((res) => {
+            setTimeout(res, 50);
+          });
           user2.editor.content.select(userBG.select);
           user2.editor.content.insert(userBG.insert, {
             delay: userBG.delay,
           });
         });
+
+        shouldHaveRevision(initialHeadRevision);
 
         user1.editor.content.select(userUI.select);
         user1.editor.content.insert(userUI.insert, {

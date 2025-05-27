@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "clean": "rimraf out/* out-dev/* out-test/* out-dev-pwa/* .eslintcache coverage/* analyze.html app.log",
+    "clean": "rimraf out/* out-dev/* out-test/* out-dev-pwa/* .eslintcache coverage/* analyze.html app.log tmp/*",
     "graphql:gen:code": "graphql-codegen",
     "graphql:gen:types": "VITE_GRAPHQL_HTTP_URL=http://localhost:4020/graphql vite-node scripts/gen-possible-types.ts -f src/__generated__",
     "graphql:gen": "npm run graphql:gen:code && npm run graphql:gen:types",
@@ -19,6 +19,7 @@
     "test:e2e": "export NODE_ENV=test PORT=4010 APP_PORT=6173 DEBUG=*:ERROR,*:INFO; npm run -w dev-server start:detached && npm run vite:preview:start:detached && npm run test:e2e:run; OK=$?; npm run -w dev-server stop; npm run vite:preview:stop; exit $OK",
     "test:e2e:run": "cypress run --e2e",
     "test": "npm run test:unit && npm run test:comp && npm run test:e2e",
+    "coverage": "vitest run --coverage",
     "vite:build": "vite build",
     "vite:dev": "vite --host",
     "vite:preview": "vite preview --host",
@@ -31,7 +32,12 @@
     "eslint": "eslint . --cache --max-warnings 0",
     "eslint:lint-staged": "eslint --fix --max-warnings 0 --no-warn-ignored",
     "type-check": "tsc --noEmit --project tsconfig.tsc.json",
-    "lint": "npm run type-check && npm run eslint"
+    "lint": "npm run type-check && npm run eslint",
+    "gen-demo-gif": "NODE_ENV=test GIF=1 cypress run && mkdir -p tmp && npm run gen-demo-gif:ffmpeg",
+    "gen-demo-gif:crop": "ffmpeg -y -i cypress/videos/gen-demo-gif.cy.ts.mp4 -ss 10.5 -vf 'crop=799:601:624:80' tmp/crop.mp4",
+    "gen-demo-gif:palette": "ffmpeg -y -i tmp/crop.mp4 -vf 'fps=15,scale=800:-1:flags=lanczos,palettegen' tmp/palette.png",
+    "gen-demo-gif:gif": "ffmpeg -y -i tmp/crop.mp4 -i tmp/palette.png -filter_complex 'fps=15,scale=800:-1:flags=lanczos[x];[x][1:v]paletteuse=dither=bayer:bayer_scale=5' docs/demo.gif",
+    "gen-demo-gif:ffmpeg": "npm run gen-demo-gif:crop && npm run gen-demo-gif:palette && npm run gen-demo-gif:gif"
   },
   "dependencies": {
     "@apollo/client": "npm:@knemerzitski/apollo-client@^3.12.0",

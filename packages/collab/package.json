@@ -9,6 +9,7 @@
     "test:unit:w": "vitest watch",
     "test": "npm run test:unit",
     "test:w": "npm run test:unit:w",
+    "coverage": "vitest run --coverage", 
     "prettify": "prettier --write --ignore-unknown src",
     "eslint": "eslint . --cache --max-warnings 0",
     "eslint:lint-staged": "eslint --fix --max-warnings 0 --no-warn-ignored",

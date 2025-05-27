@@ -8,6 +8,7 @@ coverage
 cypress/screenshots
 cypress/videos
 analyze.html
+tmp
 
 # PWA generated assets
 public/apple-touch-icon-180x180.png
