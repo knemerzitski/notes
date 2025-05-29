@@ -22,6 +22,7 @@ A modern, single-page note-taking app with real-time collaborative editing, buil
 - Mobile-friendly design
 - Dark mode
 - Serverless, cost-efficient architecture using managed cloud services
+- Infinite scroll with cursor-based pagination and auto-refresh for notes
 
 ## Getting Started
 
@@ -39,14 +40,14 @@ A modern, single-page note-taking app with real-time collaborative editing, buil
 
 ## Motivation
 
-I built this project to showcase my ability to develop robust, full-stack applications using modern web technologies and cloud-native architectures. 
-Note-taking is a widely applicable use case that highlights core challenges of most web apps, including real-time sync and offline-first design. 
+I built this project to showcase my ability to develop robust, full-stack applications using modern web technologies and cloud-native architectures.
+Note-taking is a widely applicable use case that highlights core challenges of most web apps, including real-time sync and offline-first design.
 By leveraging managed cloud services like AWS Lambda, MongoDB, and DynamoDB, I aimed to build a scalable, serverless solution aligned with current industry demands.
 
 ## Architecture
 
-Notes is designed to be always available and cost-effective by leveraging AWS Lambda and other managed services. 
-MongoDB is used for its flexible schema and easy integration with AWS. 
+Notes is designed to be always available and cost-effective by leveraging AWS Lambda and other managed services.
+MongoDB is used for its flexible schema and easy integration with AWS.
 The architecture supports real-time collaboration and sharing without the need for a dedicated server.
 
 **Architecture diagram:**  
@@ -99,7 +100,7 @@ npm run -w app test:e2e:run
 
 **To check code coverage:**
 
-Packages `app` and `collab` have coverage installed. 
+Packages `app` and `collab` have coverage installed.
 Run them with package-specific commands, e.g. `npm run -w collab coverage`.
 
 Tests are also run automatically on each pull request via GitHub Actions.
