@@ -1,7 +1,7 @@
 /* eslint-disable cypress/no-unnecessary-waiting */
  
  
- 
+
 import { MaybePromise } from '../../../utils/src/types';
 
 import { ColorMode } from '../../src/__generated__/graphql';
@@ -315,6 +315,50 @@ it('generate gif for demo', () => {
         },
       },
     });
+
+    async function simpleCreateNote(
+      title: string | undefined,
+      content: string | undefined
+    ) {
+      await createNote({
+        graphQLService: uiAlice.graphQLService,
+        userId: uiAlice.userId,
+        initialText: {
+          [NoteTextFieldName.TITLE]: title,
+          [NoteTextFieldName.CONTENT]: content,
+        },
+      });
+    }
+
+    async function batchSimpleCreateNote(
+      values: [string | undefined, string | undefined][]
+    ) {
+      for (const value of values) {
+        // Create notes one at time to ensure correct order
+        await simpleCreateNote(...value);
+      }
+    }
+
+    await batchSimpleCreateNote([
+      [
+        'Meeting Agenda',
+        '1. Discuss project updates\n2. Plan next steps\n3. Assign tasks\n4. Q&A',
+      ],
+      ['Shopping List', '1. Milk\n2. Eggs\n3. Bread\n4. Butter\n5. Fruits'],
+      [
+        'Quick Ideas',
+        'Build a mobile app for note sharing\nAdd dark mode support\nIntegrate with calendar',
+      ],
+      [
+        'Reading List',
+        '"Clean Code" by a Guy\n"Atomic Planet" by Foo\n"The Palatable Programmer"',
+      ],
+      ['Travel Checklist', '- Passport\n- Tickets\n- Charger\n- Toiletries'],
+      [
+        'Daily Reflection',
+        'Today I learned about real-time collaboration in web apps. Looking forward to applying these concepts in future projects!',
+      ],
+    ]);
 
     noteId = uiAlice.noteId;
 
