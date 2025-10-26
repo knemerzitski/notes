@@ -1,6 +1,6 @@
 import { ObjectId, SearchIndexDescription } from 'mongodb';
 
-import { array, Infer, InferRaw, instance, object, optional } from 'superstruct';
+import { array, Infer, InferRaw, instance, object, optional, string } from 'superstruct';
 
 import { CollectionDescription } from '../collections';
 
@@ -20,6 +20,18 @@ export const NoteSchema = object({
   collabText: optional(CollabTextSchema),
 
   shareLinks: optional(array(ShareNoteLinkSchema)),
+
+  /**
+   * Note is used for demo purposes
+   */
+  demo: optional(
+    object({
+      /**
+       * ID used for demo purposes to identify different demo notes
+       */
+      id: string(),
+    })
+  ),
 });
 
 export type DBNoteSchema = InferRaw<typeof NoteSchema>;

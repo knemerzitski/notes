@@ -2,6 +2,8 @@ import { ObjectId } from 'mongodb';
 
 import {
   array,
+  boolean,
+  date,
   defaulted,
   Infer,
   InferRaw,
@@ -57,6 +59,21 @@ export const UserSchema = object({
       () => ({})
     ),
     () => ({})
+  ),
+  /**
+   * User used for demo purposes. Gets reset periodically
+   */
+  demo: optional(
+    object({
+      /**
+       * ID used for demo purposes to identify different demo users
+       */
+      id: string(),
+      /**
+       * Date when all user related data is reset back to seed defaults
+       */
+      resetAt: date(),
+    })
   ),
 });
 
