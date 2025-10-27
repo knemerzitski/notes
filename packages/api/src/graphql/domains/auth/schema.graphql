@@ -114,6 +114,36 @@ type GoogleAuthProviderUser implements AuthProviderUser {
   email: String!
 }
 
+################################ Mutation signIn - DEMO ################################
+
+"""
+TODO desc
+"""
+input DemoSignInAuthInput {
+  """
+  Hardcoded user demo id
+  """
+  id: String!
+}
+
+extend input SignInAuthInput {
+  demo: DemoSignInAuthInput
+}
+
+"""
+TODO desc
+"""
+type DemoAuthProviderUser implements AuthProviderUser {
+  """
+  Demo userId
+  """
+  id: ID!
+  """
+  Generated from demo userId
+  """
+  email: String!
+}
+
 ################################ Mutation signOut ################################
 
 """

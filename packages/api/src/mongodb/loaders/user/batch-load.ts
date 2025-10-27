@@ -129,6 +129,58 @@ class GoogleUserIdProcessor implements BatchLoadIdProcessor<string> {
   }
 }
 
+class DemoIdProcessor implements BatchLoadIdProcessor<string> {
+  private readonly ids: Set<string>;
+  private readonly resultById: Record<string, Document> = {};
+
+  constructor(keys: readonly QueryableUserLoaderKey[]) {
+    this.ids = new Set(
+      keys
+        .map((key) => ('demoId' in key.id ? key.id.demoId : undefined))
+        .filter(isDefined)
+    );
+  }
+
+  getIds(): string[] {
+    return [...this.ids];
+  }
+
+  addIdToQuery(query: QueryDeep<InferRaw<typeof QueryableUser>>): void {
+    if (this.ids.size === 0) return;
+
+    query.demo = {
+      ...query.demo,
+      id: 1,
+    };
+  }
+
+  getMatchStage(): Document | undefined {
+    if (this.ids.size === 0) return;
+    return {
+      'demo.id': {
+        $in: this.getIds(),
+      },
+    };
+  }
+
+  addResult(result: Document): void {
+    if (this.ids.size === 0) return;
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    const demoId = result.demo.id;
+    if (typeof demoId !== 'string') {
+      throw new Error('Expected User.demo.id to be string');
+    }
+
+    this.resultById[demoId] = result;
+  }
+
+  getResultById(id: QueryableUserId): Document | undefined {
+    if (!('demoId' in id)) return;
+    return this.resultById[id.demoId];
+  }
+}
+
 export async function batchLoad(
   keys: readonly QueryableUserLoaderKey[],
   context: QueryableUserLoadContext
@@ -136,6 +188,7 @@ export async function batchLoad(
   const idProcessors: BatchLoadIdProcessor<unknown>[] = [
     new UserIdProcessor(keys),
     new GoogleUserIdProcessor(keys),
+    new DemoIdProcessor(keys),
   ];
 
   const idQuery: QueryDeep<InferRaw<typeof QueryableUser>> = {};
@@ -218,9 +271,11 @@ async function _queryableUserBatchLoadSeparatePerId(
                 $match: {
                   ...('userId' in firstId
                     ? { _id: firstId.userId }
-                    : {
-                        'thirdParty.google.id': firstId.googleUserId,
-                      }),
+                    : 'demoId' in firstId
+                      ? { 'demo.id': firstId.demoId }
+                      : {
+                          'thirdParty.google.id': firstId.googleUserId,
+                        }),
                 },
               },
               ...aggregatePipeline,
