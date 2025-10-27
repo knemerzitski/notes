@@ -13,13 +13,20 @@ const RESET_INTERVAL = 24 * 60 * 60 * 1000;
 /**
  * Resets demo data. Existing demo users and notes are deleted.
  */
-export async function resetJob(mongoDB: {
-  client: MongoClient;
-  collections: Pick<
-    MongoDBCollections,
-    CollectionName.USERS | CollectionName.NOTES | CollectionName.COLLAB_RECORDS
-  >;
-}) {
+export async function resetJob(
+  enabled: boolean,
+  mongoDB: {
+    client: MongoClient;
+    collections: Pick<
+      MongoDBCollections,
+      CollectionName.USERS | CollectionName.NOTES | CollectionName.COLLAB_RECORDS
+    >;
+  }
+) {
+  if (!enabled) {
+    return;
+  }
+
   const configModel = await ConfigModel.create(mongoDB.client.db(), {
     interval: RESET_INTERVAL,
   });

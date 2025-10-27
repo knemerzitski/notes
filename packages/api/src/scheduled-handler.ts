@@ -65,10 +65,7 @@ export function createScheduledHandler(options?: CreateScheduledHandlerOptions):
         logger,
       });
 
-      if (IS_DEMO_MODE) {
-        logger.info('runDemoResetJob');
-        await runDemoResetJob(mongoDB);
-      }
+      await runDemoResetJob(IS_DEMO_MODE, mongoDB);
 
       return {
         statusCode: 200,

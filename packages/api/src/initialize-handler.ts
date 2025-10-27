@@ -44,10 +44,7 @@ export function createInitializeHandler(
         searchIndexes: hasAtlasSearch,
       });
 
-      if (IS_DEMO_MODE) {
-        logger.debug('initalizeDemoJob');
-        await initalizeDemoJob(mongoDB);
-      }
+      await initalizeDemoJob(IS_DEMO_MODE, mongoDB);
 
       return {
         statusCode: 200,
