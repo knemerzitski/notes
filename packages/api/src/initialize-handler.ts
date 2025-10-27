@@ -6,9 +6,13 @@ import { createLogger, Logger } from '../../utils/src/logging';
 import { createAllIndexes, MongoDBCollections } from './mongodb/collections';
 import { MongoDBContext } from './mongodb/context';
 import { createDefaultMongoDBContext } from './parameters';
+import { isEnvironmentVariableTruthy } from '../../utils/src/string/is-environment-variable-truthy';
+import { initalizeDemoJob } from './demo';
 
 const TIER = process.env.MONGODB_TIER;
 const hasAtlasSearch = TIER === 'enterprise';
+
+const IS_DEMO_MODE = isEnvironmentVariableTruthy(process.env.DEMO);
 
 export interface CreateInitializeHandlerOptions {
   override?: {
@@ -39,6 +43,11 @@ export function createInitializeHandler(
       await createAllIndexes(mongoDB.collections, {
         searchIndexes: hasAtlasSearch,
       });
+
+      if (IS_DEMO_MODE) {
+        logger.debug('initalizeDemoJob');
+        await initalizeDemoJob(mongoDB);
+      }
 
       return {
         statusCode: 200,

@@ -49,6 +49,13 @@ export const noteDescription: CollectionDescription = {
       sparse: true,
       unique: true,
     },
+    {
+      key: {
+        'demo.id': 1,
+      },
+      unique: true,
+      sparse: true,
+    },
   ],
 };
 

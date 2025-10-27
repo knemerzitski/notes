@@ -69,10 +69,6 @@ export const UserSchema = object({
        * ID used for demo purposes to identify different demo users
        */
       id: string(),
-      /**
-       * Date when all user related data is reset back to seed defaults
-       */
-      resetAt: date(),
     })
   ),
 });
@@ -85,6 +81,13 @@ export const userDescription: CollectionDescription = {
   indexSpecs: [
     {
       key: { 'thirdParty.google.id': 1 },
+      unique: true,
+      sparse: true,
+    },
+    {
+      key: {
+        'demo.id': 1,
+      },
       unique: true,
       sparse: true,
     },

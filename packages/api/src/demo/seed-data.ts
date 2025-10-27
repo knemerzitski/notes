@@ -1,6 +1,6 @@
 import { NoteCategory } from '../graphql/domains/types.generated';
 
-export type SeedItem = DemoUser | DemoNote | DemoShare;
+export type SeedItem = DemoUser | DemoNote | DemoNoteUser;
 
 export interface DemoUser {
   type: 'user';
@@ -16,12 +16,11 @@ export interface DemoNote {
   category: NoteCategory;
 }
 
-export interface DemoShare {
-  type: 'share';
-  id: string;
+export interface DemoNoteUser {
+  type: 'demo-note-user';
   noteId: string;
-  usersIds: string[];
-  ownderIds: string[];
+  userId: string;
+  isOwner: boolean;
 }
 
 export const SEED_DATA: readonly SeedItem[] = [
@@ -43,10 +42,15 @@ export const SEED_DATA: readonly SeedItem[] = [
     category: NoteCategory.DEFAULT,
   },
   {
-    type: 'share',
-    id: 'demo-share-1',
+    type: 'demo-note-user',
     noteId: 'demo-note-1',
-    usersIds: ['demo-user-1', 'demo-user-2'],
-    ownderIds: ['demo-user-1'],
+    userId: 'demo-user-1',
+    isOwner: true,
+  },
+  {
+    type: 'demo-note-user',
+    noteId: 'demo-note-1',
+    userId: 'demo-user-2',
+    isOwner: false,
   },
 ];
