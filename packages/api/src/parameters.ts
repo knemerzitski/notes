@@ -24,6 +24,7 @@ import { ApolloServerLogger } from './graphql/plugins/apollo-server-logger';
 import { ApiOptions } from './graphql/types';
 import { createCollectionInstances } from './mongodb/collections';
 import { createMongoDBContext } from './mongodb/context';
+import { isDemoMode } from './demo';
 
 export function createDefaultApiOptions(): ApiOptions {
   return {
@@ -49,6 +50,7 @@ export function createDefaultApiOptions(): ApiOptions {
     collabText: {
       maxRecordsCount: 500,
     },
+    demoMode: isDemoMode(process.env),
   };
 }
 

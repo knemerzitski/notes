@@ -14,14 +14,14 @@ import { preExecuteObjectField } from '../../../../utils/pre-execute';
 import { MutationResolvers, ResolversTypes } from '../../../types.generated';
 import { isEnvironmentVariableTruthy } from '../../../../../../../utils/src/string/is-environment-variable-truthy';
 
-const IS_DEMO_MODE = isEnvironmentVariableTruthy(process.env.DEMO);
-
 const _signIn: NonNullable<MutationResolvers['signIn']> = async (
   _parent,
   arg,
   ctx,
   info
 ) => {
+  const isDemoMode = ctx.options.demoMode ?? false;
+
   const { mongoDB, services } = ctx;
 
   const { input } = arg;
@@ -122,7 +122,7 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
       },
     };
   } else if (input.auth.demo) {
-    if (!IS_DEMO_MODE) {
+    if (!isDemoMode) {
       throw new Error('Illegal signIn. Demo mode is not enabled.');
     }
 
