@@ -15,6 +15,16 @@ const _UseTextFieldValue_NoteFragment = gql(`
         revision
         text
       }
+      recordConnection(last: 1) {
+        edges {
+          node {
+            ...MapRecord_CollabTextRecordFragment
+          }
+        }
+        pageInfo {
+          hasPreviousPage
+        }
+      }
     }
   }
 `);
