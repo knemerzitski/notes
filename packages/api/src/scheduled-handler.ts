@@ -8,10 +8,10 @@ import { MongoDBCollections } from './mongodb/collections';
 import { MongoDBContext } from './mongodb/context';
 import { batchDeleteExpiredNotes } from './mongodb/models/note/batch-delete-expired-notes';
 import { createDefaultMongoDBContext } from './parameters';
-import { isEnvironmentVariableTruthy } from '../../utils/src/string/is-environment-variable-truthy';
-import { runDemoResetJob } from './demo';
+import { demoResetInterval, isDemoMode, runDemoJob } from './demo';
 
-const IS_DEMO_MODE = isEnvironmentVariableTruthy(process.env.DEMO);
+const IS_DEMO_MODE = isDemoMode(process.env);
+const DEMO_RESET_INTERVAL = demoResetInterval(process.env);
 
 export interface CreateScheduledHandlerOptions {
   override?: {
@@ -65,7 +65,16 @@ export function createScheduledHandler(options?: CreateScheduledHandlerOptions):
         logger,
       });
 
-      await runDemoResetJob(IS_DEMO_MODE, mongoDB);
+      await runDemoJob(
+        IS_DEMO_MODE,
+        {
+          resetInterval: DEMO_RESET_INTERVAL,
+        },
+        {
+          ...mongoDB,
+          logger: logger.extend('demo'),
+        }
+      );
 
       return {
         statusCode: 200,

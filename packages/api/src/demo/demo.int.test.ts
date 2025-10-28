@@ -5,11 +5,11 @@ import {
   resetDatabase,
 } from '../__tests__/helpers/mongodb/instance';
 import { ObjectId } from 'mongodb';
-import { clear } from './clear';
+import { clearSeed } from './clear-seed';
 import { populateNotes } from '../__tests__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../__tests__/helpers/mongodb/populate/populate-queue';
 import { withTransaction } from '../mongodb/utils/with-transaction';
-import { seedIfNotExists } from './seed';
+import { seedIfNotExists } from './seed-if-not-exists';
 import { SEED_DATA } from './seed-data';
 
 beforeAll(async () => {
@@ -93,7 +93,7 @@ it('seed and clear', async () => {
   await populateExecuteAll();
 
   await withTransaction(mongoClient, ({ runSingleOperation }) =>
-    clear({
+    clearSeed({
       runSingleOperation,
       client: mongoClient,
       collections: mongoCollections,

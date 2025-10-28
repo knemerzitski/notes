@@ -1,9 +1,12 @@
 import { MongoClient, WithId } from 'mongodb';
 import { CollectionName } from '../mongodb/collection-names';
 import { MongoDBCollections } from '../mongodb/collections';
-import { TransactionContext, withTransaction } from '../mongodb/utils/with-transaction';
+import { TransactionContext } from '../mongodb/utils/with-transaction';
 
-export async function clear(mongoDB: {
+/**
+ * Delete all demo users and notes from database
+ */
+export async function clearSeed(mongoContext: {
   runSingleOperation?: TransactionContext['runSingleOperation'];
   client: MongoClient;
   collections: Pick<
@@ -11,11 +14,11 @@ export async function clear(mongoDB: {
     CollectionName.USERS | CollectionName.NOTES | CollectionName.COLLAB_RECORDS
   >;
 }) {
-  const runSingleOperation = mongoDB.runSingleOperation ?? ((run) => run());
+  const runSingleOperation = mongoContext.runSingleOperation ?? ((run) => run());
 
   // Find demo user ids
   const demoUsers = await runSingleOperation((session) =>
-    mongoDB.collections.users
+    mongoContext.collections.users
       .find<WithId<{}>>(
         {
           demo: {
@@ -36,7 +39,7 @@ export async function clear(mongoDB: {
 
   // Find all note ids where demo field is present or note is owned by demo user
   const demoAffectedNotes = await runSingleOperation((session) =>
-    mongoDB.collections.notes
+    mongoContext.collections.notes
       .find<WithId<{}>>(
         {
           $or: [
@@ -70,7 +73,7 @@ export async function clear(mongoDB: {
   // Delete all users and notes with records at once
   await Promise.all([
     runSingleOperation((session) =>
-      mongoDB.collections.users.deleteMany(
+      mongoContext.collections.users.deleteMany(
         {
           _id: {
             $in: demoUserIds,
@@ -82,7 +85,7 @@ export async function clear(mongoDB: {
       )
     ),
     runSingleOperation((session) =>
-      mongoDB.collections.notes.deleteMany(
+      mongoContext.collections.notes.deleteMany(
         {
           _id: {
             $in: demoNoteIds,
@@ -94,7 +97,7 @@ export async function clear(mongoDB: {
       )
     ),
     runSingleOperation((session) =>
-      mongoDB.collections.collabRecords.deleteMany(
+      mongoContext.collections.collabRecords.deleteMany(
         {
           collabTextid: {
             $in: demoNoteIds,

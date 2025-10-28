@@ -1,6 +1,6 @@
-import { initializeJob } from './initialize-job';
-import { resetJob } from './reset-job';
+import { demoResetInterval, isDemoMode } from './env';
+import { runDemoJob } from './run-demo-job';
 
-export { initializeJob as initalizeDemoJob };
+export { runDemoJob };
 
-export { resetJob as runDemoResetJob };
+export { isDemoMode, demoResetInterval };

@@ -6,13 +6,13 @@ import { createLogger, Logger } from '../../utils/src/logging';
 import { createAllIndexes, MongoDBCollections } from './mongodb/collections';
 import { MongoDBContext } from './mongodb/context';
 import { createDefaultMongoDBContext } from './parameters';
-import { isEnvironmentVariableTruthy } from '../../utils/src/string/is-environment-variable-truthy';
-import { initalizeDemoJob } from './demo';
+import { demoResetInterval, isDemoMode, runDemoJob } from './demo';
 
 const TIER = process.env.MONGODB_TIER;
 const hasAtlasSearch = TIER === 'enterprise';
 
-const IS_DEMO_MODE = isEnvironmentVariableTruthy(process.env.DEMO);
+const IS_DEMO_MODE = isDemoMode(process.env);
+const DEMO_RESET_INTERVAL = demoResetInterval(process.env);
 
 export interface CreateInitializeHandlerOptions {
   override?: {
@@ -44,7 +44,16 @@ export function createInitializeHandler(
         searchIndexes: hasAtlasSearch,
       });
 
-      await initalizeDemoJob(IS_DEMO_MODE, mongoDB);
+      await runDemoJob(
+        IS_DEMO_MODE,
+        {
+          resetInterval: DEMO_RESET_INTERVAL,
+        },
+        {
+          ...mongoDB,
+          logger: logger.extend('demo'),
+        }
+      );
 
       return {
         statusCode: 200,

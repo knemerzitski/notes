@@ -17,17 +17,17 @@ import { TransactionContext, withTransaction } from '../mongodb/utils/with-trans
 type ConvertFieldsToText = (demoNote: Pick<DemoNote, 'title' | 'content'>) => string;
 
 /**
- * Insert demo seed users and notes to database only if missing. Nothing is changed if data is already in database.
+ * Seed database with demo users and notes. Nothing is changed if data already exists in database.
  */
 export async function seedIfNotExists(
   seedData: readonly SeedItem[],
-  mongoDB: {
+  mongoContext: {
     runSingleOperation?: TransactionContext['runSingleOperation'];
     client: MongoClient;
     collections: Pick<MongoDBCollections, CollectionName.USERS | CollectionName.NOTES>;
   }
 ) {
-  const runSingleOperation = mongoDB.runSingleOperation ?? ((run) => run());
+  const runSingleOperation = mongoContext.runSingleOperation ?? ((run) => run());
 
   const convertFieldsToText = createConvertTextsToField();
 
@@ -36,7 +36,7 @@ export async function seedIfNotExists(
     await Promise.all(
       seedData.filter(isDemoUser).map((demoUser) =>
         runSingleOperation((session) =>
-          mongoDB.collections.users.findOneAndUpdate(
+          mongoContext.collections.users.findOneAndUpdate(
             {
               'demo.id': demoUser.id,
             },
@@ -56,7 +56,7 @@ export async function seedIfNotExists(
 
   // Notes
   await runSingleOperation((session) =>
-    mongoDB.collections.notes.bulkWrite(
+    mongoContext.collections.notes.bulkWrite(
       seedData.filter(isDemoNote).map(
         (demoNote) => ({
           updateOne: {
