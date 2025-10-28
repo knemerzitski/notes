@@ -3,7 +3,7 @@ import { isEnvironmentVariableTruthy } from '../../../utils/src/string/is-enviro
 const DEFAULT_INTERVAL = 24 * 60 * 60 * 1000;
 
 export function isDemoMode(env: typeof process.env) {
-  return isEnvironmentVariableTruthy(env.DEMO_ENABLED);
+  return isEnvironmentVariableTruthy(env.VITE_DEMO_ENABLED);
 }
 
 export function demoResetInterval(env: typeof process.env) {

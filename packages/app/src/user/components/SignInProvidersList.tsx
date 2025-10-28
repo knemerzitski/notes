@@ -10,6 +10,7 @@ import { useOnClose } from '../../utils/context/on-close';
 import { useUserId } from '../context/user-id';
 
 import { GoogleLoginButton } from './GoogleLoginButton';
+import { DemoLoginItems } from '../../demo/components/DemoLoginItems';
 
 const SignInProvidersList_Query = gql(`
   query SignInProvidersList_Query($id: ObjectID!) {
@@ -77,6 +78,7 @@ export function SignInProvidersList({
           }}
         />
       </ListItem>
+      <DemoLoginItems />
     </List>
   );
 }
