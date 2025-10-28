@@ -87,7 +87,8 @@ void (async () => {
         }
       }
 
-      void repeatInvokeScheduledHandler();
+      // Wait for first interval before running scheduled handler
+      // void repeatInvokeScheduledHandler();
     }
 
     if (!noDBMode) {
