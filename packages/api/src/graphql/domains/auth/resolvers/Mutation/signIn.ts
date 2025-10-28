@@ -12,7 +12,6 @@ import { insertUserWithGoogleUser } from '../../../../../services/user/insert-us
 import { GraphQLResolversContext } from '../../../../types';
 import { preExecuteObjectField } from '../../../../utils/pre-execute';
 import { MutationResolvers, ResolversTypes } from '../../../types.generated';
-import { isEnvironmentVariableTruthy } from '../../../../../../../utils/src/string/is-environment-variable-truthy';
 
 const _signIn: NonNullable<MutationResolvers['signIn']> = async (
   _parent,
