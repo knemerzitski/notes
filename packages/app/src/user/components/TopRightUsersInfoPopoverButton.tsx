@@ -29,7 +29,7 @@ export const TopRightUsersInfoPopoverButton = forwardRef<
     'demoHintSeen',
     false
   );
-  const showDemoHint = isDemoEnabled() && !demoHintSeen;
+  const showDemoHint = !demoHintSeen;
 
   function handleClickDemoHintSeen() {
     setDemoHintSeen(true);
@@ -37,8 +37,9 @@ export const TopRightUsersInfoPopoverButton = forwardRef<
 
   return (
     <>
-      {showDemoHint && (
+      {isDemoEnabled() && anchorEl !== null && (
         <DemoHint
+          open={showDemoHint}
           anchorEl={anchorEl}
           placement="left"
           onDismiss={handleClickDemoHintSeen}

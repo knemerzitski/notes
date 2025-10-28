@@ -1,27 +1,40 @@
-import { Button, css, Paper, Popper, styled, Typography } from '@mui/material';
+import {
+  Button,
+  css,
+  Fade,
+  Paper,
+  Popper,
+  styled,
+  Typography,
+  useTheme,
+} from '@mui/material';
 import { PopperOwnProps } from '@mui/material/Popper/BasePopper.types';
 
 export function DemoHint({
   onDismiss,
   ...restProps
-}: Omit<PopperOwnProps, 'open'> & {
+}: Omit<PopperOwnProps, 'transition'> & {
   onDismiss: () => void;
 }) {
-  // TODO add transition
-  // https://mui.com/material-ui/react-popper/
+  const theme = useTheme();
+
   return (
-    <PopperStyled open={true} {...restProps}>
-      <PaperStyled>
-        <Typography>
-          Demo accounts available.
-          <br />
-          Sign in to try real-time editing.
-          <br />
-        </Typography>
-        <ButtonStyled variant="text" color="secondary" onClick={onDismiss}>
-          Got it
-        </ButtonStyled>
-      </PaperStyled>
+    <PopperStyled {...restProps} transition={true}>
+      {({ TransitionProps }) => (
+        <Fade {...TransitionProps} timeout={theme.transitions.duration.short}>
+          <PaperStyled>
+            <Typography>
+              Demo accounts available.
+              <br />
+              Sign in to try real-time editing.
+              <br />
+            </Typography>
+            <ButtonStyled variant="text" color="secondary" onClick={onDismiss}>
+              Got it
+            </ButtonStyled>
+          </PaperStyled>
+        </Fade>
+      )}
     </PopperStyled>
   );
 }
