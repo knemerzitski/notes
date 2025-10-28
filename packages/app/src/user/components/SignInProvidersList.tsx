@@ -78,7 +78,7 @@ export function SignInProvidersList({
           }}
         />
       </ListItem>
-      <DemoLoginItems />
+      <DemoLoginItems onSuccess={handleSuccess} onError={handleError} />
     </List>
   );
 }
