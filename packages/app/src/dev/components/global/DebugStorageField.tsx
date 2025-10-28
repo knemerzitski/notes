@@ -3,7 +3,7 @@ import { TextField } from '@mui/material';
 import debug from 'debug';
 import { useEffect } from 'react';
 
-import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { useLocalStorage } from '../../../utils/hooks/useLocalStorage';
 
 export function DebugStorageField() {
   const [debugValue = '*', setDebugValue] = useLocalStorage<string>('debug', '*');
