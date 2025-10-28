@@ -15,7 +15,7 @@ function _DemoLoginItems({ onSuccess, onError }: DemoLoginItemsProps) {
       <ListItem>
         <DemoLoginButton
           demoUserId="user-alice-01"
-          text="Try Demo Account 1 (Alice)"
+          text="Sign In Demo Account 1 (Alice)"
           onSuccess={() => onSuccess?.('user-alice-01')}
           onError={() => onError?.('user-alice-01')}
         />
@@ -23,7 +23,7 @@ function _DemoLoginItems({ onSuccess, onError }: DemoLoginItemsProps) {
       <ListItem>
         <DemoLoginButton
           demoUserId="user-bob-02"
-          text="Try Demo Account 2 (Bob)"
+          text="Sign In Demo Account 2 (Bob)"
           onSuccess={() => onSuccess?.('user-bob-02')}
           onError={() => onError?.('user-bob-02')}
         />
@@ -31,7 +31,7 @@ function _DemoLoginItems({ onSuccess, onError }: DemoLoginItemsProps) {
       <ListItem>
         <DemoLoginButton
           demoUserId="user-carol-03"
-          text="Try Demo Account 3 (Carol)"
+          text="Sign In Demo Account 3 (Carol)"
           onSuccess={() => onSuccess?.('user-carol-03')}
           onError={() => onError?.('user-carol-03')}
         />
