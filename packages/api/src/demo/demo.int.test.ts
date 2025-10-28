@@ -42,6 +42,7 @@ it('seed and clear', async () => {
         },
         profile: {
           displayName: 'Demo Account 1',
+          avatarColor: expect.any(String),
         },
       },
       {
@@ -58,6 +59,7 @@ it('seed and clear', async () => {
         },
         profile: {
           displayName: 'Demo Account 2',
+          avatarColor: expect.any(String),
         },
       },
     ])

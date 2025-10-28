@@ -24,6 +24,7 @@ const UserCollabEditingCaret_UserNoteLinkFragment = gql(`
       id
       profile {
         displayName
+        avatarColor
       }
     }
     open {
@@ -145,6 +146,7 @@ export function UserCollabEditingCaret({
 
   // Name for color
   const displayName = userNoteLink.user.profile.displayName;
+  const avatarColor = userNoteLink.user.profile.avatarColor ?? stringToColor(displayName);
 
   return (
     <InputCaret
@@ -157,7 +159,7 @@ export function UserCollabEditingCaret({
         inputRef,
         selection: editorSelection.selection.end,
         resetBlink: resetBlinkRef.current,
-        color: stringToColor(displayName),
+        color: avatarColor,
         heightPercentage: 0.85,
         leftOffset: -0.5,
         topOffset: -1.5,

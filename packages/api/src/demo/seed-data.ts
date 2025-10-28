@@ -6,6 +6,7 @@ export interface DemoUser {
   type: 'user';
   id: string;
   displayName: string;
+  avatarColor: string;
 }
 
 export interface DemoNote {
@@ -28,11 +29,13 @@ export const SEED_DATA: readonly SeedItem[] = [
     type: 'user',
     id: 'demo-user-1',
     displayName: 'Demo Account 1',
+    avatarColor: '#63db00',
   },
   {
     type: 'user',
     id: 'demo-user-2',
     displayName: 'Demo Account 2',
+    avatarColor: '#0045db',
   },
   {
     type: 'note',

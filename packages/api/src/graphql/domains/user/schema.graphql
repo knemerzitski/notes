@@ -22,6 +22,11 @@ type UserProfile {
   Text to be displayed in UI to distinguish this user. Can be anything set by the user.
   """
   displayName: String!
+  
+  """
+  Preferred user bubble color seen by all users.
+  """
+  avatarColor: HexColorCode
 }
 
 ################################ Query signedInUser ################################

@@ -9,6 +9,7 @@ import { UsersInfoPopover } from './UsersInfoPopover';
 
 const _UsersInfoPopoverButton_UserFragment = gql(`
   fragment UsersInfoPopoverButton_UserFragment on User {
+    ...CurrentUserButton_UserFragment
     ...UsersInfoPopover_UserFragment
   }
 `);

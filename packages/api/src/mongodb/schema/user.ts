@@ -47,6 +47,7 @@ export const UserSchema = object({
   ),
   profile: object({
     displayName: string(),
+    avatarColor: optional(string()),
   }),
   note: defaulted(
     defaulted(

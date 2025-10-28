@@ -93,6 +93,7 @@ function demoUserToSchema(demoUser: DemoUser): DBUserSchema {
     _id: new ObjectId(),
     profile: {
       displayName: demoUser.displayName,
+      avatarColor: demoUser.avatarColor,
     },
     demo: {
       id: demoUser.id,
