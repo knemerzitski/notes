@@ -7,6 +7,7 @@ import {
 
 import { UnauthenticatedServiceError } from '../../services/auth/errors';
 import { ErrorFormatterFn } from '../errors';
+import { UserNotFoundQueryLoaderError } from '../../mongodb/loaders/user/loader';
 
 class UnauthenticatedError extends GraphQLError {
   constructor(reason: AuthenticationFailedReason | undefined) {
@@ -22,6 +23,10 @@ class UnauthenticatedError extends GraphQLError {
 export const formatError: ErrorFormatterFn = function (error) {
   if (error instanceof UnauthenticatedServiceError) {
     return new UnauthenticatedError(error.reason);
+  }
+
+  if (error instanceof UserNotFoundQueryLoaderError) {
+    return new UnauthenticatedError(AuthenticationFailedReason.USER_NOT_FOUND);
   }
 
   return;
