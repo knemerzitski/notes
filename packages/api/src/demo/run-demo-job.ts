@@ -46,6 +46,8 @@ export async function runDemoJob(
     ctx.logger?.debug('Disabling DEMO');
     await disableDemo(config, ctx);
   }
+
+   ctx.logger?.debug('Demo job completed');
 }
 
 async function enableDemo(config: ConfigModel, ctx: Context) {
