@@ -8,10 +8,13 @@ function _DemoLoginItems() {
   return (
     <>
       <ListItem>
-        <DemoLoginButton demoUserId="demo-user-1" text="Sign In With Demo Account 1" />
+        <DemoLoginButton demoUserId="user-alice-01" text="Try Demo Account 1 (Alice)" />
       </ListItem>
       <ListItem>
-        <DemoLoginButton demoUserId="demo-user-2" text="Sign In With Demo Account 2" />
+        <DemoLoginButton demoUserId="user-bob-02" text="Try Demo Account 2 (Bob)" />
+      </ListItem>
+      <ListItem>
+        <DemoLoginButton demoUserId="user-carol-03" text="Try Demo Account 3 (Carol)" />
       </ListItem>
     </>
   );

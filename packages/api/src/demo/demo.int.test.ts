@@ -11,7 +11,6 @@ import { populateExecuteAll } from '../__tests__/helpers/mongodb/populate/popula
 import { withTransaction } from '../mongodb/utils/with-transaction';
 import { seedIfNotExists } from './seed-if-not-exists';
 import { SEED_DATA } from './seed-data';
-import { NoteCategory } from '../graphql/domains/types.generated';
 
 beforeAll(async () => {
   await resetDatabase();
@@ -31,41 +30,41 @@ it('seed and clear', async () => {
       {
         _id: expect.any(ObjectId),
         demo: {
-          id: 'demo-user-1',
+          id: 'user-alice-01',
         },
         note: {
-          categories: {
-            [NoteCategory.DEFAULT]: {
-              noteIds: [expect.any(ObjectId)],
-            },
-          },
+          categories: expect.any(Object),
         },
         profile: {
-          displayName: 'Demo Account 1',
+          displayName: 'Alice (Demo 1)',
           avatarColor: expect.any(String),
         },
       },
       {
         _id: expect.any(ObjectId),
         demo: {
-          id: 'demo-user-2',
+          id: 'user-bob-02',
         },
         note: {
-          categories: {
-            [NoteCategory.DEFAULT]: {
-              noteIds: [expect.any(ObjectId)],
-            },
-          },
+          categories: expect.any(Object),
         },
         profile: {
-          displayName: 'Demo Account 2',
+          displayName: 'Bob (Demo 2)',
           avatarColor: expect.any(String),
         },
       },
     ])
   );
 
-  await expect(mongoCollections.notes.find().toArray()).resolves.toEqual([
+  await expect(
+    mongoCollections.notes
+      .find({
+        demo: {
+          id: 'note-alice-016',
+        },
+      })
+      .toArray()
+  ).resolves.toEqual([
     {
       _id: expect.any(ObjectId),
       collabText: {
@@ -80,7 +79,7 @@ it('seed and clear', async () => {
         updatedAt: expect.any(Date),
       },
       demo: {
-        id: 'demo-note-1',
+        id: 'note-alice-016',
       },
       users: [
         {
@@ -88,6 +87,12 @@ it('seed and clear', async () => {
           categoryName: 'DEFAULT',
           createdAt: expect.any(Date),
           isOwner: true,
+        },
+        {
+          _id: expect.any(ObjectId),
+          categoryName: 'DEFAULT',
+          createdAt: expect.any(Date),
+          isOwner: false,
         },
         {
           _id: expect.any(ObjectId),

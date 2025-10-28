@@ -10,9 +10,9 @@ import {
   TextParser,
 } from '../../../collab/src';
 import { DBUserSchema, UserSchema } from '../mongodb/schema/user';
-import { isDefined } from '../../../utils/src/type-guards/is-defined';
 import { DBNoteSchema, NoteSchema } from '../mongodb/schema/note';
-import { TransactionContext, withTransaction } from '../mongodb/utils/with-transaction';
+import { TransactionContext } from '../mongodb/utils/with-transaction';
+import { NoteUserSchema } from '../mongodb/schema/note-user';
 
 type ConvertFieldsToText = (demoNote: Pick<DemoNote, 'title' | 'content'>) => string;
 
@@ -117,7 +117,7 @@ function demoNoteToSchema(
         throw new Error(`Missing demo user '${demoNoteUser.userId}'`);
       }
 
-      const category = demoNote.category;
+      const category = demoNoteUser.category;
       user.note.categories[category] = user.note.categories[category] ?? {
         noteIds: [],
       };
@@ -129,7 +129,15 @@ function demoNoteToSchema(
         createdAt: new Date(),
         isOwner: demoNoteUser.isOwner,
         categoryName: category,
-      };
+        ...(demoNoteUser.trash && {
+          trashed: {
+            expireAt: new Date(
+              Date.now() + demoNoteUser.trash.expireDays * 24 * 60 * 60 * 1000
+            ),
+            originalCategoryName: demoNoteUser.trash.originalCategory,
+          },
+        }),
+      } satisfies NoteUserSchema;
     }),
     collabText: {
       updatedAt: new Date(),
@@ -192,5 +200,5 @@ function isDemoNote(item: SeedItem): item is DemoNote {
 }
 
 function isDemoNoteUser(item: SeedItem): item is DemoNoteUser {
-  return item.type === 'demo-note-user';
+  return item.type === 'note-user';
 }
