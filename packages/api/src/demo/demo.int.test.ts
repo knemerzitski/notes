@@ -11,6 +11,7 @@ import { populateExecuteAll } from '../__tests__/helpers/mongodb/populate/popula
 import { withTransaction } from '../mongodb/utils/with-transaction';
 import { seedIfNotExists } from './seed-if-not-exists';
 import { SEED_DATA } from './seed-data';
+import { NoteCategory } from '../graphql/domains/types.generated';
 
 beforeAll(async () => {
   await resetDatabase();
@@ -33,7 +34,11 @@ it('seed and clear', async () => {
           id: 'demo-user-1',
         },
         note: {
-          categories: {},
+          categories: {
+            [NoteCategory.DEFAULT]: {
+              noteIds: [expect.any(ObjectId)],
+            },
+          },
         },
         profile: {
           displayName: 'Demo Account 1',
@@ -45,7 +50,11 @@ it('seed and clear', async () => {
           id: 'demo-user-2',
         },
         note: {
-          categories: {},
+          categories: {
+            [NoteCategory.DEFAULT]: {
+              noteIds: [expect.any(ObjectId)],
+            },
+          },
         },
         profile: {
           displayName: 'Demo Account 2',

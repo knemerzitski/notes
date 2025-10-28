@@ -28,60 +28,64 @@ export async function seedIfNotExists(
   }
 ) {
   const runSingleOperation = mongoContext.runSingleOperation ?? ((run) => run());
-
   const convertFieldsToText = createConvertTextsToField();
 
-  // Users
-  const users = (
-    await Promise.all(
-      seedData.filter(isDemoUser).map((demoUser) =>
-        runSingleOperation((session) =>
-          mongoContext.collections.users.findOneAndUpdate(
-            {
-              'demo.id': demoUser.id,
-            },
-            {
-              $setOnInsert: demoUserToSchema(demoUser),
-            },
-            {
-              upsert: true,
-              returnDocument: 'after',
-              session,
-            }
-          )
-        )
-      )
-    )
-  ).filter(isDefined);
-
-  // Notes
-  await runSingleOperation((session) =>
-    mongoContext.collections.notes.bulkWrite(
-      seedData.filter(isDemoNote).map(
-        (demoNote) => ({
-          updateOne: {
-            filter: {
-              'demo.id': demoNote.id,
-            },
-            update: {
-              $setOnInsert: demoNoteToSchema(
-                demoNote,
-                seedData
-                  .filter(isDemoNoteUser)
-                  .filter((demoNoteUser) => demoNoteUser.noteId === demoNote.id),
-                users,
-                convertFieldsToText(demoNote)
-              ),
-            },
-            upsert: true,
-          },
-        }),
-        {
-          session,
-        }
-      )
+  // Prepare data
+  const users = seedData.filter(isDemoUser).map((demoUser) => demoUserToSchema(demoUser));
+  const notes = seedData.filter(isDemoNote).map((demoNote) =>
+    demoNoteToSchema(
+      demoNote,
+      seedData
+        .filter(isDemoNoteUser)
+        .filter((demoNoteUser) => demoNoteUser.noteId === demoNote.id),
+      users,
+      convertFieldsToText(demoNote)
     )
   );
+
+  // Commit data to DB
+  await Promise.all([
+    runSingleOperation((session) =>
+      mongoContext.collections.notes.bulkWrite(
+        notes.map(
+          (note) => ({
+            updateOne: {
+              filter: {
+                'demo.id': note.demo!.id,
+              },
+              update: {
+                $setOnInsert: note,
+              },
+              upsert: true,
+            },
+          }),
+          {
+            session,
+          }
+        )
+      )
+    ),
+    runSingleOperation((session) =>
+      mongoContext.collections.users.bulkWrite(
+        users.map(
+          (user) => ({
+            updateOne: {
+              filter: {
+                'demo.id': user.demo!.id,
+              },
+              update: {
+                $setOnInsert: user,
+              },
+              upsert: true,
+            },
+          }),
+          {
+            session,
+          }
+        )
+      )
+    ),
+  ]);
 }
 
 function demoUserToSchema(demoUser: DemoUser): DBUserSchema {
@@ -102,19 +106,28 @@ function demoNoteToSchema(
   users: readonly DBUserSchema[],
   collabText: string
 ): DBNoteSchema {
+  const noteId = new ObjectId();
+
   return NoteSchema.createRaw({
-    _id: new ObjectId(),
+    _id: noteId,
     users: demoNoteUsers.map((demoNoteUser) => {
       const user = users.find((user) => user.demo?.id === demoNoteUser.userId);
       if (!user) {
         throw new Error(`Missing demo user '${demoNoteUser.userId}'`);
       }
 
+      const category = demoNote.category;
+      user.note.categories[category] = user.note.categories[category] ?? {
+        noteIds: [],
+      };
+
+      user.note.categories[category].noteIds.push(noteId);
+
       return {
         _id: user._id,
         createdAt: new Date(),
         isOwner: demoNoteUser.isOwner,
-        categoryName: demoNote.category,
+        categoryName: category,
       };
     }),
     collabText: {
@@ -127,6 +140,9 @@ function demoNoteToSchema(
         revision: 1,
         text: collabText,
       },
+    },
+    demo: {
+      id: demoNote.id,
     },
   });
 }
