@@ -22,7 +22,7 @@ export async function clearSeed(mongoContext: {
     mongoContext.collections.users
       .find<WithId<object>>(
         {
-          demo: {
+          demoId: {
             $exists: true,
           },
         },
@@ -45,7 +45,7 @@ export async function clearSeed(mongoContext: {
         {
           $or: [
             {
-              demo: {
+              demoId: {
                 $exists: true,
               },
             },
