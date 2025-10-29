@@ -14,6 +14,7 @@ import { LocalUser } from './policies/LocalUser';
 import { evictOptions as Query_evictOptions, Query } from './policies/Query';
 import { User } from './policies/User';
 import { UserOperation } from './policies/UserOperation';
+import { UserProfile } from './policies/UserProfile';
 
 export const userPolicies: CreateTypePoliciesFn = function (ctx) {
   return {
@@ -21,6 +22,7 @@ export const userPolicies: CreateTypePoliciesFn = function (ctx) {
     User: User(ctx),
     LocalUser: LocalUser(ctx),
     UserOperation: UserOperation(ctx),
+    UserProfile: UserProfile(ctx),
   };
 };
 
