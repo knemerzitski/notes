@@ -72,8 +72,12 @@ void (async () => {
         mockCreateScheduledHandlerOptions()
       );
 
-      async function repeatInvokeScheduledHandler() {
+      async function repeatInvokeScheduledHandler(trigger = true) {
         try {
+          if (!trigger) {
+            return;
+          }
+
           const result = scheduledHandler(undefined, createLambdaContext(), () => {
             return;
           });
@@ -88,7 +92,7 @@ void (async () => {
       }
 
       // Wait for first interval before running scheduled handler
-      // void repeatInvokeScheduledHandler();
+      void repeatInvokeScheduledHandler(false);
     }
 
     if (!noDBMode) {
