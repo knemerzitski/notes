@@ -14,9 +14,9 @@ import { withTransaction } from '../mongodb/utils/with-transaction';
 
 import { clearSeed } from './clear-seed';
 
+import { runDemoJob } from './run-demo-job';
 import { SEED_DATA } from './seed-data';
 import { seedIfNotExists } from './seed-if-not-exists';
-import { runDemoJob } from './run-demo-job';
 
 beforeEach(async () => {
   await Promise.all([

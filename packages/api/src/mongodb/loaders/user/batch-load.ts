@@ -163,7 +163,7 @@ class DemoIdProcessor implements BatchLoadIdProcessor<string> {
   addResult(result: Document): void {
     if (this.ids.size === 0) return;
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const demoId = result.demoId;
     if (typeof demoId !== 'string') {
       throw new Error('Expected User.demoId to be string');
