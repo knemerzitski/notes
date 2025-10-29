@@ -134,7 +134,7 @@ it('user list empty, fetch 1 note', () => {
   expected.forEach(shouldNotesList);
 });
 
-it('shows no skeletion when have existing note', () => {
+it('shows no skeleton when have existing note', () => {
   cy.then(() =>
     initializeState({
       perPage: 2,
