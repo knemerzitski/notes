@@ -1,4 +1,4 @@
-import { LinearProgress, useTheme } from '@mui/material';
+import { Box, css, LinearProgress, styled, useTheme } from '@mui/material';
 import { lazy, Suspense, useEffect, useRef } from 'react';
 
 import { GOOGLE } from '../../../third-party';
@@ -64,7 +64,7 @@ export function GoogleLoginButton({
       shape: 'rectangular',
       theme: theme.palette.mode === 'dark' ? 'filled_black' : 'filled_blue',
       text: 'signin_with',
-      size: 'large',
+      size: 'medium',
       logo_alignment: 'left',
       width: 192,
       ...buttonConfig,
@@ -98,5 +98,10 @@ export function GoogleLoginButton({
     return <LinearProgress />;
   }
 
-  return <div ref={btnContainerRef}></div>;
+  return <BoxStyled ref={btnContainerRef}></BoxStyled>;
 }
+
+const BoxStyled = styled(Box)(css`
+  /* Prevent layout shift when button is loading */
+  height: 34px;
+`);
