@@ -1,21 +1,25 @@
 import { MongoClient } from 'mongodb';
-import { CollectionName } from '../mongodb/collection-names';
-import { MongoDBCollections } from '../mongodb/collections';
-import { SEED_DATA } from './seed-data';
-import { seedIfNotExists } from './seed-if-not-exists';
-import { withTransaction } from '../mongodb/utils/with-transaction';
-import { clearSeed } from './clear-seed';
-import { ConfigModel } from './config-model';
+
 import { Logger } from '../../../utils/src/logging';
 
-type Context = {
+import { CollectionName } from '../mongodb/collection-names';
+import { MongoDBCollections } from '../mongodb/collections';
+
+import { withTransaction } from '../mongodb/utils/with-transaction';
+
+import { clearSeed } from './clear-seed';
+import { ConfigModel } from './config-model';
+import { SEED_DATA } from './seed-data';
+import { seedIfNotExists } from './seed-if-not-exists';
+
+interface Context {
   client: MongoClient;
   collections: Pick<
     MongoDBCollections,
     CollectionName.USERS | CollectionName.NOTES | CollectionName.COLLAB_RECORDS
   >;
   logger?: Logger;
-};
+}
 
 /**
  *
@@ -47,7 +51,7 @@ export async function runDemoJob(
     await disableDemo(config, ctx);
   }
 
-   ctx.logger?.debug('Demo job completed');
+  ctx.logger?.debug('Demo job completed');
 }
 
 async function enableDemo(config: ConfigModel, ctx: Context) {

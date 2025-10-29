@@ -5,9 +5,9 @@ import {
   GraphQLErrorCode,
 } from '../../../../api-app-shared/src/graphql/error-codes';
 
+import { UserNotFoundQueryLoaderError } from '../../mongodb/loaders/user/loader';
 import { UnauthenticatedServiceError } from '../../services/auth/errors';
 import { ErrorFormatterFn } from '../errors';
-import { UserNotFoundQueryLoaderError } from '../../mongodb/loaders/user/loader';
 
 class UnauthenticatedError extends GraphQLError {
   constructor(reason: AuthenticationFailedReason | undefined) {

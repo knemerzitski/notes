@@ -1,16 +1,21 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { ObjectId } from 'mongodb';
 import { beforeAll, expect, it } from 'vitest';
+
 import {
   mongoClient,
   mongoCollections,
   resetDatabase,
 } from '../__tests__/helpers/mongodb/instance';
-import { ObjectId } from 'mongodb';
-import { clearSeed } from './clear-seed';
+
 import { populateNotes } from '../__tests__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../__tests__/helpers/mongodb/populate/populate-queue';
 import { withTransaction } from '../mongodb/utils/with-transaction';
-import { seedIfNotExists } from './seed-if-not-exists';
+
+import { clearSeed } from './clear-seed';
+
 import { SEED_DATA } from './seed-data';
+import { seedIfNotExists } from './seed-if-not-exists';
 
 beforeAll(async () => {
   await resetDatabase();

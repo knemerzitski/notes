@@ -1,5 +1,6 @@
 import { Box, css, styled } from '@mui/material';
 import { createFileRoute } from '@tanstack/react-router';
+
 import { isDemoEnabled } from '../demo/utils/is-demo-enabled';
 
 export const Route = createFileRoute('/_root_layout/about')({

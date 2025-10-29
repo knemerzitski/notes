@@ -1,9 +1,9 @@
 /**
  * Notes Application - Seed Data
- * 
+ *
  * NOTE: All note titles and content in {@link SEED_DATA} were generated using AI (Claude)
  * for demonstration and showcase purposes.
- * 
+ *
  * Generated: October 2025
  */
 

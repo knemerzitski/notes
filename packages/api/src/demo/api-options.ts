@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ApiOptions } from '../graphql/types';
 
 declare module '../graphql/types' {

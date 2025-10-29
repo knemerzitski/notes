@@ -1,15 +1,16 @@
+import { css, styled, Theme } from '@mui/material';
+
+import { alpha } from '@mui/material/styles';
 import { forwardRef, useState } from 'react';
 
 import { gql } from '../../__generated__';
-
-import { UsersInfoPopoverButton } from './UsersInfoPopoverButton';
 import { DemoHint } from '../../demo/components/DemoHint';
-import { css, styled, Theme } from '@mui/material';
-import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
-import { alpha } from '@mui/material/styles';
 import { isDemoEnabled } from '../../demo/utils/is-demo-enabled';
 import { useIsMobile } from '../../theme/context/is-mobile';
 import { useLocalStorage } from '../../utils/hooks/useLocalStorage';
+import { mergeShouldForwardProp } from '../../utils/merge-should-forward-prop';
+
+import { UsersInfoPopoverButton } from './UsersInfoPopoverButton';
 
 const _TopRightUsersInfoPopoverButton_UserFragment = gql(`
   fragment TopRightUsersInfoPopoverButton_UserFragment on User {

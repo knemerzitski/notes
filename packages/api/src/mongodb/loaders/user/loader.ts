@@ -31,7 +31,8 @@ export type QueryableUserId =
     }
   | {
       googleUserId: string;
-    } | {
+    }
+  | {
       demoId: string;
     };
 

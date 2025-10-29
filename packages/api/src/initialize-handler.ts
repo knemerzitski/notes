@@ -3,10 +3,10 @@ import { Handler } from 'aws-lambda';
 import 'source-map-support/register.js';
 import { createLogger, Logger } from '../../utils/src/logging';
 
+import { demoResetInterval, isDemoMode, runDemoJob } from './demo';
 import { createAllIndexes, MongoDBCollections } from './mongodb/collections';
 import { MongoDBContext } from './mongodb/context';
 import { createDefaultMongoDBContext } from './parameters';
-import { demoResetInterval, isDemoMode, runDemoJob } from './demo';
 
 const TIER = process.env.MONGODB_TIER;
 const hasAtlasSearch = TIER === 'enterprise';

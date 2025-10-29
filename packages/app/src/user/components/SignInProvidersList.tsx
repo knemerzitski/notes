@@ -6,11 +6,11 @@ import { PickDeep } from '../../../../utils/src/types';
 import { gql } from '../../__generated__';
 import { User } from '../../__generated__/graphql';
 
+import { DemoLoginItems } from '../../demo/components/DemoLoginItems';
 import { useOnClose } from '../../utils/context/on-close';
 import { useUserId } from '../context/user-id';
 
 import { GoogleLoginButton } from './GoogleLoginButton';
-import { DemoLoginItems } from '../../demo/components/DemoLoginItems';
 
 const SignInProvidersList_Query = gql(`
   query SignInProvidersList_Query($id: ObjectID!) {

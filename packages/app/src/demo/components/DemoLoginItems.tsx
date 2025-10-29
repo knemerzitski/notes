@@ -1,6 +1,8 @@
 import { ListItem } from '@mui/material';
-import { DemoLoginButton } from './DemoLoginButton';
+
 import { isDemoEnabled } from '../utils/is-demo-enabled';
+
+import { DemoLoginButton } from './DemoLoginButton';
 
 export const DemoLoginItems = isDemoEnabled() ? _DemoLoginItems : () => null;
 

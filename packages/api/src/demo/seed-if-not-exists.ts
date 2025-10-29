@@ -1,7 +1,5 @@
 import { MongoClient, ObjectId } from 'mongodb';
-import { CollectionName } from '../mongodb/collection-names';
-import { MongoDBCollections } from '../mongodb/collections';
-import { DemoNote, DemoNoteUser, DemoUser, SEED_DATA, SeedItem } from './seed-data';
+
 import {
   CollabService,
   JsonTyperService,
@@ -9,10 +7,15 @@ import {
   spaceNewlineHook,
   TextParser,
 } from '../../../collab/src';
-import { DBUserSchema, UserSchema } from '../mongodb/schema/user';
+import { CollectionName } from '../mongodb/collection-names';
+import { MongoDBCollections } from '../mongodb/collections';
+
 import { DBNoteSchema, NoteSchema } from '../mongodb/schema/note';
-import { TransactionContext } from '../mongodb/utils/with-transaction';
 import { NoteUserSchema } from '../mongodb/schema/note-user';
+import { DBUserSchema, UserSchema } from '../mongodb/schema/user';
+import { TransactionContext } from '../mongodb/utils/with-transaction';
+
+import { DemoNote, DemoNoteUser, DemoUser, SeedItem } from './seed-data';
 
 type ConvertFieldsToText = (demoNote: Pick<DemoNote, 'title' | 'content'>) => string;
 
@@ -51,6 +54,7 @@ export async function seedIfNotExists(
           (note) => ({
             updateOne: {
               filter: {
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 'demo.id': note.demo!.id,
               },
               update: {
@@ -71,6 +75,7 @@ export async function seedIfNotExists(
           (user) => ({
             updateOne: {
               filter: {
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 'demo.id': user.demo!.id,
               },
               update: {

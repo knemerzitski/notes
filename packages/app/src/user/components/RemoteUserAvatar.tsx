@@ -7,8 +7,8 @@ import { FirstLetter } from '../../utils/components/FirstLetter';
 import { LargeTextBackgroundAvatar } from '../../utils/components/LargeTextBackgroundAvatar';
 import { SmallTextBackgroundAvatar } from '../../utils/components/SmallTextBackgroundAvatar';
 import { TextBackgroundAvatar } from '../../utils/components/TextBackgroundAvatar';
-import { useUserId } from '../context/user-id';
 import { stringToColor } from '../../utils/string-to-color';
+import { useUserId } from '../context/user-id';
 
 const RemoteUserAvatar_UserFragment = gql(`
   fragment RemoteUserAvatar_UserFragment on User {

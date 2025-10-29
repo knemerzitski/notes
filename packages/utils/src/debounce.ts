@@ -50,7 +50,7 @@ export class Debounce {
       this.timeoutId = setTimeout(this.trigger, wait);
     }
   }
-  
+
   isPending(): boolean {
     return this.timeoutId !== null;
   }

@@ -2,9 +2,9 @@ import { useApolloClient } from '@apollo/client';
 import { useCallback } from 'react';
 
 import { useMutation } from '../../graphql/hooks/useMutation';
-import { useBlockUi } from '../../utils/context/block-ui';
 import { setCurrentUser } from '../../user/models/signed-in-user/set-current';
 import { SignIn } from '../../user/mutations/SignIn';
+import { useBlockUi } from '../../utils/context/block-ui';
 
 export function useSignInDemoMutation() {
   const client = useApolloClient();

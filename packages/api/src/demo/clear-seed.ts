@@ -1,4 +1,5 @@
 import { MongoClient, WithId } from 'mongodb';
+
 import { CollectionName } from '../mongodb/collection-names';
 import { MongoDBCollections } from '../mongodb/collections';
 import { TransactionContext } from '../mongodb/utils/with-transaction';
@@ -19,7 +20,7 @@ export async function clearSeed(mongoContext: {
   // Find demo user ids
   const demoUsers = await runSingleOperation((session) =>
     mongoContext.collections.users
-      .find<WithId<{}>>(
+      .find<WithId<object>>(
         {
           demo: {
             $exists: true,
@@ -40,7 +41,7 @@ export async function clearSeed(mongoContext: {
   // Find all note ids where demo field is present or note is owned by demo user
   const demoAffectedNotes = await runSingleOperation((session) =>
     mongoContext.collections.notes
-      .find<WithId<{}>>(
+      .find<WithId<object>>(
         {
           $or: [
             {

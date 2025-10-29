@@ -16,6 +16,7 @@ import {
 
 import { Logger } from '../../utils/src/logging';
 
+import { isDemoMode } from './demo';
 import { applyDirectives } from './graphql/directives';
 import { resolvers } from './graphql/domains/resolvers.generated';
 import { typeDefs } from './graphql/domains/typeDefs.generated';
@@ -24,7 +25,6 @@ import { ApolloServerLogger } from './graphql/plugins/apollo-server-logger';
 import { ApiOptions } from './graphql/types';
 import { createCollectionInstances } from './mongodb/collections';
 import { createMongoDBContext } from './mongodb/context';
-import { isDemoMode } from './demo';
 
 export function createDefaultApiOptions(): ApiOptions {
   return {

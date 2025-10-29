@@ -120,7 +120,7 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
         email: tmpGoogleEmail,
       },
     };
-  } else if (input.auth.demo) {
+  } else {
     if (!isDemoMode) {
       throw new Error('Illegal signIn. Demo mode is not enabled.');
     }
@@ -206,8 +206,6 @@ const _signIn: NonNullable<MutationResolvers['signIn']> = async (
         email: `${userDemoId}@demo`,
       },
     };
-  } else {
-    throw new Error('Unexpected SignInAuthInput is not @oneOf');
   }
 };
 
