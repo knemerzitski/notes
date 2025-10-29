@@ -38,9 +38,7 @@ it('seed and clear', async () => {
     expect.arrayContaining([
       {
         _id: expect.any(ObjectId),
-        demo: {
-          id: 'user-alice-01',
-        },
+        demoId: 'user-alice-01',
         note: {
           categories: expect.any(Object),
         },
@@ -51,9 +49,7 @@ it('seed and clear', async () => {
       },
       {
         _id: expect.any(ObjectId),
-        demo: {
-          id: 'user-bob-02',
-        },
+        demoId: 'user-bob-02',
         note: {
           categories: expect.any(Object),
         },
@@ -68,9 +64,7 @@ it('seed and clear', async () => {
   await expect(
     mongoCollections.notes
       .find({
-        demo: {
-          id: 'note-alice-001',
-        },
+        demoId: 'note-alice-001',
       })
       .toArray()
   ).resolves.toEqual([
@@ -87,9 +81,7 @@ it('seed and clear', async () => {
         },
         updatedAt: expect.any(Date),
       },
-      demo: {
-        id: 'note-alice-001',
-      },
+      demoId: 'note-alice-001',
       users: [
         {
           _id: expect.any(ObjectId),

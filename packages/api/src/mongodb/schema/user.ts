@@ -60,16 +60,9 @@ export const UserSchema = object({
     () => ({})
   ),
   /**
-   * User used for demo purposes. Gets reset periodically
+   * ID used for demo purposes to identify different demo users
    */
-  demo: optional(
-    object({
-      /**
-       * ID used for demo purposes to identify different demo users
-       */
-      id: string(),
-    })
-  ),
+  demoId: optional(string()),
 });
 
 export type DBUserSchema = InferRaw<typeof UserSchema>;
@@ -85,7 +78,7 @@ export const userDescription: CollectionDescription = {
     },
     {
       key: {
-        'demo.id': 1,
+        'demoId': 1,
       },
       unique: true,
       sparse: true,

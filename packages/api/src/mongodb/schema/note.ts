@@ -22,16 +22,9 @@ export const NoteSchema = object({
   shareLinks: optional(array(ShareNoteLinkSchema)),
 
   /**
-   * Note is used for demo purposes
+   * ID used for demo purposes to identify different demo notes
    */
-  demo: optional(
-    object({
-      /**
-       * ID used for demo purposes to identify different demo notes
-       */
-      id: string(),
-    })
-  ),
+  demoId: optional(string()),
 });
 
 export type DBNoteSchema = InferRaw<typeof NoteSchema>;
@@ -51,7 +44,7 @@ export const noteDescription: CollectionDescription = {
     },
     {
       key: {
-        'demo.id': 1,
+        'demoId': 1,
       },
       unique: true,
       sparse: true,

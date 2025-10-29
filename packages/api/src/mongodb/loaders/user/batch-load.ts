@@ -148,16 +148,13 @@ class DemoIdProcessor implements BatchLoadIdProcessor<string> {
   addIdToQuery(query: QueryDeep<InferRaw<typeof QueryableUser>>): void {
     if (this.ids.size === 0) return;
 
-    query.demo = {
-      ...query.demo,
-      id: 1,
-    };
+    query.demoId = 1;
   }
 
   getMatchStage(): Document | undefined {
     if (this.ids.size === 0) return;
     return {
-      'demo.id': {
+      demoId: {
         $in: this.getIds(),
       },
     };
@@ -167,9 +164,9 @@ class DemoIdProcessor implements BatchLoadIdProcessor<string> {
     if (this.ids.size === 0) return;
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    const demoId = result.demo.id;
+    const demoId = result.demoId;
     if (typeof demoId !== 'string') {
-      throw new Error('Expected User.demo.id to be string');
+      throw new Error('Expected User.demoId to be string');
     }
 
     this.resultById[demoId] = result;
@@ -272,7 +269,7 @@ async function _queryableUserBatchLoadSeparatePerId(
                   ...('userId' in firstId
                     ? { _id: firstId.userId }
                     : 'demoId' in firstId
-                      ? { 'demo.id': firstId.demoId }
+                      ? { 'demoId': firstId.demoId }
                       : {
                           'thirdParty.google.id': firstId.googleUserId,
                         }),

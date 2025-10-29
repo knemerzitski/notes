@@ -53,8 +53,7 @@ export async function seedIfNotExists(
         notes.map((note) => ({
           updateOne: {
             filter: {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              'demo.id': note.demo!.id,
+              demoId: note.demoId,
             },
             update: {
               $setOnInsert: note,
@@ -72,8 +71,7 @@ export async function seedIfNotExists(
         users.map((user) => ({
           updateOne: {
             filter: {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              'demo.id': user.demo!.id,
+              demoId: user.demoId,
             },
             update: {
               $setOnInsert: user,
@@ -96,9 +94,7 @@ function demoUserToSchema(demoUser: DemoUser): DBUserSchema {
       displayName: demoUser.displayName,
       avatarColor: demoUser.avatarColor,
     },
-    demo: {
-      id: demoUser.id,
-    },
+    demoId: demoUser.id,
   });
 }
 
@@ -113,7 +109,7 @@ function demoNoteToSchema(
   return NoteSchema.createRaw({
     _id: noteId,
     users: demoNoteUsers.map((demoNoteUser) => {
-      const user = users.find((user) => user.demo?.id === demoNoteUser.userId);
+      const user = users.find((user) => user.demoId === demoNoteUser.userId);
       if (!user) {
         throw new Error(`Missing demo user '${demoNoteUser.userId}'`);
       }
@@ -151,9 +147,7 @@ function demoNoteToSchema(
         text: collabText,
       },
     },
-    demo: {
-      id: demoNote.id,
-    },
+    demoId: demoNote.id,
   });
 }
 
