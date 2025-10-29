@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ObjectId } from 'mongodb';
-import { beforeAll, expect, it } from 'vitest';
+import { beforeEach, expect, it } from 'vitest';
 
 import {
   mongoClient,
@@ -16,9 +16,13 @@ import { clearSeed } from './clear-seed';
 
 import { SEED_DATA } from './seed-data';
 import { seedIfNotExists } from './seed-if-not-exists';
+import { runDemoJob } from './run-demo-job';
 
-beforeAll(async () => {
-  await resetDatabase();
+beforeEach(async () => {
+  await Promise.all([
+    resetDatabase(),
+    Promise.all(['config'].map((name) => mongoClient.db().collection(name).deleteMany())),
+  ]);
 });
 
 it('seed and clear', async () => {
@@ -123,4 +127,32 @@ it('seed and clear', async () => {
 
   await expect(mongoCollections.users.find().toArray()).resolves.toHaveLength(1);
   await expect(mongoCollections.notes.find().toArray()).resolves.toHaveLength(1);
+});
+
+it('resets seeded database', async () => {
+  await runDemoJob(
+    true,
+    {
+      resetInterval: 0,
+    },
+    {
+      client: mongoClient,
+      collections: mongoCollections,
+    }
+  );
+
+  await expect(mongoCollections.users.find().toArray()).resolves.toHaveLength(3);
+
+  await runDemoJob(
+    true,
+    {
+      resetInterval: 0,
+    },
+    {
+      client: mongoClient,
+      collections: mongoCollections,
+    }
+  );
+
+  await expect(mongoCollections.users.find().toArray()).resolves.toHaveLength(3);
 });

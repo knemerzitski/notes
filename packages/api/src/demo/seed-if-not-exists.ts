@@ -50,44 +50,40 @@ export async function seedIfNotExists(
   await Promise.all([
     runSingleOperation((session) =>
       mongoContext.collections.notes.bulkWrite(
-        notes.map(
-          (note) => ({
-            updateOne: {
-              filter: {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                'demo.id': note.demo!.id,
-              },
-              update: {
-                $setOnInsert: note,
-              },
-              upsert: true,
+        notes.map((note) => ({
+          updateOne: {
+            filter: {
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              'demo.id': note.demo!.id,
             },
-          }),
-          {
-            session,
-          }
-        )
+            update: {
+              $setOnInsert: note,
+            },
+            upsert: true,
+          },
+        })),
+        {
+          session,
+        }
       )
     ),
     runSingleOperation((session) =>
       mongoContext.collections.users.bulkWrite(
-        users.map(
-          (user) => ({
-            updateOne: {
-              filter: {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                'demo.id': user.demo!.id,
-              },
-              update: {
-                $setOnInsert: user,
-              },
-              upsert: true,
+        users.map((user) => ({
+          updateOne: {
+            filter: {
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              'demo.id': user.demo!.id,
             },
-          }),
-          {
-            session,
-          }
-        )
+            update: {
+              $setOnInsert: user,
+            },
+            upsert: true,
+          },
+        })),
+        {
+          session,
+        }
       )
     ),
   ]);
