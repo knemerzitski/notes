@@ -69,7 +69,7 @@ it('seed and clear', async () => {
     mongoCollections.notes
       .find({
         demo: {
-          id: 'note-alice-016',
+          id: 'note-alice-001',
         },
       })
       .toArray()
@@ -88,7 +88,7 @@ it('seed and clear', async () => {
         updatedAt: expect.any(Date),
       },
       demo: {
-        id: 'note-alice-016',
+        id: 'note-alice-001',
       },
       users: [
         {
