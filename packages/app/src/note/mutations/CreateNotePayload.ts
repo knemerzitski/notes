@@ -34,6 +34,16 @@ export const CreateNotePayload = mutationDefinition(
             revision
             text
           }
+          recordConnection(last: 1) {
+            edges {
+              node {
+                ...MapRecord_CollabTextRecordFragment
+              }
+            }
+            pageInfo {
+              hasPreviousPage
+            }
+          }          
         }
       }
     }

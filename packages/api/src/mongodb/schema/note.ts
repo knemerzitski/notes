@@ -1,6 +1,6 @@
 import { ObjectId, SearchIndexDescription } from 'mongodb';
 
-import { array, Infer, InferRaw, instance, object, optional } from 'superstruct';
+import { array, Infer, InferRaw, instance, object, optional, string } from 'superstruct';
 
 import { CollectionDescription } from '../collections';
 
@@ -20,6 +20,11 @@ export const NoteSchema = object({
   collabText: optional(CollabTextSchema),
 
   shareLinks: optional(array(ShareNoteLinkSchema)),
+
+  /**
+   * ID used for demo purposes to identify different demo notes
+   */
+  demoId: optional(string()),
 });
 
 export type DBNoteSchema = InferRaw<typeof NoteSchema>;
@@ -36,6 +41,13 @@ export const noteDescription: CollectionDescription = {
       key: { 'shareLinks._id': 1 },
       sparse: true,
       unique: true,
+    },
+    {
+      key: {
+        'demoId': 1,
+      },
+      unique: true,
+      sparse: true,
     },
   ],
 };

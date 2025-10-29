@@ -177,7 +177,7 @@ export default [
       '@graphql-eslint/selection-set-depth': [
         'error',
         {
-          maxDepth: 8,
+          maxDepth: 10,
         },
       ],
     },

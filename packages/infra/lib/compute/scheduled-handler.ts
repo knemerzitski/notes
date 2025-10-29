@@ -31,10 +31,10 @@ export class ScheduledFunction extends Construct {
     });
 
     this.rule = new Rule(this, 'Rule', {
-      // Every day at 3:00
+      // Every day at 3:17
       schedule: Schedule.cron({
         hour: '3',
-        minute: '0',
+        minute: '17',
       }),
     });
 

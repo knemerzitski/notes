@@ -1,6 +1,6 @@
 import { Box, Tab, Tabs } from '@mui/material';
 
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useLocalStorage } from '../../utils/hooks/useLocalStorage';
 
 import { ActiveNoteDashCards } from './ActiveNoteDashCards';
 import { DevActiveNoteIdProvider } from './DevActiveNoteIdProvider';

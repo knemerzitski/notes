@@ -41,6 +41,17 @@ export const User: CreateTypePolicyFn = function () {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return existing;
       },
+      profile: {
+        merge: true,
+        read(
+          existing = {
+            __typename: 'UserProfile',
+          }
+        ) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+          return existing;
+        },
+      },
       authProviderUsers: fieldArrayToMap('__typename', {
         read(existing = {}) {
           return existing;

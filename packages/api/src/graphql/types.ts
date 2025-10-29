@@ -69,6 +69,11 @@ export interface ApiOptions {
      */
     maxRecordsCount: number | null;
   };
+  /**
+   * Run api in demo mode. Allows signin in with demo users.
+   * @default false
+   */
+  demoMode?: boolean;
 }
 
 /**

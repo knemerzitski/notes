@@ -7,6 +7,7 @@ import { FirstLetter } from '../../utils/components/FirstLetter';
 import { LargeTextBackgroundAvatar } from '../../utils/components/LargeTextBackgroundAvatar';
 import { SmallTextBackgroundAvatar } from '../../utils/components/SmallTextBackgroundAvatar';
 import { TextBackgroundAvatar } from '../../utils/components/TextBackgroundAvatar';
+import { stringToColor } from '../../utils/string-to-color';
 import { useUserId } from '../context/user-id';
 
 const RemoteUserAvatar_UserFragment = gql(`
@@ -14,6 +15,7 @@ const RemoteUserAvatar_UserFragment = gql(`
     id
     profile {
       displayName
+      avatarColor
     }
   }
 `);
@@ -43,6 +45,7 @@ export const RemoteUserAvatar = forwardRef<HTMLDivElement, RemoteUserAvatarProps
     }
 
     const name = user.profile.displayName;
+    const avatarColor = user.profile.avatarColor ?? stringToColor(name);
 
     const SizeTextBackgroundAvatar =
       size == 'large'
@@ -54,7 +57,7 @@ export const RemoteUserAvatar = forwardRef<HTMLDivElement, RemoteUserAvatarProps
     return (
       <SizeTextBackgroundAvatar
         ref={ref}
-        bgColorText={name}
+        bgColor={avatarColor}
         aria-label="avatar"
         data-user-id={userId}
       >

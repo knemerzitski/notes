@@ -9,6 +9,7 @@ import { UsersInfoPopover } from './UsersInfoPopover';
 
 const _UsersInfoPopoverButton_UserFragment = gql(`
   fragment UsersInfoPopoverButton_UserFragment on User {
+    ...CurrentUserButton_UserFragment
     ...UsersInfoPopover_UserFragment
   }
 `);
@@ -17,7 +18,7 @@ export const UsersInfoPopoverButton = forwardRef<
   HTMLButtonElement,
   Omit<
     IconButtonProps,
-    'id' | 'aria-label' | 'aria-controls' | 'aria-haspopup' | 'aria-expanded' | 'onClick'
+    'id' | 'aria-label' | 'aria-controls' | 'aria-haspopup' | 'aria-expanded'
   > & {
     PopoverProps?: Omit<
       Parameters<typeof UsersInfoPopover>[0],
@@ -33,6 +34,8 @@ export const UsersInfoPopoverButton = forwardRef<
   function handleOpenPopover(e: MouseEvent<HTMLButtonElement>) {
     e.stopPropagation();
     setAnchorEl(e.currentTarget);
+
+    restProps.onClick?.(e);
   }
 
   function handleClosePopover() {

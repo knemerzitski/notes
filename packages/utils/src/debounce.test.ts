@@ -121,7 +121,7 @@ it('maxWait runs callback even when invoke resets timer', () => {
   // 500
   vi.advanceTimersByTime(250);
   expect(callbackSpy).not.toHaveBeenCalledOnce();
-  
+
   debounce.invoke();
   // 750
   vi.advanceTimersByTime(250);

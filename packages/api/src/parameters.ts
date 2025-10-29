@@ -16,6 +16,7 @@ import {
 
 import { Logger } from '../../utils/src/logging';
 
+import { isDemoMode } from './demo';
 import { applyDirectives } from './graphql/directives';
 import { resolvers } from './graphql/domains/resolvers.generated';
 import { typeDefs } from './graphql/domains/typeDefs.generated';
@@ -49,6 +50,7 @@ export function createDefaultApiOptions(): ApiOptions {
     collabText: {
       maxRecordsCount: 500,
     },
+    demoMode: isDemoMode(process.env),
   };
 }
 

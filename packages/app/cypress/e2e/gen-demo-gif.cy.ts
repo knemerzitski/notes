@@ -1,6 +1,4 @@
 /* eslint-disable cypress/no-unnecessary-waiting */
- 
- 
 
 import { MaybePromise } from '../../../utils/src/types';
 
@@ -453,7 +451,12 @@ it('generate gif for demo', () => {
             setTimeout(res, 1000);
           });
           bgCarol.editor.content.select(-1);
-          void insertDelayed(bgCarol, 'content', ['Try', ' ', 'it', ' yourself', '!'], 550);
+          void insertDelayed(
+            bgCarol,
+            'content',
+            ['Try', ' ', 'it', ' yourself', '!'],
+            550
+          );
         });
 
       // Alice types to title then undos are redos history

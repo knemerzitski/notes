@@ -45,6 +45,7 @@ export const UserSchema = object({
   ),
   profile: object({
     displayName: string(),
+    avatarColor: optional(string()),
   }),
   note: defaulted(
     defaulted(
@@ -58,6 +59,10 @@ export const UserSchema = object({
     ),
     () => ({})
   ),
+  /**
+   * ID used for demo purposes to identify different demo users
+   */
+  demoId: optional(string()),
 });
 
 export type DBUserSchema = InferRaw<typeof UserSchema>;
@@ -68,6 +73,13 @@ export const userDescription: CollectionDescription = {
   indexSpecs: [
     {
       key: { 'thirdParty.google.id': 1 },
+      unique: true,
+      sparse: true,
+    },
+    {
+      key: {
+        'demoId': 1,
+      },
       unique: true,
       sparse: true,
     },

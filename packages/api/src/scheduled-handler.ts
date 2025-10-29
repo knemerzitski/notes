@@ -3,11 +3,15 @@ import { Handler } from 'aws-lambda';
 import 'source-map-support/register.js';
 import { createLogger, Logger } from '../../utils/src/logging';
 
+import { demoResetInterval, isDemoMode, runDemoJob } from './demo';
 import { NoteCategory } from './graphql/domains/types.generated';
 import { MongoDBCollections } from './mongodb/collections';
 import { MongoDBContext } from './mongodb/context';
 import { batchDeleteExpiredNotes } from './mongodb/models/note/batch-delete-expired-notes';
 import { createDefaultMongoDBContext } from './parameters';
+
+const IS_DEMO_MODE = isDemoMode(process.env);
+const DEMO_RESET_INTERVAL = demoResetInterval(process.env);
 
 export interface CreateScheduledHandlerOptions {
   override?: {
@@ -60,6 +64,17 @@ export function createScheduledHandler(options?: CreateScheduledHandlerOptions):
         maxConcurrentTransactions: 1,
         logger,
       });
+
+      await runDemoJob(
+        IS_DEMO_MODE,
+        {
+          resetInterval: DEMO_RESET_INTERVAL,
+        },
+        {
+          ...mongoDB,
+          logger: logger.extend('demo'),
+        }
+      );
 
       return {
         statusCode: 200,

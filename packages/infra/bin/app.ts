@@ -58,6 +58,7 @@ const commonLambdaEnvironment = {
   NODE_ENV,
   DEBUG: process.env.LAMBDA_DEBUG_ARG ?? '*',
   DEBUG_FORMAT: process.env.DEBUG_FORMAT ?? 'json',
+  VITE_DEMO_ENABLED: process.env.VITE_DEMO_ENABLED ?? 'false',
 };
 
 const runtimeLambdaEnvironment = {

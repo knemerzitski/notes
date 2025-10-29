@@ -37,6 +37,11 @@ export enum GraphQLErrorCode {
 
 export enum AuthenticationFailedReason {
   /**
+   * User doesn't exist in database.
+   */
+  USER_NOT_FOUND = 'USER_NOT_FOUND',
+
+  /**
    * User has not been defined.
    */
   USER_UNDEFINED = 'USER_UNDEFINED',
