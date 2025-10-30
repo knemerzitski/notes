@@ -36,7 +36,13 @@ function Loaded({
 
   return (
     <Base
-      onClick={handleClickRedo}
+      onPointerUp={() => {
+        handleClickRedo();
+      }}
+      onTouchEnd={(e) => {
+        // Prevent closing virtual keyboard on mobile
+        e.preventDefault();
+      }}
       aria-label="history redo"
       disabled={!canRedo}
       {...IconButtonProps}

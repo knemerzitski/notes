@@ -156,7 +156,13 @@ function Loaded({
   return (
     <RootBoxStyled>
       <Base
-        onClick={handleClickUndo}
+        onPointerUp={() => {
+          handleClickUndo();
+        }}
+        onTouchEnd={(e) => {
+          // Prevent closing virtual keyboard on mobile
+          e.preventDefault();
+        }}
         aria-label="history undo"
         disabled={!canUndo || isUndoPending}
         {...IconButtonProps}
