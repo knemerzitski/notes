@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { ObjectId } from 'mongodb';
-import { beforeEach, expect, it } from 'vitest';
+import { assert, beforeEach, expect, it } from 'vitest';
 
+import { Changeset, Selection } from '../../../collab/src';
 import {
   mongoClient,
   mongoCollections,
@@ -10,6 +12,9 @@ import {
 
 import { populateNotes } from '../__tests__/helpers/mongodb/populate/populate';
 import { populateExecuteAll } from '../__tests__/helpers/mongodb/populate/populate-queue';
+import { NoteCategory } from '../graphql/domains/types.generated';
+import { notesArrayPath } from '../mongodb/models/user/utils/notes-array-path';
+import { DBUserSchema } from '../mongodb/schema/user';
 import { withTransaction } from '../mongodb/utils/with-transaction';
 
 import { clearSeed } from './clear-seed';
@@ -147,4 +152,120 @@ it('resets seeded database', async () => {
   );
 
   await expect(mongoCollections.users.find().toArray()).resolves.toHaveLength(3);
+});
+
+it('unlinks demo user from normal note, record author replaced with owner', async () => {
+  await withTransaction(mongoClient, ({ runSingleOperation }) =>
+    seedIfNotExists(SEED_DATA, {
+      runSingleOperation,
+      client: mongoClient,
+      collections: mongoCollections,
+    })
+  );
+
+  const demoUser = await mongoCollections.users.findOne<DBUserSchema>({
+    demoId: {
+      $exists: true,
+    },
+  });
+  assert(demoUser != null);
+
+  const normal = populateNotes(1);
+  await populateExecuteAll();
+
+  const normalUser = normal.user;
+  const normalNote = normal.data[0]!.note;
+
+  await mongoCollections.users.updateOne(
+    {
+      _id: demoUser._id,
+    },
+    {
+      $push: {
+        [notesArrayPath(NoteCategory.DEFAULT)]: normalNote._id,
+      },
+    }
+  );
+  await mongoCollections.notes.updateOne(
+    {
+      _id: normalNote._id,
+    },
+    {
+      $push: {
+        users: {
+          _id: demoUser._id,
+          isOwner: false,
+          categoryName: NoteCategory.DEFAULT,
+          createdAt: new Date(),
+        },
+      },
+    }
+  );
+
+  const recordId = new ObjectId();
+  await mongoCollections.collabRecords.insertOne({
+    _id: recordId,
+    authorId: demoUser._id,
+    collabTextId: normalNote._id,
+    changeset: Changeset.EMPTY.serialize(),
+    createdAt: new Date(),
+    idempotencyId: '123',
+    inverse: Changeset.EMPTY.serialize(),
+    revision: 9,
+    selection: Selection.ZERO.serialize(),
+    selectionInverse: Selection.ZERO.serialize(),
+  });
+
+  await withTransaction(mongoClient, ({ runSingleOperation }) =>
+    clearSeed({
+      runSingleOperation,
+      client: mongoClient,
+      collections: mongoCollections,
+    })
+  );
+
+  await expect(mongoCollections.notes.find().toArray()).resolves.toEqual([
+    {
+      _id: normalNote._id,
+      collabText: {
+        headRecord: {
+          revision: 1,
+          text: expect.any(String),
+        },
+        tailRecord: {
+          revision: 0,
+          text: expect.any(String),
+        },
+        updatedAt: expect.any(Date),
+      },
+      shareLinks: expect.any(Array),
+      users: [
+        {
+          _id: normalUser._id,
+          categoryName: expect.any(String),
+          createdAt: expect.any(Date),
+          isOwner: true,
+          preferences: expect.any(Object),
+          readOnly: expect.any(Boolean),
+        },
+      ],
+    },
+  ]);
+
+  await expect(
+    mongoCollections.collabRecords.findOne({
+      _id: recordId,
+    })
+  ).resolves.toEqual({
+    _id: recordId,
+    authorId: normalUser._id,
+    collabTextId: normalNote._id,
+    changeset: Changeset.EMPTY.serialize(),
+    createdAt: expect.any(Date),
+    idempotencyId: '123',
+    inverse: Changeset.EMPTY.serialize(),
+    revision: 9,
+    selection: Selection.ZERO.serialize(),
+    selectionInverse: Selection.ZERO.serialize(),
+  });
 });
