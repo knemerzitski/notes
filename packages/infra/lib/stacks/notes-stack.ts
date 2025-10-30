@@ -80,7 +80,7 @@ export class NotesStack extends Stack {
         webSocketDynamoDB.tables.completedSubscriptions.tableName
       );
     });
-    webSocketDynamoDB.tables.connections.grantReadData(handlers.http);
+    webSocketDynamoDB.tables.connections.grantReadWriteData(handlers.http);
     webSocketDynamoDB.tables.connections.grantReadWriteData(handlers.webSocket);
     webSocketDynamoDB.tables.subscriptions.grantReadData(handlers.http);
     webSocketDynamoDB.tables.subscriptions.grantReadWriteData(handlers.webSocket);

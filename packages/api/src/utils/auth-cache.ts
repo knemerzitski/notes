@@ -1,6 +1,8 @@
 import { ConnectionTable } from '../../../lambda-graphql/src/dynamodb/models/connection';
+import { Logger } from '../../../utils/src/logging';
 
 import { ApiOptions } from '../graphql/types';
+import { objectIdToStr } from '../mongodb/utils/objectid';
 import { CookiesMongoDBDynamoDBAuthenticationService } from '../services/auth/auth-service';
 import { AuthenticationService } from '../services/auth/types';
 import { SessionsCookie } from '../services/http/sessions-cookie';
@@ -37,6 +39,7 @@ export class ConnectionsAuthenticationServiceCache {
           readonly cookieKey: ApiOptions['sessions']['cookieKey'];
         };
       };
+      readonly logger?: Logger;
     } & ConstructorParameters<typeof CookiesMongoDBDynamoDBAuthenticationService>[0]
   ) {}
 
@@ -45,6 +48,10 @@ export class ConnectionsAuthenticationServiceCache {
   }
 
   async get(connectionId: string | undefined) {
+    this.ctx.logger?.debug('get', {
+      connectionId,
+    });
+
     if (!connectionId) {
       return this.createAuthService();
     }
@@ -54,6 +61,12 @@ export class ConnectionsAuthenticationServiceCache {
       return this.createAuthService();
     }
 
+    this.ctx.logger?.debug('get:return', {
+      connectionId,
+      customData: value.customData,
+      availableUserIds: value.service.getAvailableUserIds().map(objectIdToStr),
+    });
+
     return value.service;
   }
 
@@ -61,12 +74,16 @@ export class ConnectionsAuthenticationServiceCache {
     return new CookiesMongoDBDynamoDBAuthenticationService({
       mongoDB: this.ctx.mongoDB,
       options: this.ctx.options,
+      logger: this.ctx.logger,
     });
   }
 
   private async getValue(connectionId: string) {
     let value = this.cache.get(connectionId);
     if (value) {
+      this.ctx.logger?.debug('getValue:existing', {
+        connectionId,
+      });
       return value;
     }
 
@@ -74,6 +91,9 @@ export class ConnectionsAuthenticationServiceCache {
       id: connectionId,
     });
     if (!connection) {
+      this.ctx.logger?.debug('getValue:noConnectionId', {
+        connectionId,
+      });
       return;
     }
 
@@ -92,6 +112,7 @@ export class ConnectionsAuthenticationServiceCache {
               key: this.ctx.options.sessions.cookieKey,
             }
           ),
+          logger: this.ctx.logger,
         },
         customData.authenticatedContexts
       ),

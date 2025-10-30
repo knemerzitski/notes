@@ -98,6 +98,7 @@ export function createWebSocketHandlerDefaultParams(
         connections: context.loaders.connections,
         mongoDB: mongoDBContext,
         options: apiOptions,
+        logger: logger.extend('auth'),
       });
 
       return {
@@ -128,16 +129,20 @@ export function createWebSocketHandlerDefaultParams(
         async willSendResponse() {
           if (!isConnectionDeleteEvent) {
             await Promise.allSettled(
-              authCache.changedCustomDatas.map(({ connectionId, customData }) =>
-                context.models.connections.update(
+              authCache.changedCustomDatas.map(async ({ connectionId, customData }) => {
+                await context.models.connections.update(
                   {
                     id: connectionId,
                   },
                   {
                     customData: serializeConnectionCustomData(customData),
                   }
-                )
-              )
+                );
+                logger.debug('connectionUpdatedCustomData', {
+                  connectionId,
+                  customData,
+                });
+              })
             );
           }
         },

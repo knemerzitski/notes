@@ -19,6 +19,7 @@ import { UnauthenticatedServiceError } from './errors';
 import { findRefreshSessionByCookieId } from './find-refresh-session-by-cookie-id';
 
 import { AuthenticatedContext, AuthenticationService } from './types';
+import { Logger } from '../../../../utils/src/logging';
 
 /**
  * Authentication service based on request cookie headers.
@@ -40,11 +41,16 @@ export class CookiesMongoDBDynamoDBAuthenticationService
         };
       };
       readonly sessionsCookie?: SessionsCookie;
+      readonly logger?: Logger;
     },
     private readonly model = new AuthenticatedContextsModel()
   ) {}
 
   async addUser(userId: string | ObjectId): Promise<AuthenticatedContext> {
+    this.ctx.logger?.debug('addUser', {
+      userId: objectIdToStr(userId),
+    });
+
     const userIdStr = objectIdToStr(userId);
 
     // Update MongoDB (persist in DB)
@@ -64,6 +70,11 @@ export class CookiesMongoDBDynamoDBAuthenticationService
     // Update Local state (persist in memory)
     this.model.set(userIdStr, auth);
 
+    this.ctx.logger?.debug('addUser:success', {
+      userId: objectIdToStr(userId),
+      cookieId: session.cookieId,
+    });
+
     return auth;
   }
 
@@ -71,6 +82,10 @@ export class CookiesMongoDBDynamoDBAuthenticationService
     const userIdStrs = wrapArray(userId).map(objectIdToStr).filter(isDefined);
     const auths = userIdStrs.map((userId) => this.model.get(userId)).filter(isDefined);
     const cookieIds = auths.map((auth) => auth.session.cookieId);
+
+    this.ctx.logger?.debug('removeUser', {
+      userIds: userIdStrs,
+    });
 
     // Update MongoDB (persist in DB)
     await deleteManyByCookieIds({
@@ -88,6 +103,8 @@ export class CookiesMongoDBDynamoDBAuthenticationService
   }
 
   async clearAllUsers(): Promise<void> {
+    this.ctx.logger?.debug('clearAllUsers');
+
     const auths = this.model.values();
     const cookieIds = auths.map((auth) => auth.session.cookieId);
 
@@ -107,16 +124,25 @@ export class CookiesMongoDBDynamoDBAuthenticationService
   async isAuthenticated(userId?: string | ObjectId): Promise<boolean> {
     const userIdStr = userId ? objectIdToStr(userId) : this.findFirstSessionsUserId();
     if (!userIdStr) {
+      this.ctx.logger?.debug('isAuthenticated:false:noUserId', {
+        userId: userIdStr,
+      });
       return false;
     }
 
     const auth = this.model.get(userIdStr);
     if (auth) {
+      this.ctx.logger?.debug('isAuthenticated:true:cached', {
+        userId: userIdStr,
+      });
       return true;
     }
 
     const cookieId = this.ctx.sessionsCookie?.get(userIdStr);
     if (!cookieId) {
+      this.ctx.logger?.debug('isAuthenticated:false:noCookieId', {
+        userId: userIdStr,
+      });
       return false;
     }
 
@@ -131,9 +157,16 @@ export class CookiesMongoDBDynamoDBAuthenticationService
       // Update Local state (persist in memory)
       this.model.set(userIdStr, auth);
 
+      this.ctx.logger?.debug('isAuthenticated:true:refreshSession', {
+        userId: userIdStr,
+      });
       return true;
     } catch (err) {
       if (err instanceof UnauthenticatedServiceError) {
+        this.ctx.logger?.debug('isAuthenticated:false', {
+          userId: userIdStr,
+          err,
+        });
         return false;
       } else {
         throw err;
@@ -144,6 +177,7 @@ export class CookiesMongoDBDynamoDBAuthenticationService
   async assertAuthenticated(userId?: string | ObjectId): Promise<AuthenticatedContext> {
     const userIdStr = userId ? objectIdToStr(userId) : this.findFirstSessionsUserId();
     if (!userIdStr) {
+      this.ctx.logger?.debug('assertAuthenticated:false:noUserId');
       throw new UnauthenticatedServiceError(AuthenticationFailedReason.USER_UNDEFINED);
     }
     let auth = this.model.get(userIdStr);
@@ -151,6 +185,7 @@ export class CookiesMongoDBDynamoDBAuthenticationService
     if (!auth) {
       const cookieId = this.ctx.sessionsCookie?.get(userIdStr);
       if (!cookieId) {
+        this.ctx.logger?.debug('assertAuthenticated:false:noCookieId');
         throw new UnauthenticatedServiceError(AuthenticationFailedReason.USER_NO_SESSION);
       }
 
@@ -165,6 +200,10 @@ export class CookiesMongoDBDynamoDBAuthenticationService
       // Update Local state (persist in memory)
       this.model.set(userIdStr, auth);
     }
+
+    this.ctx.logger?.debug('assertAuthenticated:true', {
+      userId: userIdStr,
+    });
 
     return auth;
   }

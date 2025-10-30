@@ -44,6 +44,8 @@ export function createApolloHttpHandlerDefaultParams(
   const name = 'apollo-http-handler';
   const logger = options?.override?.logger ?? createLogger(name);
 
+  const authLogger = logger.extend('auth');
+
   let mongoDB: Awaited<ReturnType<typeof createDefaultMongoDBContext>> | undefined;
 
   return {
@@ -129,6 +131,7 @@ export function createApolloHttpHandlerDefaultParams(
           mongoDB: mongoDBContext,
           sessionsCookie: currentRequestSessionsCookie,
           options: apiOptions,
+          logger: authLogger,
         },
         currentRequestAuthModel
       );
@@ -173,15 +176,21 @@ export function createApolloHttpHandlerDefaultParams(
           await Promise.allSettled(ongoingPromises);
 
           await Promise.allSettled(
-            connectionsAuthCache.changedCustomDatas.map(({ connectionId, customData }) =>
-              context.models.connections.update(
-                {
-                  id: connectionId,
-                },
-                {
-                  customData: serializeConnectionCustomData(customData),
-                }
-              )
+            connectionsAuthCache.changedCustomDatas.map(
+              async ({ connectionId, customData }) => {
+                await context.models.connections.update(
+                  {
+                    id: connectionId,
+                  },
+                  {
+                    customData: serializeConnectionCustomData(customData),
+                  }
+                );
+                logger.debug('connectionUpdatedCustomData', {
+                  connectionId,
+                  customData,
+                });
+              }
             )
           );
         },
