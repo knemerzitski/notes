@@ -22,6 +22,8 @@ export const TopRightUsersInfoPopoverButton = forwardRef<
   HTMLButtonElement,
   Parameters<typeof UsersInfoPopoverButton>[0]
 >(function TopRightUsersInfoPopoverButton(props, ref) {
+  const IS_DEMO_ENABLED = isDemoEnabled();
+
   const isMobile = useIsMobile();
 
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -30,7 +32,7 @@ export const TopRightUsersInfoPopoverButton = forwardRef<
     'demoHintSeen',
     false
   );
-  const showDemoHint = !demoHintSeen;
+  const showDemoHint = IS_DEMO_ENABLED && !demoHintSeen;
 
   function handleClickDemoHintSeen() {
     setDemoHintSeen(true);
@@ -38,7 +40,7 @@ export const TopRightUsersInfoPopoverButton = forwardRef<
 
   return (
     <>
-      {isDemoEnabled() && anchorEl !== null && (
+      {IS_DEMO_ENABLED && anchorEl !== null && (
         <DemoHint
           open={showDemoHint}
           anchorEl={anchorEl}
