@@ -180,7 +180,8 @@ export function useCollabHtmlInput(
     });
     input.setSelectionRange(
       forceSelectionRef.current.start,
-      forceSelectionRef.current.end
+      forceSelectionRef.current.end,
+      input.selectionDirection ?? 'none'
     );
     forceSelectionRef.current = null;
   }, [renderCounter, logger]);
