@@ -269,7 +269,7 @@ async function _queryableUserBatchLoadSeparatePerId(
                   ...('userId' in firstId
                     ? { _id: firstId.userId }
                     : 'demoId' in firstId
-                      ? { 'demoId': firstId.demoId }
+                      ? { demoId: firstId.demoId }
                       : {
                           'thirdParty.google.id': firstId.googleUserId,
                         }),

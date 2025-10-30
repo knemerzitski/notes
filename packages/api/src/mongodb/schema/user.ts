@@ -78,7 +78,7 @@ export const userDescription: CollectionDescription = {
     },
     {
       key: {
-        'demoId': 1,
+        demoId: 1,
       },
       unique: true,
       sparse: true,

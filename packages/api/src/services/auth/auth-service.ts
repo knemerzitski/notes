@@ -2,6 +2,7 @@ import { ObjectId } from 'mongodb';
 
 import { AuthenticationFailedReason } from '../../../../api-app-shared/src/graphql/error-codes';
 import { wrapArray } from '../../../../utils/src/array/wrap-array';
+import { Logger } from '../../../../utils/src/logging';
 import { isDefined } from '../../../../utils/src/type-guards/is-defined';
 
 import { AuthenticatedContextsModel } from '../../models/auth/authenticated-contexts';
@@ -19,7 +20,6 @@ import { UnauthenticatedServiceError } from './errors';
 import { findRefreshSessionByCookieId } from './find-refresh-session-by-cookie-id';
 
 import { AuthenticatedContext, AuthenticationService } from './types';
-import { Logger } from '../../../../utils/src/logging';
 
 /**
  * Authentication service based on request cookie headers.
