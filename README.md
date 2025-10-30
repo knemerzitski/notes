@@ -35,8 +35,9 @@ A modern, single-page note-taking app with real-time collaborative editing, buil
 **Development:**
 
 1. Install dependencies: `npm install`
-2. Start development mode: `npm run dev`
-3. Open [http://localhost:5173](http://localhost:5173) in your browser
+2. Generate GraphQL code: `graphql:gen`
+3. Start development mode: `npm run dev`
+4. Open [http://localhost:5173](http://localhost:5173) in your browser
 
 ## Motivation
 

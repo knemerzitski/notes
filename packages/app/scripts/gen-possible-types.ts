@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { execSync } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 import dotenv from 'dotenv';
@@ -40,6 +40,11 @@ async function generatePossibleTypes({
   outPath: string;
 }) {
   console.log(`Fetching possible types from "${fetchUrl}"`);
+
+  if (!existsSync(join(__dirname, '../../api-dev-server/out/server/index.mjs'))) {
+    console.log('Building GraphQL server');
+    execSync(`npm run -w dev-server build:server`);
+  }
 
   const port = new URL(fetchUrl).port;
 
