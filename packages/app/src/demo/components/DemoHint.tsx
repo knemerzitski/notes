@@ -24,9 +24,9 @@ export function DemoHint({
         <Fade {...TransitionProps} timeout={theme.transitions.duration.short}>
           <PaperStyled>
             <Typography>
-              See real-time collaboration in action
+              See real-time collaboration in action.
               <br />
-              One-click demo accounts available
+              One-click demo accounts available.
             </Typography>
             <ButtonStyled variant="text" color="secondary" onClick={onDismiss}>
               Got it

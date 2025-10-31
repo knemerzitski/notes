@@ -25,7 +25,7 @@
     "lint": "npm run type-check && npm run eslint",
     "cdk": "NODE_ENV=production cdk",
     "synth": "NODE_ENV=production cdk synth -o cdk.out/app",
-    "deploy": "NODE_ENV=production cdk deploy -o cdk.out/app"
+    "deploy": "export NODE_ENV=production; ./scripts/manage_atlas_secret create && { cdk deploy -o cdk.out/app; OK=$?; ./scripts/manage_atlas_secret delete; CL=$?; exit $(( OK != 0 ? OK : CL )); }"
   },
   "dependencies": {
     "@types/node": "^20.12.7",

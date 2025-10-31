@@ -31,3 +31,6 @@ dist-ssr
 
 *.tsbuildinfo
 *.tsc.tsbuildinfo
+
+# Secrets
+mongo-atlas-api-key.json
